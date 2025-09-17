@@ -5,8 +5,7 @@ from django.contrib import messages
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
 from django.db.models import Q
 from django.utils import timezone
-from django.http import Http404
-from .forms import CustomLoginForm, PostulacionForm, FormacionAcademicaForm, CursoEspecializacionForm, ExperienciaLaboralForm, PersonaCreateForm
+from .forms import CustomLoginForm, FormacionAcademicaForm, CursoEspecializacionForm, ExperienciaLaboralForm
 from .models import Persona, Cargo, Area, Convocatoria, Postulacion, FormacionAcademica, CursoEspecializacion, ExperienciaLaboral, CV, Colaborador
 
 # Create your views here.
@@ -157,10 +156,26 @@ class PersonaCreateView(CreateView):
     ]
     success_url = reverse_lazy('master:personas')
 
+    def get(self, request, *args, **kwargs):
+        """Mostrar formulario de creación"""
+        # Si es petición AJAX, devolver solo el contenido del modal
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            from django.template.loader import render_to_string
+            context = self.get_context_data()
+            html = render_to_string(self.template_name, context, request=request)
+            from django.http import HttpResponse
+            return HttpResponse(html)
+        
+        # Para peticiones normales, usar el comportamiento por defecto
+        return super().get(request, *args, **kwargs)
+
     def form_valid(self, form):
         """
         Procesar formulario válido
         """
+        # Guardar el objeto
+        self.object = form.save()
+        
         # Si es petición AJAX, devolver respuesta JSON
         if self.request.headers.get('X-Requested-With') == 'XMLHttpRequest':
             from django.http import JsonResponse
@@ -190,6 +205,19 @@ class PersonaDetailView(DetailView):
     template_name = 'master/persona_detail.html'
     context_object_name = 'persona'
     pk_url_kwarg = 'id'
+    
+    def get(self, request, *args, **kwargs):
+        """Mostrar detalles de la persona"""
+        # Si es petición AJAX, devolver solo el contenido del modal
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            from django.template.loader import render_to_string
+            context = self.get_context_data()
+            html = render_to_string(self.template_name, context, request=request)
+            from django.http import HttpResponse
+            return HttpResponse(html)
+        
+        # Para peticiones normales, usar el comportamiento por defecto
+        return super().get(request, *args, **kwargs)
     
     def get_context_data(self, **kwargs):
         """
@@ -231,10 +259,26 @@ class PersonaUpdateView(UpdateView):
     ]
     success_url = reverse_lazy('master:personas')
     
+    def get(self, request, *args, **kwargs):
+        """Mostrar formulario de edición"""
+        # Si es petición AJAX, devolver solo el contenido del modal
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            from django.template.loader import render_to_string
+            context = self.get_context_data()
+            html = render_to_string(self.template_name, context, request=request)
+            from django.http import HttpResponse
+            return HttpResponse(html)
+        
+        # Para peticiones normales, usar el comportamiento por defecto
+        return super().get(request, *args, **kwargs)
+    
     def form_valid(self, form):
         """
         Procesar formulario válido
         """
+        # Guardar el objeto
+        self.object = form.save()
+        
         # Si es petición AJAX, devolver respuesta JSON
         if self.request.headers.get('X-Requested-With') == 'XMLHttpRequest':
             from django.http import JsonResponse
@@ -266,6 +310,19 @@ class PersonaDeleteView(DeleteView):
     pk_url_kwarg = 'id'
     success_url = reverse_lazy('master:personas')
     
+    def get(self, request, *args, **kwargs):
+        """Mostrar confirmación de eliminación"""
+        # Si es petición AJAX, devolver solo el contenido del modal
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            from django.template.loader import render_to_string
+            context = self.get_context_data()
+            html = render_to_string(self.template_name, context, request=request)
+            from django.http import HttpResponse
+            return HttpResponse(html)
+        
+        # Para peticiones normales, usar el comportamiento por defecto
+        return super().get(request, *args, **kwargs)
+    
     def get_context_data(self, **kwargs):
         """
         Agregar datos adicionales al contexto
@@ -279,6 +336,23 @@ class PersonaDeleteView(DeleteView):
         context['es_colaborador'] = hasattr(persona, 'colaborador')
         
         return context
+    
+    def delete(self, request, *args, **kwargs):
+        """Manejar eliminación con soporte para AJAX"""
+        persona = self.get_object()
+        persona_nombre = persona.nombre_completo
+        
+        # Eliminar el objeto
+        persona.delete()
+        
+        # Si es petición AJAX, devolver respuesta JSON
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            from django.http import JsonResponse
+            return JsonResponse({'success': True, 'message': 'Persona eliminada correctamente'})
+        
+        # Redirigir a la lista de personas
+        from django.http import HttpResponseRedirect
+        return HttpResponseRedirect(self.success_url)
 
 
 class ConvocatoriasListView(ListView):
@@ -576,162 +650,6 @@ class ConvocatoriaDeleteView(DeleteView):
             messages.success(request, f'Convocatoria "{titulo}" eliminada correctamente.')
         
         # Redirigir a la lista de convocatorias
-        from django.http import HttpResponseRedirect
-        return HttpResponseRedirect(self.success_url)
-
-
-class PersonaCreateView(CreateView):
-    """
-    Vista basada en clases para crear una nueva persona
-    """
-    model = Postulacion
-    form_class = PersonaCreateForm
-    template_name = 'master/aspirante_create.html'
-    success_url = reverse_lazy('master:aspirantes')
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['convocatorias'] = Convocatoria.objects.filter(activo=True).order_by('-fecha_creacion')
-        return context
-
-    def form_valid(self, form):
-        """
-        Procesar formulario válido
-        """
-        # Si es petición AJAX, devolver respuesta JSON
-        if self.request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-            from django.http import JsonResponse
-            return JsonResponse({'success': True, 'message': 'Persona creada correctamente'})
-
-        # Para peticiones normales, usar el comportamiento por defecto
-        return super().form_valid(form)
-
-    def form_invalid(self, form):
-        """
-        Procesar formulario inválido
-        """
-        # Si es petición AJAX, devolver errores en JSON
-        if self.request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-            from django.http import JsonResponse
-            return JsonResponse({'success': False, 'errors': form.errors})
-
-        # Para peticiones normales, usar el comportamiento por defecto
-        return super().form_invalid(form)
-
-
-class PersonaDetailView(DetailView):
-    """
-    Vista basada en clases para mostrar el detalle completo de una persona
-    """
-    model = Postulacion
-    template_name = 'master/aspirante_detail.html'
-    context_object_name = 'postulacion'
-    pk_url_kwarg = 'id'
-    
-    def get_context_data(self, **kwargs):
-        """
-        Agregar datos adicionales al contexto
-        """
-        context = super().get_context_data(**kwargs)
-        postulacion = self.get_object()
-        
-        # Agregar todas las postulaciones del aspirante
-        try:
-            context['todas_postulaciones'] = Postulacion.objects.filter(
-                aspirante=postulacion.aspirante
-            ).select_related('convocatoria__cargo__area').order_by('-fecha_postulacion')
-        except Exception:
-            context['todas_postulaciones'] = []
-        
-        return context
-
-
-class PersonaUpdateView(UpdateView):
-    """
-    Vista basada en clases para editar una postulación
-    """
-    model = Postulacion
-    form_class = PostulacionForm
-    template_name = 'master/aspirante_edit.html'
-    context_object_name = 'postulacion'
-    pk_url_kwarg = 'id'
-    success_url = reverse_lazy('master:aspirantes')
-    
-    def get_context_data(self, **kwargs):
-        """
-        Agregar datos adicionales al contexto
-        """
-        context = super().get_context_data(**kwargs)
-        
-        # Agregar opciones para los campos de selección
-        try:
-            context['estados_choices'] = Postulacion.ESTADO_POSTULACION_CHOICES
-        except Exception:
-            context['estados_choices'] = []
-        
-        return context
-    
-    def form_valid(self, form):
-        """
-        Procesar formulario válido
-        """
-        response = super().form_valid(form)
-        messages.success(self.request, f'Postulación de "{self.object.aspirante.nombre_completo}" actualizada correctamente.')
-        return response
-    
-    def form_invalid(self, form):
-        """
-        Procesar formulario inválido
-        """
-        messages.error(self.request, 'Por favor, corrija los errores en el formulario.')
-        return super().form_invalid(form)
-
-
-class PersonaDeleteView(DeleteView):
-    """
-    Vista basada en clases para eliminar una postulación
-    """
-    model = Postulacion
-    template_name = 'master/aspirante_confirm_delete.html'
-    context_object_name = 'postulacion'
-    pk_url_kwarg = 'id'
-    success_url = reverse_lazy('master:aspirantes')
-    
-    def get_context_data(self, **kwargs):
-        """
-        Agregar datos adicionales al contexto
-        """
-        context = super().get_context_data(**kwargs)
-        postulacion = self.get_object()
-        
-        # Verificar si el aspirante tiene otras postulaciones
-        try:
-            context['otras_postulaciones'] = Postulacion.objects.filter(
-                aspirante=postulacion.aspirante
-            ).exclude(id=postulacion.id).count()
-        except Exception:
-            context['otras_postulaciones'] = 0
-        
-        return context
-    
-    def delete(self, request, *args, **kwargs):
-        """
-        Procesar eliminación
-        """
-        postulacion = self.get_object()
-        aspirante_nombre = postulacion.aspirante.nombre_completo
-        convocatoria_titulo = postulacion.convocatoria.titulo
-        
-        # Eliminar la postulación
-        postulacion.delete()
-        
-        # Mensaje de confirmación
-        messages.success(
-            request, 
-            f'Postulación de "{aspirante_nombre}" para "{convocatoria_titulo}" eliminada correctamente.'
-        )
-        
-        # Redirigir a la lista de aspirantes
         from django.http import HttpResponseRedirect
         return HttpResponseRedirect(self.success_url)
 

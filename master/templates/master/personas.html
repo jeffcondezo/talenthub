@@ -627,12 +627,12 @@ License: You must have a valid license purchased only from wrapbootstrap.com (li
                                                         </td>
                                                         <td>
                                                             <div class="btn-group" role="group">
-                                                                <a href="{% url 'master:persona_detail' persona.id %}" class="btn btn-info btn-sm" title="Ver detalles">
+                                                                <button class="btn btn-info btn-sm" onclick="verPersona({{ persona.id }})" title="Ver detalles">
                                                                     <i class="fal fa-eye"></i>
-                                                                </a>
-                                                                <a href="{% url 'master:persona_edit' persona.id %}" class="btn btn-warning btn-sm" title="Editar">
+                                                                </button>
+                                                                <button class="btn btn-warning btn-sm" onclick="editarPersona({{ persona.id }})" title="Editar">
                                                                     <i class="fal fa-edit"></i>
-                                                                </a>
+                                                                </button>
                                                                 <button class="btn btn-danger btn-sm" onclick="eliminarPersona({{ persona.id }}, '{{ persona.nombre_completo }}')" title="Eliminar">
                                                                     <i class="fal fa-trash"></i>
                                                                 </button>
@@ -708,6 +708,47 @@ License: You must have a valid license purchased only from wrapbootstrap.com (li
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
                         <button type="button" class="btn btn-primary" id="guardarNuevaPersonaBtn" style="display: none;">Guardar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal para editar persona -->
+        <div class="modal fade" id="editarPersonaModal" tabindex="-1" role="dialog" aria-labelledby="editarPersonaModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="editarPersonaModalLabel">Editar Persona</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body" id="editarPersonaModalBody">
+                        <!-- Contenido cargado dinámicamente -->
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                        <button type="button" class="btn btn-primary" id="actualizarPersonaBtn" style="display: none;">Actualizar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal para ver detalles de persona -->
+        <div class="modal fade" id="verPersonaModal" tabindex="-1" role="dialog" aria-labelledby="verPersonaModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-xl" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="verPersonaModalLabel">Detalles de la Persona</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body" id="verPersonaModalBody">
+                        <!-- Contenido cargado dinámicamente -->
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
                     </div>
                 </div>
             </div>
@@ -822,6 +863,130 @@ License: You must have a valid license purchased only from wrapbootstrap.com (li
                 });
             }
 
+            // Función para ver detalles de persona
+            function verPersona(id) {
+                console.log('Ver persona:', id);
+
+                $('#verPersonaModal').modal('show');
+                $('#verPersonaModalLabel').text('Detalles de la Persona');
+
+                // Mostrar spinner de carga
+                $('#verPersonaModalBody').html(`
+                    <div class="text-center">
+                        <div class="spinner-border text-info" role="status">
+                            <span class="sr-only">Cargando...</span>
+                        </div>
+                        <p class="mt-2">Cargando detalles...</p>
+                    </div>
+                `);
+
+                // Hacer petición AJAX para obtener los detalles
+                $.ajax({
+                    url: `/master/personas/${id}/`,
+                    type: 'GET',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    success: function(data) {
+                        $('#verPersonaModalBody').html(data);
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Error al cargar detalles:', error);
+                        $('#verPersonaModalBody').html(`
+                            <div class="alert alert-danger">
+                                <i class="fal fa-exclamation-triangle mr-2"></i>
+                                Error al cargar los detalles. Por favor, intente nuevamente.
+                            </div>
+                        `);
+                    }
+                });
+            }
+
+            // Función para editar persona
+            function editarPersona(id) {
+                console.log('Editar persona:', id);
+
+                $('#editarPersonaModal').modal('show');
+                $('#editarPersonaModalLabel').text('Editar Persona');
+
+                // Mostrar spinner de carga
+                $('#editarPersonaModalBody').html(`
+                    <div class="text-center">
+                        <div class="spinner-border text-warning" role="status">
+                            <span class="sr-only">Cargando...</span>
+                        </div>
+                        <p class="mt-2">Cargando formulario...</p>
+                    </div>
+                `);
+
+                // Hacer petición AJAX para obtener el formulario
+                $.ajax({
+                    url: `/master/personas/${id}/edit/`,
+                    type: 'GET',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    success: function(data) {
+                        $('#editarPersonaModalBody').html(data);
+
+                        // Aplicar estilos a los campos del formulario
+                        $('#editarPersonaModalBody input, #editarPersonaModalBody select, #editarPersonaModalBody textarea').addClass('form-control');
+
+                        // Configurar envío del formulario
+                        $('#editarPersonaForm').on('submit', function(e) {
+                            e.preventDefault();
+                            actualizarPersona(id);
+                        });
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Error al cargar formulario:', error);
+                        $('#editarPersonaModalBody').html(`
+                            <div class="alert alert-danger">
+                                <i class="fal fa-exclamation-triangle mr-2"></i>
+                                Error al cargar el formulario. Por favor, intente nuevamente.
+                            </div>
+                        `);
+                    }
+                });
+            }
+
+            // Función para actualizar persona
+            function actualizarPersona(id) {
+                const form = $('#editarPersonaForm');
+                const formData = new FormData(form[0]);
+
+                $.ajax({
+                    url: `/master/personas/${id}/edit/`,
+                    type: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    success: function(response) {
+                        $('#editarPersonaModal').modal('hide');
+                        showPersistentToast('Persona actualizada correctamente', 'success');
+                        setTimeout(() => {
+                            location.reload();
+                        }, 1000);
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Error al actualizar persona:', error);
+                        if (xhr.responseJSON && xhr.responseJSON.errors) {
+                            // Mostrar errores de validación
+                            let errorMessage = 'Errores de validación:\n';
+                            for (const field in xhr.responseJSON.errors) {
+                                errorMessage += `• ${field}: ${xhr.responseJSON.errors[field].join(', ')}\n`;
+                            }
+                            showToast(errorMessage, 'error');
+                        } else {
+                            showToast('Error al actualizar la persona', 'error');
+                        }
+                    }
+                });
+            }
+
             // Función para eliminar persona
             function eliminarPersona(id, nombre) {
                 console.log('Eliminar persona:', id, nombre);
@@ -903,6 +1068,66 @@ License: You must have a valid license purchased only from wrapbootstrap.com (li
                     }
                 });
             }
+
+            // Funciones de Toast
+            function showToast(message, type = 'info') {
+                // Crear el toast
+                const toastId = 'toast-' + Date.now();
+                const toastHtml = `
+                    <div id="${toastId}" class="toast" role="alert" aria-live="assertive" aria-atomic="true" data-delay="5000">
+                        <div class="toast-header bg-${type === 'error' ? 'danger' : type} text-white">
+                            <i class="fal fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-triangle' : 'info-circle'} mr-2"></i>
+                            <strong class="mr-auto">${type === 'success' ? 'Éxito' : type === 'error' ? 'Error' : 'Información'}</strong>
+                            <button type="button" class="ml-2 mb-1 close text-white" data-dismiss="toast" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div class="toast-body">
+                            ${message}
+                        </div>
+                    </div>
+                `;
+
+                // Agregar al contenedor de toasts
+                if (!$('#toast-container').length) {
+                    $('body').append('<div id="toast-container" class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 9999;"></div>');
+                }
+                $('#toast-container').append(toastHtml);
+
+                // Mostrar el toast
+                $(`#${toastId}`).toast('show');
+
+                // Remover el toast después de que se oculte
+                $(`#${toastId}`).on('hidden.bs.toast', function() {
+                    $(this).remove();
+                });
+            }
+
+            function showPersistentToast(message, type = 'info') {
+                // Guardar en localStorage para mostrar después del reload
+                const toastData = {
+                    message: message,
+                    type: type,
+                    timestamp: Date.now()
+                };
+                localStorage.setItem('pendingToast', JSON.stringify(toastData));
+                
+                // Mostrar inmediatamente
+                showToast(message, type);
+            }
+
+            // Mostrar toast pendiente al cargar la página
+            $(document).ready(function() {
+                const pendingToast = localStorage.getItem('pendingToast');
+                if (pendingToast) {
+                    const toastData = JSON.parse(pendingToast);
+                    // Solo mostrar si es reciente (menos de 5 segundos)
+                    if (Date.now() - toastData.timestamp < 5000) {
+                        showToast(toastData.message, toastData.type);
+                    }
+                    localStorage.removeItem('pendingToast');
+                }
+            });
         </script>
     </body>
 </html>
