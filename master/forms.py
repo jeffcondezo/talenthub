@@ -1,6 +1,6 @@
 from django import forms
 from django.contrib.auth.forms import AuthenticationForm
-from .models import Postulacion, Convocatoria, FormacionAcademica, CursoEspecializacion, ExperienciaLaboral, Aspirante
+from .models import Postulacion, Convocatoria, FormacionAcademica, CursoEspecializacion, ExperienciaLaboral, Persona, CV
 
 class CustomLoginForm(AuthenticationForm):
     """Formulario personalizado de login"""
@@ -70,7 +70,7 @@ class PostulacionForm(forms.ModelForm):
         model = Postulacion
         fields = [
             'convocatoria', 'estado_postulacion', 'experiencia_anios', 'nivel_educacion',
-            'institucion_educacion', 'cv_archivo', 'observaciones'
+            'institucion_educacion', 'observaciones'
         ]
         widgets = {
             'convocatoria': forms.Select(attrs={'class': 'form-control'}),
@@ -78,7 +78,6 @@ class PostulacionForm(forms.ModelForm):
             'experiencia_anios': forms.NumberInput(attrs={'class': 'form-control', 'min': '0'}),
             'nivel_educacion': forms.TextInput(attrs={'class': 'form-control'}),
             'institucion_educacion': forms.TextInput(attrs={'class': 'form-control'}),
-            'cv_archivo': forms.FileInput(attrs={'class': 'form-control'}),
             'observaciones': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
         }
         labels = {
@@ -87,7 +86,6 @@ class PostulacionForm(forms.ModelForm):
             'experiencia_anios': 'Años de Experiencia',
             'nivel_educacion': 'Nivel de Educación',
             'institucion_educacion': 'Institución de Educación',
-            'cv_archivo': 'Archivo CV',
             'observaciones': 'Observaciones',
         }
     
@@ -97,46 +95,14 @@ class PostulacionForm(forms.ModelForm):
         self.fields['convocatoria'].queryset = Convocatoria.objects.filter(activo=True).select_related('cargo__area')
 
 
-class AspiranteCreateForm(forms.ModelForm):
-    """Formulario para crear un nuevo aspirante con su postulación"""
-    
-    # Campos del aspirante
-    nombre = forms.CharField(
-        max_length=100,
-        widget=forms.TextInput(attrs={'class': 'form-control'}),
-        label='Nombre *'
-    )
-    apellido = forms.CharField(
-        max_length=100,
-        widget=forms.TextInput(attrs={'class': 'form-control'}),
-        label='Apellido *'
-    )
-    numero_documento = forms.CharField(
-        max_length=20,
-        widget=forms.TextInput(attrs={'class': 'form-control'}),
-        label='Número de Documento *'
-    )
-    tipo_documento = forms.ChoiceField(
-        choices=Aspirante.TIPO_DOCUMENTO_CHOICES,
-        widget=forms.Select(attrs={'class': 'form-control'}),
-        label='Tipo de Documento *'
-    )
-    email = forms.EmailField(
-        widget=forms.EmailInput(attrs={'class': 'form-control'}),
-        label='Email *'
-    )
-    telefono = forms.CharField(
-        max_length=20,
-        required=False,
-        widget=forms.TextInput(attrs={'class': 'form-control'}),
-        label='Teléfono'
-    )
+class PersonaCreateForm(forms.ModelForm):
+    """Formulario para crear una nueva persona con su postulación"""
     
     class Meta:
         model = Postulacion
         fields = [
             'convocatoria', 'estado_postulacion', 'experiencia_anios', 'nivel_educacion',
-            'institucion_educacion', 'cv_archivo', 'observaciones'
+            'institucion_educacion', 'observaciones'
         ]
         widgets = {
             'convocatoria': forms.Select(attrs={'class': 'form-control'}),
@@ -144,7 +110,6 @@ class AspiranteCreateForm(forms.ModelForm):
             'experiencia_anios': forms.NumberInput(attrs={'class': 'form-control', 'min': '0'}),
             'nivel_educacion': forms.TextInput(attrs={'class': 'form-control'}),
             'institucion_educacion': forms.TextInput(attrs={'class': 'form-control'}),
-            'cv_archivo': forms.FileInput(attrs={'class': 'form-control'}),
             'observaciones': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
         }
         labels = {
@@ -153,7 +118,6 @@ class AspiranteCreateForm(forms.ModelForm):
             'experiencia_anios': 'Años de Experiencia',
             'nivel_educacion': 'Nivel de Educación',
             'institucion_educacion': 'Institución de Educación',
-            'cv_archivo': 'CV (Archivo)',
             'observaciones': 'Observaciones',
         }
     
@@ -169,32 +133,39 @@ class AspiranteCreateForm(forms.ModelForm):
         numero_documento = cleaned_data.get('numero_documento')
         email = cleaned_data.get('email')
         
-        # Verificar si ya existe un aspirante con el mismo documento
+        # Verificar si ya existe una persona con el mismo documento
         if numero_documento:
-            if Aspirante.objects.filter(numero_documento=numero_documento).exists():
-                raise forms.ValidationError("Ya existe un aspirante con este número de documento.")
+            if Persona.objects.filter(numero_documento=numero_documento).exists():
+                raise forms.ValidationError("Ya existe una persona con este número de documento.")
         
-        # Verificar si ya existe un aspirante con el mismo email
+        # Verificar si ya existe una persona con el mismo email
         if email:
-            if Aspirante.objects.filter(email=email).exists():
-                raise forms.ValidationError("Ya existe un aspirante con este email.")
+            if Persona.objects.filter(email=email).exists():
+                raise forms.ValidationError("Ya existe una persona con este email.")
         
         return cleaned_data
     
     def save(self, commit=True):
-        # Crear el aspirante primero
-        aspirante = Aspirante.objects.create(
-            nombre=self.cleaned_data['nombre'],
-            apellido=self.cleaned_data['apellido'],
+        # Crear la persona primero
+        persona = Persona.objects.create(
+            nombres=self.cleaned_data['nombres'],
+            apellido_paterno=self.cleaned_data['apellido_paterno'],
+            apellido_materno=self.cleaned_data['apellido_materno'],
             numero_documento=self.cleaned_data['numero_documento'],
             tipo_documento=self.cleaned_data['tipo_documento'],
             email=self.cleaned_data['email'],
-            telefono=self.cleaned_data.get('telefono', '')
+            celular=self.cleaned_data.get('celular', ''),
+            fecha_nacimiento=self.cleaned_data['fecha_nacimiento'],
+            sexo=self.cleaned_data['sexo'],
+            estado_civil=self.cleaned_data['estado_civil']
         )
+        
+        # Crear el CV para la persona
+        cv = CV.objects.create(persona=persona)
         
         # Crear la postulación
         postulacion = super().save(commit=False)
-        postulacion.aspirante = aspirante
+        postulacion.persona = persona
         if commit:
             postulacion.save()
         return postulacion
@@ -208,7 +179,7 @@ class FormacionAcademicaForm(forms.ModelForm):
         fields = [
             'grado', 'especialidad', 'centro_estudio', 'ciudad', 'pais',
             'fecha_expedicion', 'fecha_inicio', 'fecha_fin', 'promedio', 'observaciones',
-            'aspirante', 'colaborador'
+            'cv'
         ]
         widgets = {
             'grado': forms.Select(attrs={'class': 'form-control'}),
@@ -221,8 +192,7 @@ class FormacionAcademicaForm(forms.ModelForm):
             'fecha_fin': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
             'promedio': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': '0', 'max': '20'}),
             'observaciones': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
-            'aspirante': forms.HiddenInput(),
-            'colaborador': forms.HiddenInput(),
+            'cv': forms.HiddenInput(),
         }
         labels = {
             'grado': 'Grado',
@@ -236,19 +206,6 @@ class FormacionAcademicaForm(forms.ModelForm):
             'promedio': 'Promedio',
             'observaciones': 'Observaciones',
         }
-    
-    def clean(self):
-        cleaned_data = super().clean()
-        aspirante = cleaned_data.get('aspirante')
-        colaborador = cleaned_data.get('colaborador')
-        
-        if not aspirante and not colaborador:
-            raise forms.ValidationError("Debe especificar un aspirante o colaborador.")
-        
-        if aspirante and colaborador:
-            raise forms.ValidationError("No puede especificar tanto un aspirante como un colaborador.")
-        
-        return cleaned_data
 
 
 class CursoEspecializacionForm(forms.ModelForm):
@@ -259,7 +216,7 @@ class CursoEspecializacionForm(forms.ModelForm):
         fields = [
             'tipo_estudio', 'descripcion', 'institucion', 'pais', 'ciudad',
             'fecha_inicio', 'fecha_fin', 'horas_lectivas', 'nivel', 'certificado', 'observaciones',
-            'aspirante', 'colaborador'
+            'cv'
         ]
         widgets = {
             'tipo_estudio': forms.Select(attrs={'class': 'form-control'}),
@@ -273,8 +230,7 @@ class CursoEspecializacionForm(forms.ModelForm):
             'nivel': forms.Select(attrs={'class': 'form-control'}),
             'certificado': forms.FileInput(attrs={'class': 'form-control'}),
             'observaciones': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
-            'aspirante': forms.HiddenInput(),
-            'colaborador': forms.HiddenInput(),
+            'cv': forms.HiddenInput(),
         }
         labels = {
             'tipo_estudio': 'Tipo de Estudio',
@@ -289,19 +245,6 @@ class CursoEspecializacionForm(forms.ModelForm):
             'certificado': 'Certificado',
             'observaciones': 'Observaciones',
         }
-    
-    def clean(self):
-        cleaned_data = super().clean()
-        aspirante = cleaned_data.get('aspirante')
-        colaborador = cleaned_data.get('colaborador')
-        
-        if not aspirante and not colaborador:
-            raise forms.ValidationError("Debe especificar un aspirante o colaborador.")
-        
-        if aspirante and colaborador:
-            raise forms.ValidationError("No puede especificar tanto un aspirante como un colaborador.")
-        
-        return cleaned_data
 
 
 class ExperienciaLaboralForm(forms.ModelForm):
@@ -313,7 +256,7 @@ class ExperienciaLaboralForm(forms.ModelForm):
             'tipo_experiencia', 'tipo_entidad', 'nombre_entidad', 'cargo',
             'fecha_inicio', 'fecha_fin', 'salario', 'motivo_salida', 'logros',
             'responsabilidades', 'supervisor', 'telefono_referencia', 'observaciones',
-            'aspirante', 'colaborador'
+            'cv'
         ]
         widgets = {
             'tipo_experiencia': forms.Select(attrs={'class': 'form-control'}),
@@ -329,8 +272,7 @@ class ExperienciaLaboralForm(forms.ModelForm):
             'supervisor': forms.TextInput(attrs={'class': 'form-control'}),
             'telefono_referencia': forms.TextInput(attrs={'class': 'form-control'}),
             'observaciones': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
-            'aspirante': forms.HiddenInput(),
-            'colaborador': forms.HiddenInput(),
+            'cv': forms.HiddenInput(),
         }
         labels = {
             'tipo_experiencia': 'Tipo de Experiencia',
@@ -347,16 +289,3 @@ class ExperienciaLaboralForm(forms.ModelForm):
             'telefono_referencia': 'Teléfono de Referencia',
             'observaciones': 'Observaciones',
         }
-    
-    def clean(self):
-        cleaned_data = super().clean()
-        aspirante = cleaned_data.get('aspirante')
-        colaborador = cleaned_data.get('colaborador')
-        
-        if not aspirante and not colaborador:
-            raise forms.ValidationError("Debe especificar un aspirante o colaborador.")
-        
-        if aspirante and colaborador:
-            raise forms.ValidationError("No puede especificar tanto un aspirante como un colaborador.")
-        
-        return cleaned_data

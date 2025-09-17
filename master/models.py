@@ -5,8 +5,8 @@ from django.utils import timezone
 
 class Persona(models.Model):
     """
-    Modelo base abstracto para el registro de personas
-    Contiene todos los datos básicos comunes entre aspirantes y colaboradores
+    Modelo para el registro de personas
+    Contiene todos los datos básicos de cualquier persona en el sistema
     """
     
     # Opciones para campos de selección
@@ -144,7 +144,14 @@ class Persona(models.Model):
     )
     
     class Meta:
-        abstract = True  # Modelo abstracto - no se crea tabla en BD
+        verbose_name = 'Persona'
+        verbose_name_plural = 'Personas'
+        ordering = ['apellido_paterno', 'apellido_materno', 'nombres']
+        indexes = [
+            models.Index(fields=['numero_documento']),
+            models.Index(fields=['email']),
+            models.Index(fields=['fecha_creacion']),
+        ]
     
     def __str__(self):
         return f"{self.apellido_paterno} {self.apellido_materno}, {self.nombres}"
@@ -470,10 +477,147 @@ class Convocatoria(models.Model):
         super().save(*args, **kwargs)
 
 
+class CV(models.Model):
+    """
+    Modelo para el currículum vitae de una persona
+    Cada persona tiene un CV actual que contiene su información profesional
+    """
+    
+    # Relación con Persona
+    persona = models.OneToOneField(
+        Persona,
+        on_delete=models.CASCADE,
+        related_name='cv',
+        verbose_name='Persona',
+        null=True,
+        blank=True
+    )
+    
+    # Información profesional general
+    resumen_profesional = models.TextField(
+        blank=True,
+        null=True,
+        verbose_name='Resumen Profesional'
+    )
+    
+    objetivo_profesional = models.TextField(
+        blank=True,
+        null=True,
+        verbose_name='Objetivo Profesional'
+    )
+    
+    # Información de contacto profesional
+    telefono_profesional = models.CharField(
+        max_length=15,
+        blank=True,
+        null=True,
+        validators=[
+            RegexValidator(
+                regex=r'^[0-9+\-\s()]{7,15}$',
+                message='Formato de teléfono inválido'
+            )
+        ],
+        verbose_name='Teléfono Profesional'
+    )
+    
+    email_profesional = models.EmailField(
+        max_length=254,
+        blank=True,
+        null=True,
+        verbose_name='Email Profesional'
+    )
+    
+    linkedin = models.URLField(
+        blank=True,
+        null=True,
+        verbose_name='LinkedIn'
+    )
+    
+    portfolio = models.URLField(
+        blank=True,
+        null=True,
+        verbose_name='Portfolio/Website'
+    )
+    
+    # Archivos
+    cv_archivo = models.FileField(
+        upload_to='cvs/',
+        blank=True,
+        null=True,
+        verbose_name='Archivo CV'
+    )
+    
+    foto_perfil = models.ImageField(
+        upload_to='fotos_perfil/',
+        blank=True,
+        null=True,
+        verbose_name='Foto de Perfil'
+    )
+    
+    # Metadatos
+    fecha_creacion = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name='Fecha de Creación'
+    )
+    
+    fecha_actualizacion = models.DateTimeField(
+        auto_now=True,
+        verbose_name='Fecha de Actualización'
+    )
+    
+    class Meta:
+        verbose_name = 'CV'
+        verbose_name_plural = 'CVs'
+        ordering = ['-fecha_actualizacion']
+        indexes = [
+            models.Index(fields=['persona']),
+            models.Index(fields=['fecha_actualizacion']),
+        ]
+    
+    def __str__(self):
+        return f"CV de {self.persona.nombre_completo}"
+    
+    @property
+    def tiene_formacion_academica(self):
+        """Verifica si tiene formación académica registrada"""
+        return self.formaciones_academicas.exists()
+    
+    @property
+    def tiene_cursos_especializacion(self):
+        """Verifica si tiene cursos de especialización registrados"""
+        return self.cursos_especializacion.exists()
+    
+    @property
+    def tiene_experiencia_laboral(self):
+        """Verifica si tiene experiencia laboral registrada"""
+        return self.experiencias_laborales.exists()
+    
+    @property
+    def nivel_educacion_mas_alto(self):
+        """Obtiene el nivel de educación más alto"""
+        formaciones = self.formaciones_academicas.all()
+        if formaciones:
+            # Ordenar por importancia del grado
+            orden_grados = {
+                'DOCTOR': 10,
+                'MAESTRO': 9,
+                'POSTGRADO': 8,
+                'DIPLOMADO': 7,
+                'INGENIERO': 6,
+                'LICENCIADO': 5,
+                'TECNICO_SUPERIOR': 4,
+                'TECNICO': 3,
+                'CERTIFICACION': 2,
+                'BACHILLER': 1,
+            }
+            return max(formaciones, key=lambda x: orden_grados.get(x.grado, 0))
+        return None
+
+
 class Postulacion(models.Model):
     """
-    Modelo intermedio para manejar la relación entre Aspirante y Convocatoria
-    Permite que un aspirante postule a múltiples convocatorias
+    Modelo intermedio para manejar la relación entre Persona y Convocatoria
+    Permite que una persona postule a múltiples convocatorias
     """
     
     ESTADO_POSTULACION_CHOICES = [
@@ -487,11 +631,13 @@ class Postulacion(models.Model):
     ]
     
     # Relaciones principales
-    aspirante = models.ForeignKey(
-        'Aspirante',
+    persona = models.ForeignKey(
+        Persona,
         on_delete=models.CASCADE,
         related_name='postulaciones',
-        verbose_name='Aspirante'
+        verbose_name='Persona',
+        null=True,
+        blank=True
     )
     
     convocatoria = models.ForeignKey(
@@ -534,13 +680,6 @@ class Postulacion(models.Model):
         verbose_name='Institución de Educación'
     )
     
-    cv_archivo = models.FileField(
-        upload_to='cvs/',
-        blank=True,
-        null=True,
-        verbose_name='Archivo CV'
-    )
-    
     observaciones = models.TextField(
         blank=True,
         null=True,
@@ -562,34 +701,39 @@ class Postulacion(models.Model):
         verbose_name = 'Postulación'
         verbose_name_plural = 'Postulaciones'
         ordering = ['-fecha_postulacion']
-        unique_together = ['aspirante', 'convocatoria']  # Un aspirante no puede postular dos veces a la misma convocatoria
+        unique_together = ['persona', 'convocatoria']  # Una persona no puede postular dos veces a la misma convocatoria
         indexes = [
             models.Index(fields=['estado_postulacion']),
             models.Index(fields=['fecha_postulacion']),
-            models.Index(fields=['aspirante', 'convocatoria']),
+            models.Index(fields=['persona', 'convocatoria']),
         ]
     
     def __str__(self):
-        return f"{self.aspirante.nombre_completo} - {self.convocatoria.titulo}"
+        return f"{self.persona.nombre_completo} - {self.convocatoria.titulo}"
     
     @property
     def cargo_postulado(self):
         """Acceso al cargo a través de la convocatoria"""
         return self.convocatoria.cargo
     
+    @property
+    def cv_persona(self):
+        """Acceso al CV de la persona"""
+        return self.persona.cv
+    
     def clean(self):
         """Validaciones del modelo"""
         from django.core.exceptions import ValidationError
         
-        # Verificar que el aspirante no haya postulado antes a la misma convocatoria
+        # Verificar que la persona no haya postulado antes a la misma convocatoria
         if self.pk is None:  # Solo para nuevas postulaciones
             existing = Postulacion.objects.filter(
-                aspirante=self.aspirante,
+                persona=self.persona,
                 convocatoria=self.convocatoria
             ).exists()
             if existing:
                 raise ValidationError({
-                    'convocatoria': 'Este aspirante ya ha postulado a esta convocatoria.'
+                    'convocatoria': 'Esta persona ya ha postulado a esta convocatoria.'
                 })
     
     def save(self, *args, **kwargs):
@@ -597,53 +741,10 @@ class Postulacion(models.Model):
         super().save(*args, **kwargs)
 
 
-class Aspirante(Persona):
-    """
-    Modelo para personas que pueden postular a cargos en la empresa
-    Hereda todos los campos de Persona
-    Las postulaciones específicas se manejan a través del modelo Postulacion
-    """
-    
-    # Información adicional específica del aspirante
-    fecha_registro = models.DateTimeField(
-        default=timezone.now,
-        verbose_name='Fecha de Registro'
-    )
-    
-    activo = models.BooleanField(
-        default=True,
-        verbose_name='Activo'
-    )
-    
-    class Meta:
-        verbose_name = 'Aspirante'
-        verbose_name_plural = 'Aspirantes'
-        ordering = ['apellido_paterno', 'apellido_materno', 'nombres']
-        indexes = [
-            models.Index(fields=['activo']),
-            models.Index(fields=['fecha_registro']),
-        ]
-    
-    def __str__(self):
-        return f"{self.nombre_completo}"
-    
-    @property
-    def postulaciones_activas(self):
-        """Obtiene las postulaciones activas del aspirante"""
-        return self.postulaciones.filter(
-            estado_postulacion__in=['POSTULADO', 'EN_REVISION', 'ENTREVISTA', 'EVALUACION']
-        )
-    
-    @property
-    def ultima_postulacion(self):
-        """Obtiene la última postulación del aspirante"""
-        return self.postulaciones.first()
-
-
-class Colaborador(Persona):
+class Colaborador(models.Model):
     """
     Modelo para personas que trabajan en la empresa
-    Hereda todos los campos de Persona
+    Se relaciona con Persona a través de una relación OneToOne
     """
     
     ESTADO_LABORAL_CHOICES = [
@@ -663,6 +764,16 @@ class Colaborador(Persona):
         ('PRACTICANTE', 'Practicante'),
         ('CONSULTOR', 'Consultor'),
     ]
+    
+    # Relación con Persona
+    persona = models.OneToOneField(
+        Persona,
+        on_delete=models.CASCADE,
+        related_name='colaborador',
+        verbose_name='Persona',
+        null=True,
+        blank=True
+    )
     
     # Información laboral específica
     cargo = models.ForeignKey(
@@ -735,10 +846,21 @@ class Colaborador(Persona):
         verbose_name='Notas Laborales'
     )
     
+    # Metadatos
+    fecha_creacion = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name='Fecha de Creación'
+    )
+    
+    fecha_actualizacion = models.DateTimeField(
+        auto_now=True,
+        verbose_name='Fecha de Actualización'
+    )
+    
     class Meta:
         verbose_name = 'Colaborador'
         verbose_name_plural = 'Colaboradores'
-        ordering = ['-fecha_ingreso', 'apellido_paterno', 'apellido_materno']
+        ordering = ['-fecha_ingreso']
         indexes = [
             models.Index(fields=['estado_laboral']),
             models.Index(fields=['fecha_ingreso']),
@@ -747,7 +869,12 @@ class Colaborador(Persona):
         ]
     
     def __str__(self):
-        return f"{self.nombre_completo} - {self.cargo.nombre}"
+        return f"{self.persona.nombre_completo} - {self.cargo.nombre}"
+    
+    @property
+    def nombre_completo(self):
+        """Acceso al nombre completo a través de la persona"""
+        return self.persona.nombre_completo
     
     @property
     def antiguedad_anios(self):
@@ -762,8 +889,6 @@ class Colaborador(Persona):
     def clean(self):
         """Validaciones personalizadas del modelo"""
         from django.core.exceptions import ValidationError
-        
-        super().clean()  # Llamar validaciones de Persona
         
         # Validar que la fecha de ingreso no sea futura
         if self.fecha_ingreso and self.fecha_ingreso > timezone.now().date():
@@ -782,6 +907,10 @@ class Colaborador(Persona):
             raise ValidationError({
                 'supervisor': 'Una persona no puede ser su propio supervisor.'
             })
+    
+    def save(self, *args, **kwargs):
+        self.clean()
+        super().save(*args, **kwargs)
 
 
 # =============================================================================
@@ -790,7 +919,7 @@ class Colaborador(Persona):
 
 class FormacionAcademica(models.Model):
     """
-    Modelo para la formación académica de aspirantes y colaboradores
+    Modelo para la formación académica del CV de una persona
     """
     
     GRADO_CHOICES = [
@@ -806,23 +935,14 @@ class FormacionAcademica(models.Model):
         ('CERTIFICACION', 'Certificación'),
     ]
     
-    # Relaciones - puede pertenecer a un aspirante o colaborador
-    aspirante = models.ForeignKey(
-        Aspirante,
+    # Relación con CV
+    cv = models.ForeignKey(
+        CV,
         on_delete=models.CASCADE,
         related_name='formaciones_academicas',
-        blank=True,
+        verbose_name='CV',
         null=True,
-        verbose_name='Aspirante'
-    )
-    
-    colaborador = models.ForeignKey(
-        Colaborador,
-        on_delete=models.CASCADE,
-        related_name='formaciones_academicas',
-        blank=True,
-        null=True,
-        verbose_name='Colaborador'
+        blank=True
     )
     
     # Información académica
@@ -896,29 +1016,16 @@ class FormacionAcademica(models.Model):
         verbose_name_plural = 'Formaciones Académicas'
         ordering = ['-fecha_expedicion']
         indexes = [
-            models.Index(fields=['aspirante']),
-            models.Index(fields=['colaborador']),
+            models.Index(fields=['cv']),
             models.Index(fields=['grado']),
         ]
     
     def __str__(self):
-        persona = self.aspirante if self.aspirante else self.colaborador
-        return f"{persona.nombre_completo} - {self.grado} en {self.especialidad}"
+        return f"{self.cv.persona.nombre_completo} - {self.grado} en {self.especialidad}"
     
     def clean(self):
         """Validaciones del modelo"""
         from django.core.exceptions import ValidationError
-        
-        # Verificar que tenga al menos un aspirante o colaborador
-        if not self.aspirante and not self.colaborador:
-            raise ValidationError({
-                'aspirante': 'Debe especificar un aspirante o colaborador.'
-            })
-        
-        if self.aspirante and self.colaborador:
-            raise ValidationError({
-                'aspirante': 'No puede especificar tanto un aspirante como un colaborador.'
-            })
         
         # Validar fechas
         if self.fecha_fin <= self.fecha_inicio:
@@ -938,7 +1045,7 @@ class FormacionAcademica(models.Model):
 
 class CursoEspecializacion(models.Model):
     """
-    Modelo para cursos y programas de especialización de aspirantes y colaboradores
+    Modelo para cursos y programas de especialización del CV de una persona
     """
     
     TIPO_ESTUDIO_CHOICES = [
@@ -961,23 +1068,14 @@ class CursoEspecializacion(models.Model):
         ('EXPERTO', 'Experto'),
     ]
     
-    # Relaciones - puede pertenecer a un aspirante o colaborador
-    aspirante = models.ForeignKey(
-        Aspirante,
+    # Relación con CV
+    cv = models.ForeignKey(
+        CV,
         on_delete=models.CASCADE,
         related_name='cursos_especializacion',
-        blank=True,
+        verbose_name='CV',
         null=True,
-        verbose_name='Aspirante'
-    )
-    
-    colaborador = models.ForeignKey(
-        Colaborador,
-        on_delete=models.CASCADE,
-        related_name='cursos_especializacion',
-        blank=True,
-        null=True,
-        verbose_name='Colaborador'
+        blank=True
     )
     
     # Información del curso
@@ -1060,29 +1158,16 @@ class CursoEspecializacion(models.Model):
         verbose_name_plural = 'Cursos de Especialización'
         ordering = ['-fecha_fin']
         indexes = [
-            models.Index(fields=['aspirante']),
-            models.Index(fields=['colaborador']),
+            models.Index(fields=['cv']),
             models.Index(fields=['tipo_estudio']),
         ]
     
     def __str__(self):
-        persona = self.aspirante if self.aspirante else self.colaborador
-        return f"{persona.nombre_completo} - {self.tipo_estudio}: {self.descripcion}"
+        return f"{self.cv.persona.nombre_completo} - {self.tipo_estudio}: {self.descripcion}"
     
     def clean(self):
         """Validaciones del modelo"""
         from django.core.exceptions import ValidationError
-        
-        # Verificar que tenga al menos un aspirante o colaborador
-        if not self.aspirante and not self.colaborador:
-            raise ValidationError({
-                'aspirante': 'Debe especificar un aspirante o colaborador.'
-            })
-        
-        if self.aspirante and self.colaborador:
-            raise ValidationError({
-                'aspirante': 'No puede especificar tanto un aspirante como un colaborador.'
-            })
         
         # Validar fechas
         if self.fecha_fin <= self.fecha_inicio:
@@ -1097,7 +1182,7 @@ class CursoEspecializacion(models.Model):
 
 class ExperienciaLaboral(models.Model):
     """
-    Modelo para la experiencia laboral de aspirantes y colaboradores
+    Modelo para la experiencia laboral del CV de una persona
     """
     
     TIPO_EXPERIENCIA_CHOICES = [
@@ -1120,23 +1205,14 @@ class ExperienciaLaboral(models.Model):
         ('MIXTO', 'Mixto'),
     ]
     
-    # Relaciones - puede pertenecer a un aspirante o colaborador
-    aspirante = models.ForeignKey(
-        Aspirante,
+    # Relación con CV
+    cv = models.ForeignKey(
+        CV,
         on_delete=models.CASCADE,
         related_name='experiencias_laborales',
-        blank=True,
+        verbose_name='CV',
         null=True,
-        verbose_name='Aspirante'
-    )
-    
-    colaborador = models.ForeignKey(
-        Colaborador,
-        on_delete=models.CASCADE,
-        related_name='experiencias_laborales',
-        blank=True,
-        null=True,
-        verbose_name='Colaborador'
+        blank=True
     )
     
     # Información laboral
@@ -1237,15 +1313,13 @@ class ExperienciaLaboral(models.Model):
         verbose_name_plural = 'Experiencias Laborales'
         ordering = ['-fecha_inicio']
         indexes = [
-            models.Index(fields=['aspirante']),
-            models.Index(fields=['colaborador']),
+            models.Index(fields=['cv']),
             models.Index(fields=['tipo_experiencia']),
             models.Index(fields=['fecha_inicio']),
         ]
     
     def __str__(self):
-        persona = self.aspirante if self.aspirante else self.colaborador
-        return f"{persona.nombre_completo} - {self.cargo} en {self.nombre_entidad}"
+        return f"{self.cv.persona.nombre_completo} - {self.cargo} en {self.nombre_entidad}"
     
     @property
     def duracion_meses(self):
@@ -1266,17 +1340,6 @@ class ExperienciaLaboral(models.Model):
     def clean(self):
         """Validaciones del modelo"""
         from django.core.exceptions import ValidationError
-        
-        # Verificar que tenga al menos un aspirante o colaborador
-        if not self.aspirante and not self.colaborador:
-            raise ValidationError({
-                'aspirante': 'Debe especificar un aspirante o colaborador.'
-            })
-        
-        if self.aspirante and self.colaborador:
-            raise ValidationError({
-                'aspirante': 'No puede especificar tanto un aspirante como un colaborador.'
-            })
         
         # Validar fechas
         if self.fecha_fin and self.fecha_fin <= self.fecha_inicio:

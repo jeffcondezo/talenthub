@@ -6,8 +6,8 @@ from django.views.generic import ListView, DetailView, CreateView, UpdateView, D
 from django.db.models import Q
 from django.utils import timezone
 from django.http import Http404
-from .forms import CustomLoginForm, PostulacionForm, FormacionAcademicaForm, CursoEspecializacionForm, ExperienciaLaboralForm, AspiranteCreateForm
-from .models import Aspirante, Cargo, Area, Convocatoria, Postulacion, FormacionAcademica, CursoEspecializacion, ExperienciaLaboral
+from .forms import CustomLoginForm, PostulacionForm, FormacionAcademicaForm, CursoEspecializacionForm, ExperienciaLaboralForm, PersonaCreateForm
+from .models import Persona, Cargo, Area, Convocatoria, Postulacion, FormacionAcademica, CursoEspecializacion, ExperienciaLaboral, CV, Colaborador
 
 # Create your views here.
 
@@ -29,26 +29,18 @@ def capacitacion_view(request):
 
 class CVDetailView(DetailView):
     """
-    Vista basada en clases para mostrar el CV completo de un aspirante o colaborador
+    Vista basada en clases para mostrar el CV completo de una persona
     """
     template_name = 'master/cv.html'
     context_object_name = 'persona'
+    model = Persona
     
     def get_object(self):
         """
-        Obtiene el aspirante o colaborador basado en los parámetros de la URL
+        Obtiene la persona basada en el ID de la URL
         """
-        tipo = self.kwargs.get('tipo')  # 'aspirante' o 'colaborador'
         id = self.kwargs.get('id')
-        
-        if tipo == 'aspirante':
-            from .models import Aspirante
-            return Aspirante.objects.get(id=id)
-        elif tipo == 'colaborador':
-            from .models import Colaborador
-            return Colaborador.objects.get(id=id)
-        else:
-            raise Http404("Tipo de persona no válido")
+        return Persona.objects.get(id=id)
     
     def get_context_data(self, **kwargs):
         """
@@ -110,7 +102,7 @@ class AspirantesListView(ListView):
         """
         # Crear queryset base desde cero para evitar problemas de caché
         queryset = Postulacion.objects.select_related(
-            'aspirante', 
+            'persona', 
             'convocatoria__cargo__area'
         ).order_by('-fecha_postulacion')
         
@@ -118,10 +110,10 @@ class AspirantesListView(ListView):
         search = self.request.GET.get('search')
         if search:
             queryset = queryset.filter(
-                Q(aspirante__nombres__icontains=search) |
-                Q(aspirante__apellido_paterno__icontains=search) |
-                Q(aspirante__apellido_materno__icontains=search) |
-                Q(aspirante__numero_documento__icontains=search) |
+                Q(persona__nombres__icontains=search) |
+                Q(persona__apellido_paterno__icontains=search) |
+                Q(persona__apellido_materno__icontains=search) |
+                Q(persona__numero_documento__icontains=search) |
                 Q(convocatoria__cargo__nombre__icontains=search) |
                 Q(convocatoria__cargo__area__nombre__icontains=search) |
                 Q(convocatoria__titulo__icontains=search)
@@ -177,7 +169,7 @@ class AspirantesListView(ListView):
             context['postulaciones_aprobadas'] = Postulacion.objects.filter(
                 estado_postulacion='APROBADO'
             ).count()
-            context['total_aspirantes'] = Aspirante.objects.count()
+            context['total_aspirantes'] = Persona.objects.count()
         except Exception:
             # En caso de error, usar valores por defecto
             context['total_postulaciones'] = 0
@@ -486,20 +478,20 @@ class ConvocatoriaDeleteView(DeleteView):
         return HttpResponseRedirect(self.success_url)
 
 
-class AspiranteCreateView(CreateView):
+class PersonaCreateView(CreateView):
     """
-    Vista basada en clases para crear un nuevo aspirante
+    Vista basada en clases para crear una nueva persona
     """
     model = Postulacion
-    form_class = AspiranteCreateForm
+    form_class = PersonaCreateForm
     template_name = 'master/aspirante_create.html'
     success_url = reverse_lazy('master:aspirantes')
-    
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['convocatorias'] = Convocatoria.objects.filter(activo=True).order_by('-fecha_creacion')
         return context
-    
+
     def form_valid(self, form):
         """
         Procesar formulario válido
@@ -507,11 +499,11 @@ class AspiranteCreateView(CreateView):
         # Si es petición AJAX, devolver respuesta JSON
         if self.request.headers.get('X-Requested-With') == 'XMLHttpRequest':
             from django.http import JsonResponse
-            return JsonResponse({'success': True, 'message': 'Aspirante creado correctamente'})
-        
+            return JsonResponse({'success': True, 'message': 'Persona creada correctamente'})
+
         # Para peticiones normales, usar el comportamiento por defecto
         return super().form_valid(form)
-    
+
     def form_invalid(self, form):
         """
         Procesar formulario inválido
@@ -520,14 +512,14 @@ class AspiranteCreateView(CreateView):
         if self.request.headers.get('X-Requested-With') == 'XMLHttpRequest':
             from django.http import JsonResponse
             return JsonResponse({'success': False, 'errors': form.errors})
-        
+
         # Para peticiones normales, usar el comportamiento por defecto
         return super().form_invalid(form)
 
 
-class AspiranteDetailView(DetailView):
+class PersonaDetailView(DetailView):
     """
-    Vista basada en clases para mostrar el detalle completo de un aspirante
+    Vista basada en clases para mostrar el detalle completo de una persona
     """
     model = Postulacion
     template_name = 'master/aspirante_detail.html'
@@ -552,7 +544,7 @@ class AspiranteDetailView(DetailView):
         return context
 
 
-class AspiranteUpdateView(UpdateView):
+class PersonaUpdateView(UpdateView):
     """
     Vista basada en clases para editar una postulación
     """
@@ -593,7 +585,7 @@ class AspiranteUpdateView(UpdateView):
         return super().form_invalid(form)
 
 
-class AspiranteDeleteView(DeleteView):
+class PersonaDeleteView(DeleteView):
     """
     Vista basada en clases para eliminar una postulación
     """
