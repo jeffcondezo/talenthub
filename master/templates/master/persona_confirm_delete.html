@@ -1,0 +1,182 @@
+<div class="row">
+    <div class="col-12">
+        <h4 class="text-custom-primary mb-4">
+            <i class="fal fa-exclamation-triangle icon-custom-primary"></i>
+            Confirmar Eliminación
+        </h4>
+        
+        <div class="alert alert-warning">
+            <i class="fal fa-exclamation-triangle mr-2"></i>
+            <strong>Advertencia:</strong> Esta acción no se puede deshacer.
+        </div>
+        
+        <!-- Información de la Persona a Eliminar -->
+        <div class="card mb-4">
+            <div class="card-header bg-light">
+                <h5 class="mb-0 text-custom-primary">
+                    <i class="fal fa-user icon-custom-primary"></i>
+                    Información de la Persona
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="form-label font-weight-bold">Nombres:</label>
+                            <p class="form-control-plaintext">{{ persona.nombres }}</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="form-label font-weight-bold">Apellidos:</label>
+                            <p class="form-control-plaintext">{{ persona.apellido_paterno }} {{ persona.apellido_materno }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="form-label font-weight-bold">Documento:</label>
+                            <p class="form-control-plaintext">{{ persona.get_tipo_documento_display }} - {{ persona.numero_documento }}</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="form-label font-weight-bold">Email:</label>
+                            <p class="form-control-plaintext">{{ persona.email|default:"No especificado" }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Información de Datos Relacionados -->
+        {% if tiene_cv or tiene_postulaciones or es_colaborador %}
+        <div class="card mb-4">
+            <div class="card-header bg-light">
+                <h5 class="mb-0 text-custom-primary">
+                    <i class="fal fa-info-circle icon-custom-primary"></i>
+                    Datos Relacionados
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if tiene_cv %}
+                <div class="alert alert-info">
+                    <i class="fal fa-file-alt mr-2"></i>
+                    <strong>CV:</strong> Esta persona tiene un CV asociado que también será eliminado.
+                </div>
+                {% endif %}
+                
+                {% if tiene_postulaciones %}
+                <div class="alert alert-info">
+                    <i class="fal fa-briefcase mr-2"></i>
+                    <strong>Postulaciones:</strong> Esta persona tiene {{ persona.postulacion_set.count }} postulación(es) que también serán eliminadas.
+                </div>
+                {% endif %}
+                
+                {% if es_colaborador %}
+                <div class="alert alert-info">
+                    <i class="fal fa-user-tie mr-2"></i>
+                    <strong>Colaborador:</strong> Esta persona es un colaborador de la empresa. La información de colaborador también será eliminada.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+        
+        <!-- Formulario de Confirmación -->
+        <form method="post" id="eliminarPersonaForm">
+            {% csrf_token %}
+            
+            <div class="card mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0 text-custom-primary">
+                        <i class="fal fa-check-circle icon-custom-primary"></i>
+                        Confirmación
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="form-group">
+                        <div class="custom-control custom-checkbox">
+                            <input type="checkbox" class="custom-control-input" id="confirmarEliminacion" required>
+                            <label class="custom-control-label" for="confirmarEliminacion">
+                                <strong>Confirmo que deseo eliminar esta persona y todos sus datos relacionados</strong>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="motivoEliminacion" class="form-label">Motivo de la eliminación (opcional):</label>
+                        <textarea class="form-control" id="motivoEliminacion" name="motivo_eliminacion" rows="3" placeholder="Ingrese el motivo de la eliminación..."></textarea>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Botones de Acción -->
+            <div class="row">
+                <div class="col-12">
+                    <div class="form-group text-right">
+                        <button type="button" class="btn btn-secondary mr-2" data-dismiss="modal">
+                            <i class="fal fa-times mr-1"></i>
+                            Cancelar
+                        </button>
+                        <button type="submit" class="btn btn-danger" id="btnEliminarPersona" disabled>
+                            <i class="fal fa-trash mr-1"></i>
+                            Eliminar Persona
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+$(document).ready(function() {
+    // Habilitar/deshabilitar botón de eliminación según el checkbox
+    $('#confirmarEliminacion').change(function() {
+        if ($(this).is(':checked')) {
+            $('#btnEliminarPersona').prop('disabled', false);
+        } else {
+            $('#btnEliminarPersona').prop('disabled', true);
+        }
+    });
+    
+    // Manejar envío del formulario
+    $('#eliminarPersonaForm').on('submit', function(e) {
+        e.preventDefault();
+        
+        if (!$('#confirmarEliminacion').is(':checked')) {
+            alert('Debe confirmar la eliminación marcando la casilla correspondiente.');
+            return;
+        }
+        
+        // Mostrar confirmación final
+        if (confirm('¿Está seguro de que desea eliminar esta persona? Esta acción no se puede deshacer.')) {
+            // Enviar formulario
+            $.ajax({
+                url: $(this).attr('action'),
+                type: 'POST',
+                data: $(this).serialize(),
+                success: function(response) {
+                    if (response.success) {
+                        // Mostrar mensaje de éxito
+                        showToast('success', 'Persona eliminada correctamente');
+                        
+                        // Cerrar modal
+                        $('#modalEliminarPersona').modal('hide');
+                        
+                        // Recargar la página o actualizar la tabla
+                        location.reload();
+                    } else {
+                        showToast('error', 'Error al eliminar la persona: ' + (response.message || 'Error desconocido'));
+                    }
+                },
+                error: function(xhr, status, error) {
+                    showToast('error', 'Error al eliminar la persona: ' + error);
+                }
+            });
+        }
+    });
+});
+</script>

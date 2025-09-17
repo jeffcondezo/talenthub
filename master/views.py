@@ -95,89 +95,191 @@ class AspirantesListView(ListView):
     context_object_name = 'postulaciones'
     paginate_by = 10
     ordering = ['-fecha_postulacion']
+
+
+class PersonasListView(ListView):
+    """
+    Vista basada en clases para listar personas
+    """
+    model = Persona
+    template_name = 'master/personas.html'
+    context_object_name = 'personas'
+    paginate_by = 10
+    ordering = ['-fecha_creacion']
     
     def get_queryset(self):
         """
-        Obtener queryset con filtros opcionales
+        Filtra las personas según los parámetros de búsqueda
         """
-        # Crear queryset base desde cero para evitar problemas de caché
-        queryset = Postulacion.objects.select_related(
-            'persona', 
-            'convocatoria__cargo__area'
-        ).order_by('-fecha_postulacion')
+        queryset = Persona.objects.all().order_by('-fecha_creacion')
         
         # Filtro por búsqueda
         search = self.request.GET.get('search')
         if search:
             queryset = queryset.filter(
-                Q(persona__nombres__icontains=search) |
-                Q(persona__apellido_paterno__icontains=search) |
-                Q(persona__apellido_materno__icontains=search) |
-                Q(persona__numero_documento__icontains=search) |
-                Q(convocatoria__cargo__nombre__icontains=search) |
-                Q(convocatoria__cargo__area__nombre__icontains=search) |
-                Q(convocatoria__titulo__icontains=search)
+                Q(nombres__icontains=search) |
+                Q(apellido_paterno__icontains=search) |
+                Q(apellido_materno__icontains=search) |
+                Q(numero_documento__icontains=search) |
+                Q(email__icontains=search)
             )
         
-        # Filtro por estado de postulación
-        estado = self.request.GET.get('estado')
-        if estado:
-            queryset = queryset.filter(estado_postulacion=estado)
-        
-        # Filtro por cargo
-        cargo = self.request.GET.get('cargo')
-        if cargo:
-            queryset = queryset.filter(convocatoria__cargo_id=cargo)
-        
-        
-        # Filtro por convocatoria
-        convocatoria = self.request.GET.get('convocatoria')
-        if convocatoria:
-            queryset = queryset.filter(convocatoria_id=convocatoria)
-        
         return queryset
+    
+    def get_context_data(self, **kwargs):
+        """
+        Agrega datos adicionales al contexto
+        """
+        context = super().get_context_data(**kwargs)
+        
+        # Estadísticas
+        context['total_personas'] = Persona.objects.count()
+        context['personas_con_cv'] = Persona.objects.filter(cv__isnull=False).count()
+        context['personas_con_postulaciones'] = Persona.objects.filter(postulaciones__isnull=False).distinct().count()
+        context['personas_colaboradores'] = Persona.objects.filter(colaborador__isnull=False).count()
+        
+        # Parámetros de búsqueda para mantener en la paginación
+        context['search'] = self.request.GET.get('search', '')
+        
+        return context
+
+
+class PersonaCreateView(CreateView):
+    """
+    Vista basada en clases para crear una nueva persona
+    """
+    model = Persona
+    template_name = 'master/persona_create.html'
+    fields = [
+        'tipo_documento', 'numero_documento', 'apellido_paterno', 'apellido_materno', 
+        'nombres', 'fecha_nacimiento', 'sexo', 'estado_civil', 'celular', 'email',
+        'direccion', 'distrito', 'provincia', 'departamento'
+    ]
+    success_url = reverse_lazy('master:personas')
+
+    def form_valid(self, form):
+        """
+        Procesar formulario válido
+        """
+        # Si es petición AJAX, devolver respuesta JSON
+        if self.request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            from django.http import JsonResponse
+            return JsonResponse({'success': True, 'message': 'Persona creada correctamente'})
+
+        # Para peticiones normales, usar el comportamiento por defecto
+        return super().form_valid(form)
+
+    def form_invalid(self, form):
+        """
+        Procesar formulario inválido
+        """
+        # Si es petición AJAX, devolver errores en JSON
+        if self.request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            from django.http import JsonResponse
+            return JsonResponse({'success': False, 'errors': form.errors})
+
+        # Para peticiones normales, usar el comportamiento por defecto
+        return super().form_invalid(form)
+
+
+class PersonaDetailView(DetailView):
+    """
+    Vista basada en clases para mostrar el detalle completo de una persona
+    """
+    model = Persona
+    template_name = 'master/persona_detail.html'
+    context_object_name = 'persona'
+    pk_url_kwarg = 'id'
     
     def get_context_data(self, **kwargs):
         """
         Agregar datos adicionales al contexto
         """
         context = super().get_context_data(**kwargs)
+        persona = self.get_object()
         
-        # Agregar opciones para filtros - usando consultas explícitas
+        # Obtener CV si existe
         try:
-            context['cargos'] = Cargo.objects.filter(activo=True).select_related('area')
-            context['convocatorias'] = Convocatoria.objects.filter(activo=True).select_related('cargo__area')
-            context['estados_choices'] = Postulacion.ESTADO_POSTULACION_CHOICES
-        except Exception:
-            # En caso de error, usar listas vacías
-            context['cargos'] = []
-            context['convocatorias'] = []
-            context['estados_choices'] = []
+            context['cv'] = persona.cv
+        except CV.DoesNotExist:
+            context['cv'] = None
         
-        # Mantener filtros en la URL
-        context['current_search'] = self.request.GET.get('search', '')
-        context['current_estado'] = self.request.GET.get('estado', '')
-        context['current_cargo'] = self.request.GET.get('cargo', '')
-        context['current_convocatoria'] = self.request.GET.get('convocatoria', '')
+        # Obtener postulaciones
+        context['postulaciones'] = persona.postulaciones.all().order_by('-fecha_postulacion')
         
-        # Estadísticas básicas - usando consultas explícitas
+        # Obtener información de colaborador si existe
         try:
-            context['total_postulaciones'] = Postulacion.objects.count()
-            context['postulaciones_activas'] = Postulacion.objects.filter(
-                estado_postulacion__in=['POSTULADO', 'EN_REVISION', 'ENTREVISTA', 'EVALUACION']
-            ).count()
-            context['postulaciones_aprobadas'] = Postulacion.objects.filter(
-                estado_postulacion='APROBADO'
-            ).count()
-            context['total_aspirantes'] = Persona.objects.count()
-        except Exception:
-            # En caso de error, usar valores por defecto
-            context['total_postulaciones'] = 0
-            context['postulaciones_activas'] = 0
-            context['postulaciones_aprobadas'] = 0
-            context['total_aspirantes'] = 0
+            context['colaborador'] = persona.colaborador
+        except Colaborador.DoesNotExist:
+            context['colaborador'] = None
         
         return context
+
+
+class PersonaUpdateView(UpdateView):
+    """
+    Vista basada en clases para editar una persona
+    """
+    model = Persona
+    template_name = 'master/persona_edit.html'
+    context_object_name = 'persona'
+    pk_url_kwarg = 'id'
+    fields = [
+        'tipo_documento', 'numero_documento', 'apellido_paterno', 'apellido_materno', 
+        'nombres', 'fecha_nacimiento', 'sexo', 'estado_civil', 'celular', 'email',
+        'direccion', 'distrito', 'provincia', 'departamento'
+    ]
+    success_url = reverse_lazy('master:personas')
+    
+    def form_valid(self, form):
+        """
+        Procesar formulario válido
+        """
+        # Si es petición AJAX, devolver respuesta JSON
+        if self.request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            from django.http import JsonResponse
+            return JsonResponse({'success': True, 'message': 'Persona actualizada correctamente'})
+
+        # Para peticiones normales, usar el comportamiento por defecto
+        return super().form_valid(form)
+
+    def form_invalid(self, form):
+        """
+        Procesar formulario inválido
+        """
+        # Si es petición AJAX, devolver errores en JSON
+        if self.request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            from django.http import JsonResponse
+            return JsonResponse({'success': False, 'errors': form.errors})
+
+        # Para peticiones normales, usar el comportamiento por defecto
+        return super().form_invalid(form)
+
+
+class PersonaDeleteView(DeleteView):
+    """
+    Vista basada en clases para eliminar una persona
+    """
+    model = Persona
+    template_name = 'master/persona_confirm_delete.html'
+    context_object_name = 'persona'
+    pk_url_kwarg = 'id'
+    success_url = reverse_lazy('master:personas')
+    
+    def get_context_data(self, **kwargs):
+        """
+        Agregar datos adicionales al contexto
+        """
+        context = super().get_context_data(**kwargs)
+        persona = self.get_object()
+        
+        # Verificar si tiene postulaciones
+        context['tiene_postulaciones'] = persona.postulaciones.exists()
+        context['tiene_cv'] = hasattr(persona, 'cv')
+        context['es_colaborador'] = hasattr(persona, 'colaborador')
+        
+        return context
+
 
 class ConvocatoriasListView(ListView):
     """

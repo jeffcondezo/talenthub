@@ -1,0 +1,260 @@
+<form method="post" id="agregarPersonaForm" enctype="multipart/form-data">
+    {% csrf_token %}
+    
+    <div class="row">
+        <div class="col-12">
+            <h4 class="text-custom-primary mb-4">
+                <i class="fal fa-user-plus icon-custom-primary"></i>
+                Crear Nueva Persona
+            </h4>
+            
+            <!-- Información Personal -->
+            <div class="card mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0 text-custom-primary">
+                        <i class="fal fa-user icon-custom-primary"></i>
+                        Información Personal
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="{{ form.nombres.id_for_label }}" class="form-label">Nombres *</label>
+                                {{ form.nombres }}
+                                {% if form.nombres.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.nombres.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="{{ form.apellido_paterno.id_for_label }}" class="form-label">Apellido Paterno *</label>
+                                {{ form.apellido_paterno }}
+                                {% if form.apellido_paterno.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.apellido_paterno.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="{{ form.apellido_materno.id_for_label }}" class="form-label">Apellido Materno *</label>
+                                {{ form.apellido_materno }}
+                                {% if form.apellido_materno.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.apellido_materno.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="{{ form.tipo_documento.id_for_label }}" class="form-label">Tipo de Documento *</label>
+                                {{ form.tipo_documento }}
+                                {% if form.tipo_documento.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.tipo_documento.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="{{ form.numero_documento.id_for_label }}" class="form-label">Número de Documento *</label>
+                                {{ form.numero_documento }}
+                                {% if form.numero_documento.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.numero_documento.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="{{ form.fecha_nacimiento.id_for_label }}" class="form-label">Fecha de Nacimiento *</label>
+                                {{ form.fecha_nacimiento }}
+                                {% if form.fecha_nacimiento.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.fecha_nacimiento.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="{{ form.sexo.id_for_label }}" class="form-label">Sexo *</label>
+                                {{ form.sexo }}
+                                {% if form.sexo.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.sexo.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="{{ form.estado_civil.id_for_label }}" class="form-label">Estado Civil *</label>
+                                {{ form.estado_civil }}
+                                {% if form.estado_civil.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.estado_civil.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Información de Contacto -->
+            <div class="card mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0 text-custom-primary">
+                        <i class="fal fa-phone icon-custom-primary"></i>
+                        Información de Contacto
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="{{ form.email.id_for_label }}" class="form-label">Email</label>
+                                {{ form.email }}
+                                {% if form.email.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.email.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="{{ form.celular.id_for_label }}" class="form-label">Celular</label>
+                                {{ form.celular }}
+                                {% if form.celular.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.celular.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Información de Dirección -->
+            <div class="card mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0 text-custom-primary">
+                        <i class="fal fa-map-marker-alt icon-custom-primary"></i>
+                        Información de Dirección
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="form-group">
+                                <label for="{{ form.direccion.id_for_label }}" class="form-label">Dirección</label>
+                                {{ form.direccion }}
+                                {% if form.direccion.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.direccion.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label for="{{ form.distrito.id_for_label }}" class="form-label">Distrito</label>
+                                {{ form.distrito }}
+                                {% if form.distrito.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.distrito.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label for="{{ form.provincia.id_for_label }}" class="form-label">Provincia</label>
+                                {{ form.provincia }}
+                                {% if form.provincia.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.provincia.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label for="{{ form.departamento.id_for_label }}" class="form-label">Departamento</label>
+                                {{ form.departamento }}
+                                {% if form.departamento.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.departamento.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Botones de Acción -->
+    <div class="row">
+        <div class="col-12">
+            <div class="form-group text-right">
+                <button type="button" class="btn btn-secondary mr-2" data-dismiss="modal">
+                    <i class="fal fa-times mr-1"></i>
+                    Cancelar
+                </button>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fal fa-save mr-1"></i>
+                    Crear Persona
+                </button>
+            </div>
+        </div>
+    </div>
+</form>

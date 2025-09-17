@@ -1,0 +1,908 @@
+{% load static %}
+<!DOCTYPE html>
+<!-- 
+Template Name:  SmartAdmin Responsive WebApp - Template build with Twitter Bootstrap 4
+Version: 4.6.0
+Author: Sunnyat A.
+Website: http://gootbootstrap.com
+Purchase: https://wrapbootstrap.com/theme/smartadmin-responsive-webapp-WB0573SK0?ref=myorange
+License: You must have a valid license purchased only from wrapbootstrap.com (link above) in order to legally use this theme for your project.
+-->
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>
+            Personas - SmartAdmin v4.6.0
+        </title>
+        <meta name="description" content="Gestión de Personas">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no, user-scalable=no, minimal-ui">
+        <!-- Call App Mode on ios devices -->
+        <meta name="apple-mobile-web-app-title" content="Personas">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+        <!-- Mobile proof your site -->
+        <link rel="manifest" href="{% static 'media/data/manifest.json' %}">
+        <!-- Remove phone, date, address and email as default links -->
+        <meta name="format-detection" content="telephone=no">
+        <meta name="format-detection" content="date=no">
+        <meta name="format-detection" content="address=no">
+        <meta name="format-detection" content="email=no">
+        <meta name="theme-color" content="#37393e">
+        <!-- iDevice splash screens -->
+        <link href="{% static 'img/splashscreens/iphone6_splash.png' %}" media="(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2)" rel="apple-touch-startup-image">
+        <link href="{% static 'img/splashscreens/iphoneplus_splash.png' %}" media="(device-width: 621px) and (device-height: 1104px) and (-webkit-device-pixel-ratio: 3)" rel="apple-touch-startup-image">
+        <link href="{% static 'img/splashscreens/iphonex_splash.png' %}" media="(device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3)" rel="apple-touch-startup-image">
+        <link href="{% static 'img/splashscreens/iphonexr_splash.png' %}" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2)" rel="apple-touch-startup-image">
+        <link href="{% static 'img/splashscreens/iphonexsmax_splash.png' %}" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3)" rel="apple-touch-startup-image">
+        <link href="{% static 'img/splashscreens/ipad_splash.png' %}" media="(device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2)" rel="apple-touch-startup-image">
+        <link href="{% static 'img/splashscreens/ipadpro1_splash.png' %}" media="(device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2)" rel="apple-touch-startup-image">
+        <link href="{% static 'img/splashscreens/ipadpro3_splash.png' %}" media="(device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2)" rel="apple-touch-startup-image">
+        <link href="{% static 'img/splashscreens/ipadpro2_splash.png' %}" media="(device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2)" rel="apple-touch-startup-image">
+        <!-- Remove Tap Highlight on Windows Phone IE -->
+        <meta name="msapplication-tap-highlight" content="no">
+        <!-- base css -->
+        <link id="vendorsbundle" rel="stylesheet" media="screen, print" href="{% static 'css/vendors.bundle.css' %}">
+        <link id="appbundle" rel="stylesheet" media="screen, print" href="{% static 'css/app.bundle.css' %}">
+        <link id="mytheme" rel="stylesheet" media="screen, print" href="#">
+        <link id="myskin" rel="stylesheet" media="screen, print" href="{% static 'css/skins/skin-master.css' %}">
+        <!-- Place favicon.ico in the root directory -->
+        <link rel="apple-touch-icon" sizes="180x180" href="{% static 'img/favicon/apple-touch-icon.png' %}">
+        <link rel="icon" type="image/png" sizes="32x32" href="{% static 'img/favicon/favicon-32x32.png' %}">
+        <link rel="mask-icon" href="{% static 'img/favicon/safari-pinned-tab.svg' %}" color="#5bbad5">
+               <style>
+    /* Sobrescribe el color principal */
+    .color-primary-500,
+    .bg-primary-500,
+    .btn-primary,
+    .border-primary,
+    .text-primary,
+    .badge-primary,
+    .page-sidebar,
+    .page-logo,
+    .nav-footer,
+    .primary-nav,
+    .nav-menu,
+    .nav-menu > li.active > a,
+    .nav-menu > li > a.active,
+    .nav-menu > li > a:focus,
+    .nav-menu > li > a:hover,
+    .nav-menu > li > a >i,
+    .nav-menu > ul > li > a{
+        background-color: #12A58A !important;
+        border-color: #12A58A !important;
+        color: white !important;
+    }
+    .mod-nav-link:not(.nav-function-top):not(.nav-function-minify):not(.mod-hide-nav-icons) ul.nav-menu:not(.nav-menu-compact) > li > ul > li a:after{
+        background-color: white;
+    }
+    .mod-nav-link:not(.nav-function-top):not(.nav-function-minify):not(.mod-hide-nav-icons) ul.nav-menu:not(.nav-menu-compact) > li > ul:before{
+        border-left: 1px solid white;
+    }
+    .fal, .fa-info-circle, .nav-link-text, .waves-effect > i{
+        color: white;;
+    }
+    .page-logo img{
+        width: 300px;
+        height: 40px;
+    }
+
+    .btn-info{
+        background-color: #0073C5;
+    }
+        .btn-info:hover{
+        background-color: #3393D9;
+    }
+
+        .btn-warning{
+        background-color: #F4B400;
+    }
+            .btn-warning:hover{
+        background-color: #F6C23E;
+    }
+
+        .btn-danger{
+        background-color: #E74A3B;
+    }
+            .btn-danger:hover{
+        background-color: #EA6B5F;
+    }
+
+        .btn-success{
+        background-color: #1CC88A;
+    }
+            .btn-success:hover{
+        background-color: #49D4A3;
+    }
+
+    .text-custom-primary {
+        color: #12A58A !important;
+    }
+
+    .icon-custom-primary {
+        color: #12A58A !important;
+    }
+
+    .bg-custom-primary {
+        background-color: #12A58A !important;
+    }
+
+    .border-custom-primary {
+        border-color: #12A58A !important;
+    }
+
+    /* Estilos para modales */
+    .modal-body .form-control {
+        border: 1px solid #ced4da;
+        border-radius: 0.375rem;
+        padding: 0.5rem 0.75rem;
+        font-size: 0.875rem;
+        transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+    }
+    .modal-body .form-control:focus {
+        border-color: #12A58A;
+        box-shadow: 0 0 0 0.2rem rgba(18, 165, 138, 0.25);
+    }
+    .modal-body .form-control.is-invalid {
+        border-color: #dc3545;
+    }
+    .modal-body .form-control.is-valid {
+        border-color: #28a745;
+    }
+    .modal-body .text-danger {
+        font-size: 0.75rem;
+        margin-top: 0.25rem;
+    }
+    .modal-body .form-text {
+        font-size: 0.75rem;
+        color: #6c757d;
+        margin-top: 0.25rem;
+    }
+    .modal-body .card {
+        border: 1px solid #dee2e6;
+        border-radius: 0.5rem;
+    }
+    .modal-body .card-header {
+        background-color: #f8f9fa;
+        border-bottom: 1px solid #dee2e6;
+        padding: 0.75rem 1rem;
+    }
+    .modal-body .card-body {
+        padding: 1rem;
+    }
+    .modal-body .alert {
+        border-radius: 0.375rem;
+        padding: 0.75rem 1rem;
+        margin-bottom: 1rem;
+    }
+    .modal-body .alert-info {
+        background-color: #d1ecf1;
+        border-color: #bee5eb;
+        color: #0c5460;
+    }
+    .modal-body .btn {
+        border-radius: 0.375rem;
+        font-weight: 500;
+        padding: 0.5rem 1rem;
+        font-size: 0.875rem;
+    }
+    .modal-body .btn-primary {
+        background-color: #12A58A;
+        border-color: #12A58A;
+    }
+    .modal-body .btn-primary:hover {
+        background-color: #0f8a73;
+        border-color: #0f8a73;
+    }
+    .modal-body .btn-secondary {
+        background-color: #6c757d;
+        border-color: #6c757d;
+    }
+    .modal-body .btn-secondary:hover {
+        background-color: #5a6268;
+        border-color: #545b62;
+    }
+    .modal-body .btn-danger {
+        background-color: #dc3545;
+        border-color: #dc3545;
+    }
+    .modal-body .btn-danger:hover {
+        background-color: #c82333;
+        border-color: #bd2130;
+    }
+    .modal-body .btn-success {
+        background-color: #28a745;
+        border-color: #28a745;
+    }
+    .modal-body .btn-success:hover {
+        background-color: #218838;
+        border-color: #1e7e34;
+    }
+    .modal-body .badge {
+        font-size: 0.75rem;
+        padding: 0.375rem 0.75rem;
+        border-radius: 0.375rem;
+    }
+    .modal-body .table {
+        margin-bottom: 0;
+    }
+    .modal-body .table th {
+        border-top: none;
+        font-weight: 600;
+        color: #495057;
+        background-color: #f8f9fa;
+    }
+    .modal-body .table td {
+        vertical-align: middle;
+    }
+</style>
+    </head>
+    <body class="mod-bg-1 mod-nav-link">
+        <script>
+            // Toast container
+            document.addEventListener('DOMContentLoaded', function() {
+                // Crear contenedor de toast si no existe
+                if (!document.getElementById('toast-container')) {
+                    const toastContainer = document.createElement('div');
+                    toastContainer.id = 'toast-container';
+                    toastContainer.style.cssText = `
+                        position: fixed;
+                        top: 20px;
+                        right: 20px;
+                        z-index: 9999;
+                        max-width: 350px;
+                    `;
+                    document.body.appendChild(toastContainer);
+                }
+                
+                // Mostrar toasts pendientes
+                showPendingToasts();
+            });
+
+            // Función para mostrar toast
+            function showToast(message, type = 'info', duration = 5000) {
+                const toastContainer = document.getElementById('toast-container');
+                if (!toastContainer) return;
+
+                const toast = document.createElement('div');
+                toast.className = `alert alert-${type} alert-dismissible fade show`;
+                toast.style.cssText = `
+                    margin-bottom: 10px;
+                    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+                    border: none;
+                    border-radius: 8px;
+                `;
+
+                const icon = type === 'success' ? 'fa-check-circle' : 
+                           type === 'error' ? 'fa-exclamation-circle' : 
+                           type === 'warning' ? 'fa-exclamation-triangle' : 'fa-info-circle';
+
+                toast.innerHTML = `
+                    <i class="fal ${icon} mr-2"></i>
+                    ${message}
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                `;
+
+                toastContainer.appendChild(toast);
+
+                // Auto-remove after duration
+                setTimeout(() => {
+                    if (toast.parentNode) {
+                        toast.remove();
+                    }
+                }, duration);
+            }
+
+            // Función para mostrar toast persistente
+            function showPersistentToast(message, type = 'info') {
+                // Guardar en localStorage
+                const toasts = JSON.parse(localStorage.getItem('pendingToasts') || '[]');
+                toasts.push({ message, type, timestamp: Date.now() });
+                localStorage.setItem('pendingToasts', JSON.stringify(toasts));
+                
+                showToast(message, type);
+            }
+
+            // Función para mostrar toasts pendientes
+            function showPendingToasts() {
+                const toasts = JSON.parse(localStorage.getItem('pendingToasts') || '[]');
+                toasts.forEach(toast => {
+                    showToast(toast.message, toast.type);
+                });
+                localStorage.removeItem('pendingToasts');
+            }
+
+            // Función para ocultar toast
+            function hideToast() {
+                const toastContainer = document.getElementById('toast-container');
+                if (toastContainer) {
+                    toastContainer.innerHTML = '';
+                }
+            }
+        </script>
+        <div class="page-wrapper">
+            <div class="page-inner">
+                <nav id="js-primary-nav" class="primary-nav" role="navigation">
+                    <div class="nav-filter">
+                        <div class="position-relative">
+                            <input type="text" placeholder="Filter menu" class="form-control" tabindex="0">
+                            <a href="#" onclick="return false;" class="btn-primary btn-search-close js-waves-off" data-action="toggle" data-class="list-filter-active" data-target=".page-sidebar">
+                                <i class="fal fa-chevron-up"></i>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="info-card">
+                        <img src="{% static 'img/demo/avatars/avatar-m.png' %}" class="profile-image rounded-circle" alt="Dr. Codex Lantern">
+                        <div class="info-card-text">
+                            <a href="#" class="d-flex align-items-center text-white">
+                                <span class="text-truncate text-truncate-sm d-inline-block">
+                                    Dr. Codex Lantern
+                                </span>
+                            </a>
+                            <span class="d-none d-sm-inline-block text-truncate text-truncate-sm">Administrador</span>
+                        </div>
+                        <img src="{% static 'img/card-backgrounds/cover-2-lg.png' %}" class="cover" alt="cover">
+                        <a href="#" onclick="return false;" class="pull-trigger-btn" data-action="toggle" data-class="list-filter-active" data-target=".page-sidebar" data-focus="nav_filter_input">
+                            <i class="fal fa-angle-down"></i>
+                        </a>
+                    </div>
+                    <ul id="js-nav-menu" class="nav-menu">
+                        <li class="nav-title">Sistema de Gestión de Talentos</li>
+                        <li>
+                            <a href="{% url 'master:induccion' %}" title="Inducción" data-filter-tags="induccion">
+                                <i class="fal fa-home"></i>
+                                <span class="nav-link-text">Inducción</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{% url 'master:proyecto' %}" title="Proyecto" data-filter-tags="proyecto">
+                                <i class="fal fa-project-diagram"></i>
+                                <span class="nav-link-text">Proyecto</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{% url 'master:perfiles' %}" title="Perfiles" data-filter-tags="perfiles">
+                                <i class="fal fa-user-tag"></i>
+                                <span class="nav-link-text">Perfiles</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{% url 'master:capacitacion' %}" title="Capacitación" data-filter-tags="capacitacion">
+                                <i class="fal fa-graduation-cap"></i>
+                                <span class="nav-link-text">Capacitación</span>
+                            </a>
+                        </li>
+                        <li class="active open">
+                            <a href="#" title="Gestión de Personas" data-filter-tags="personas aspirantes colaboradores">
+                                <i class="fal fa-users"></i>
+                                <span class="nav-link-text">Gestión de Personas</span>
+                            </a>
+                            <ul>
+                                <li class="active">
+                                    <a href="{% url 'master:personas' %}" title="Personas" data-filter-tags="personas">
+                                        <i class="fal fa-user"></i>
+                                        <span class="nav-link-text">Personas</span>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{% url 'master:aspirantes' %}" title="Postulaciones" data-filter-tags="postulaciones aspirantes">
+                                        <i class="fal fa-file-alt"></i>
+                                        <span class="nav-link-text">Postulaciones</span>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{% url 'master:colaboradores' %}" title="Colaboradores" data-filter-tags="colaboradores">
+                                        <i class="fal fa-user-tie"></i>
+                                        <span class="nav-link-text">Colaboradores</span>
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+                        <li>
+                            <a href="{% url 'master:convocatorias' %}" title="Convocatorias" data-filter-tags="convocatorias">
+                                <i class="fal fa-bullhorn"></i>
+                                <span class="nav-link-text">Convocatorias</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{% url 'master:cv' %}" title="CV" data-filter-tags="cv curriculum">
+                                <i class="fal fa-file-user"></i>
+                                <span class="nav-link-text">CV</span>
+                            </a>
+                        </li>
+                    </ul>
+                    <div class="filter-message js-filter-message bg-success-600"></div>
+                </nav>
+                <main id="js-page-content" role="main" class="page-content">
+                    <ol class="breadcrumb page-breadcrumb">
+                        <li class="breadcrumb-item"><a href="javascript:void(0);">SmartAdmin</a></li>
+                        <li class="breadcrumb-item">Gestión de Personas</li>
+                        <li class="breadcrumb-item active">Personas</li>
+                        <li class="position-absolute pos-top pos-right d-none d-sm-block"><span class="js-get-date"></span></li>
+                    </ol>
+                    <div class="subheader">
+                        <h1 class="subheader-title">
+                            <i class='subheader-icon fal fa-users'></i> Personas: <span class='fw-300'></span> <sup class='badge badge-primary fw-500'>Lista</sup>
+                            <small>
+                                Lista de personas registradas en el sistema.
+                            </small>
+                        </h1>
+                    </div>
+                    <div class="row">
+                        <div class="col-xl-12">
+                            <div id="panel-1" class="panel">
+                                <div class="panel-hdr">
+                                    <h2>
+                                        Lista de Personas
+                                    </h2>
+                                    <div class="panel-toolbar">
+                                        <button class="btn btn-primary btn-sm mr-2" data-toggle="modal" data-target="#agregarPersonaModal" onclick="agregarPersona()">
+                                            <i class="fal fa-plus mr-1"></i>
+                                            Agregar Persona
+                                        </button>
+                                        <button class="btn btn-panel" data-action="panel-collapse" data-toggle="tooltip" data-offset="0,10" data-original-title="Collapse"></button>
+                                        <button class="btn btn-panel" data-action="panel-fullscreen" data-toggle="tooltip" data-offset="0,10" data-original-title="Fullscreen"></button>
+                                        <button class="btn btn-panel" data-action="panel-close" data-toggle="tooltip" data-offset="0,10" data-original-title="Close"></button>
+                                    </div>
+                                </div>
+                                <div class="panel-container show">
+                                    <div class="panel-content">
+                                        <!-- Filtros -->
+                                        <div class="row mb-3">
+                                            <div class="col-md-6">
+                                                <form method="get" class="form-inline">
+                                                    <div class="form-group mr-2">
+                                                        <input type="text" name="search" class="form-control" placeholder="Buscar personas..." value="{{ search }}">
+                                                    </div>
+                                                    <button type="submit" class="btn btn-primary">
+                                                        <i class="fal fa-search"></i>
+                                                    </button>
+                                                    {% if search %}
+                                                    <a href="{% url 'master:personas' %}" class="btn btn-secondary ml-2">
+                                                        <i class="fal fa-times"></i>
+                                                    </a>
+                                                    {% endif %}
+                                                </form>
+                                            </div>
+                                            <div class="col-md-6 text-right">
+                                                <div class="btn-group" role="group">
+                                                    <button type="button" class="btn btn-outline-primary btn-sm">
+                                                        <i class="fal fa-download mr-1"></i>
+                                                        Exportar
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Estadísticas -->
+                                        <div class="row mb-4">
+                                            <div class="col-md-3">
+                                                <div class="card border-left-primary shadow h-100 py-2">
+                                                    <div class="card-body">
+                                                        <div class="row no-gutters align-items-center">
+                                                            <div class="col mr-2">
+                                                                <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                                                    Total Personas
+                                                                </div>
+                                                                <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_personas }}</div>
+                                                            </div>
+                                                            <div class="col-auto">
+                                                                <i class="fal fa-users fa-2x text-gray-300"></i>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <div class="card border-left-success shadow h-100 py-2">
+                                                    <div class="card-body">
+                                                        <div class="row no-gutters align-items-center">
+                                                            <div class="col mr-2">
+                                                                <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                                                    Con CV
+                                                                </div>
+                                                                <div class="h5 mb-0 font-weight-bold text-gray-800">{{ personas_con_cv }}</div>
+                                                            </div>
+                                                            <div class="col-auto">
+                                                                <i class="fal fa-file-user fa-2x text-gray-300"></i>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <div class="card border-left-info shadow h-100 py-2">
+                                                    <div class="card-body">
+                                                        <div class="row no-gutters align-items-center">
+                                                            <div class="col mr-2">
+                                                                <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                                                    Con Postulaciones
+                                                                </div>
+                                                                <div class="h5 mb-0 font-weight-bold text-gray-800">{{ personas_con_postulaciones }}</div>
+                                                            </div>
+                                                            <div class="col-auto">
+                                                                <i class="fal fa-file-alt fa-2x text-gray-300"></i>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <div class="card border-left-warning shadow h-100 py-2">
+                                                    <div class="card-body">
+                                                        <div class="row no-gutters align-items-center">
+                                                            <div class="col mr-2">
+                                                                <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                                                    Colaboradores
+                                                                </div>
+                                                                <div class="h5 mb-0 font-weight-bold text-gray-800">{{ personas_colaboradores }}</div>
+                                                            </div>
+                                                            <div class="col-auto">
+                                                                <i class="fal fa-user-tie fa-2x text-gray-300"></i>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Tabla de personas -->
+                                        <div class="table-responsive">
+                                            <table class="table table-bordered table-striped">
+                                                <thead class="thead-dark">
+                                                    <tr>
+                                                        <th>ID</th>
+                                                        <th>Nombre Completo</th>
+                                                        <th>Documento</th>
+                                                        <th>Email</th>
+                                                        <th>Teléfono</th>
+                                                        <th>CV</th>
+                                                        <th>Postulaciones</th>
+                                                        <th>Colaborador</th>
+                                                        <th>Fecha Registro</th>
+                                                        <th>Acciones</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {% for persona in personas %}
+                                                    <tr>
+                                                        <td>{{ persona.id }}</td>
+                                                        <td>
+                                                            <strong>{{ persona.nombre_completo }}</strong>
+                                                        </td>
+                                                        <td>
+                                                            <span class="badge badge-info">{{ persona.get_tipo_documento_display }}</span>
+                                                            <br>
+                                                            <small>{{ persona.numero_documento }}</small>
+                                                        </td>
+                                                        <td>
+                                                            {% if persona.email %}
+                                                                <a href="mailto:{{ persona.email }}">{{ persona.email }}</a>
+                                                            {% else %}
+                                                                <span class="text-muted">No especificado</span>
+                                                            {% endif %}
+                                                        </td>
+                                                        <td>
+                                                            {% if persona.celular %}
+                                                                <a href="tel:{{ persona.celular }}">{{ persona.celular }}</a>
+                                                            {% else %}
+                                                                <span class="text-muted">No especificado</span>
+                                                            {% endif %}
+                                                        </td>
+                                                        <td class="text-center">
+                                                            {% if persona.cv %}
+                                                                <span class="badge badge-success">
+                                                                    <i class="fal fa-check"></i> Sí
+                                                                </span>
+                                                            {% else %}
+                                                                <span class="badge badge-secondary">
+                                                                    <i class="fal fa-times"></i> No
+                                                                </span>
+                                                            {% endif %}
+                                                        </td>
+                                                        <td class="text-center">
+                                                            {% if persona.postulaciones.exists %}
+                                                                <span class="badge badge-info">
+                                                                    {{ persona.postulaciones.count }}
+                                                                </span>
+                                                            {% else %}
+                                                                <span class="badge badge-secondary">0</span>
+                                                            {% endif %}
+                                                        </td>
+                                                        <td class="text-center">
+                                                            {% if persona.colaborador %}
+                                                                <span class="badge badge-warning">
+                                                                    <i class="fal fa-user-tie"></i> Sí
+                                                                </span>
+                                                            {% else %}
+                                                                <span class="badge badge-secondary">
+                                                                    <i class="fal fa-times"></i> No
+                                                                </span>
+                                                            {% endif %}
+                                                        </td>
+                                                        <td>
+                                                            <small>{{ persona.fecha_creacion|date:"d/m/Y H:i" }}</small>
+                                                        </td>
+                                                        <td>
+                                                            <div class="btn-group" role="group">
+                                                                <a href="{% url 'master:persona_detail' persona.id %}" class="btn btn-info btn-sm" title="Ver detalles">
+                                                                    <i class="fal fa-eye"></i>
+                                                                </a>
+                                                                <a href="{% url 'master:persona_edit' persona.id %}" class="btn btn-warning btn-sm" title="Editar">
+                                                                    <i class="fal fa-edit"></i>
+                                                                </a>
+                                                                <button class="btn btn-danger btn-sm" onclick="eliminarPersona({{ persona.id }}, '{{ persona.nombre_completo }}')" title="Eliminar">
+                                                                    <i class="fal fa-trash"></i>
+                                                                </button>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                    {% empty %}
+                                                    <tr>
+                                                        <td colspan="10" class="text-center text-muted">
+                                                            <i class="fal fa-inbox fa-2x mb-2"></i>
+                                                            <br>
+                                                            No hay personas registradas
+                                                        </td>
+                                                    </tr>
+                                                    {% endfor %}
+                                                </tbody>
+                                            </table>
+                                        </div>
+
+                                        <!-- Paginación -->
+                                        {% if is_paginated %}
+                                        <nav aria-label="Paginación">
+                                            <ul class="pagination justify-content-center">
+                                                {% if page_obj.has_previous %}
+                                                    <li class="page-item">
+                                                        <a class="page-link" href="?page=1{% if search %}&search={{ search }}{% endif %}">Primera</a>
+                                                    </li>
+                                                    <li class="page-item">
+                                                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if search %}&search={{ search }}{% endif %}">Anterior</a>
+                                                    </li>
+                                                {% endif %}
+
+                                                <li class="page-item active">
+                                                    <span class="page-link">
+                                                        Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
+                                                    </span>
+                                                </li>
+
+                                                {% if page_obj.has_next %}
+                                                    <li class="page-item">
+                                                        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if search %}&search={{ search }}{% endif %}">Siguiente</a>
+                                                    </li>
+                                                    <li class="page-item">
+                                                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if search %}&search={{ search }}{% endif %}">Última</a>
+                                                    </li>
+                                                {% endif %}
+                                            </ul>
+                                        </nav>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </main>
+                <div class="page-content-overlay" data-action="toggle" data-class="mobile-nav-on"></div>
+            </div>
+        </div>
+
+        <!-- Modal para agregar persona -->
+        <div class="modal fade" id="agregarPersonaModal" tabindex="-1" role="dialog" aria-labelledby="agregarPersonaModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="agregarPersonaModalLabel">Agregar Nueva Persona</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body" id="agregarPersonaModalBody">
+                        <!-- Contenido cargado dinámicamente -->
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                        <button type="button" class="btn btn-primary" id="guardarNuevaPersonaBtn" style="display: none;">Guardar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal para eliminar persona -->
+        <div class="modal fade" id="eliminarPersonaModal" tabindex="-1" role="dialog" aria-labelledby="eliminarPersonaModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="eliminarPersonaModalLabel">Eliminar Persona</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body" id="eliminarPersonaModalBody">
+                        <!-- Contenido cargado dinámicamente -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script src="{% static 'js/vendors.bundle.js' %}"></script>
+        <script src="{% static 'js/app.bundle.js' %}"></script>
+        <script>
+            // Función para agregar persona
+            function agregarPersona() {
+                console.log('Agregar persona');
+
+                $('#agregarPersonaModal').modal('show');
+                $('#agregarPersonaModalLabel').text('Agregar Nueva Persona');
+
+                // Mostrar spinner de carga
+                $('#agregarPersonaModalBody').html(`
+                    <div class="text-center">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="sr-only">Cargando...</span>
+                        </div>
+                        <p class="mt-2">Cargando formulario...</p>
+                    </div>
+                `);
+
+                // Hacer petición AJAX para obtener el formulario
+                $.ajax({
+                    url: `/master/personas/create/`,
+                    type: 'GET',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    success: function(data) {
+                        // Usar todo el contenido del template del modal
+                        $('#agregarPersonaModalBody').html(data);
+
+                        // Limpiar formulario después de cargarlo
+                        $('#agregarPersonaForm')[0].reset();
+
+                        // Aplicar estilos a los campos del formulario
+                        $('#agregarPersonaModalBody input, #agregarPersonaModalBody select, #agregarPersonaModalBody textarea').addClass('form-control');
+
+                        // Configurar envío del formulario
+                        $('#agregarPersonaForm').on('submit', function(e) {
+                            e.preventDefault();
+                            guardarPersona();
+                        });
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Error al cargar formulario:', error);
+                        $('#agregarPersonaModalBody').html(`
+                            <div class="alert alert-danger">
+                                <i class="fal fa-exclamation-triangle mr-2"></i>
+                                Error al cargar el formulario. Por favor, intente nuevamente.
+                            </div>
+                        `);
+                    }
+                });
+            }
+
+            // Función para guardar nueva persona
+            function guardarPersona() {
+                const form = $('#agregarPersonaForm');
+                const formData = new FormData(form[0]);
+
+                $.ajax({
+                    url: `/master/personas/create/`,
+                    type: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    success: function(response) {
+                        $('#agregarPersonaModal').modal('hide');
+                        showPersistentToast('Persona creada correctamente', 'success');
+                        setTimeout(() => {
+                            location.reload();
+                        }, 1000);
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Error al guardar persona:', error);
+                        if (xhr.responseJSON && xhr.responseJSON.errors) {
+                            // Mostrar errores de validación
+                            let errorMessage = 'Errores de validación:\n';
+                            for (const field in xhr.responseJSON.errors) {
+                                errorMessage += `• ${field}: ${xhr.responseJSON.errors[field].join(', ')}\n`;
+                            }
+                            showToast(errorMessage, 'error');
+                        } else {
+                            showToast('Error al guardar la persona', 'error');
+                        }
+                    }
+                });
+            }
+
+            // Función para eliminar persona
+            function eliminarPersona(id, nombre) {
+                console.log('Eliminar persona:', id, nombre);
+
+                $('#eliminarPersonaModal').modal('show');
+                $('#eliminarPersonaModalLabel').text('Eliminar Persona');
+
+                // Mostrar spinner de carga
+                $('#eliminarPersonaModalBody').html(`
+                    <div class="text-center">
+                        <div class="spinner-border text-danger" role="status">
+                            <span class="sr-only">Cargando...</span>
+                        </div>
+                        <p class="mt-2">Cargando confirmación...</p>
+                    </div>
+                `);
+
+                // Hacer petición AJAX para obtener el formulario de confirmación
+                $.ajax({
+                    url: `/master/personas/${id}/delete/`,
+                    type: 'GET',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    success: function(data) {
+                        // Usar todo el contenido del template del modal
+                        $('#eliminarPersonaModalBody').html(data);
+
+                        // Configurar evento del checkbox
+                        $(document).off('change', '#confirmDeletePersona').on('change', '#confirmDeletePersona', function() {
+                            const isChecked = $(this).is(':checked');
+                            const deleteBtn = $('#confirmDeletePersonaBtn');
+                            
+                            deleteBtn.prop('disabled', !isChecked);
+                            
+                            if (isChecked) {
+                                deleteBtn.removeClass('btn-secondary').addClass('btn-danger');
+                            } else {
+                                deleteBtn.removeClass('btn-danger').addClass('btn-secondary');
+                            }
+                        });
+
+                        // Configurar evento del botón de eliminar
+                        $(document).off('click', '#confirmDeletePersonaBtn').on('click', '#confirmDeletePersonaBtn', function() {
+                            const form = $('#eliminarPersonaForm');
+                            const formData = new FormData(form[0]);
+
+                            $.ajax({
+                                url: `/master/personas/${id}/delete/`,
+                                type: 'POST',
+                                data: formData,
+                                processData: false,
+                                contentType: false,
+                                headers: {
+                                    'X-Requested-With': 'XMLHttpRequest'
+                                },
+                                success: function(response) {
+                                    $('#eliminarPersonaModal').modal('hide');
+                                    showPersistentToast('Persona eliminada correctamente', 'success');
+                                    setTimeout(() => {
+                                        location.reload();
+                                    }, 1000);
+                                },
+                                error: function(xhr, status, error) {
+                                    console.error('Error al eliminar persona:', error);
+                                    showToast('Error al eliminar la persona', 'error');
+                                }
+                            });
+                        });
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Error al cargar confirmación:', error);
+                        $('#eliminarPersonaModalBody').html(`
+                            <div class="alert alert-danger">
+                                <i class="fal fa-exclamation-triangle mr-2"></i>
+                                Error al cargar la confirmación. Por favor, intente nuevamente.
+                            </div>
+                        `);
+                    }
+                });
+            }
+        </script>
+    </body>
+</html>

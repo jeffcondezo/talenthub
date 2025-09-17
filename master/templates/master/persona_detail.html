@@ -1,0 +1,311 @@
+<div class="row">
+    <div class="col-12">
+        <h4 class="text-custom-primary mb-4">
+            <i class="fal fa-user icon-custom-primary"></i>
+            Detalles de la Persona
+        </h4>
+        
+        <!-- Información Personal -->
+        <div class="card mb-4">
+            <div class="card-header bg-light">
+                <h5 class="mb-0 text-custom-primary">
+                    <i class="fal fa-user icon-custom-primary"></i>
+                    Información Personal
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="form-label font-weight-bold">Nombres:</label>
+                            <p class="form-control-plaintext">{{ persona.nombres }}</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="form-label font-weight-bold">Apellido Paterno:</label>
+                            <p class="form-control-plaintext">{{ persona.apellido_paterno }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="form-label font-weight-bold">Apellido Materno:</label>
+                            <p class="form-control-plaintext">{{ persona.apellido_materno }}</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="form-label font-weight-bold">Tipo de Documento:</label>
+                            <p class="form-control-plaintext">{{ persona.get_tipo_documento_display }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="form-label font-weight-bold">Número de Documento:</label>
+                            <p class="form-control-plaintext">{{ persona.numero_documento }}</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="form-label font-weight-bold">Fecha de Nacimiento:</label>
+                            <p class="form-control-plaintext">{{ persona.fecha_nacimiento|date:"d/m/Y" }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="form-label font-weight-bold">Sexo:</label>
+                            <p class="form-control-plaintext">{{ persona.get_sexo_display }}</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="form-label font-weight-bold">Estado Civil:</label>
+                            <p class="form-control-plaintext">{{ persona.get_estado_civil_display }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Información de Contacto -->
+        <div class="card mb-4">
+            <div class="card-header bg-light">
+                <h5 class="mb-0 text-custom-primary">
+                    <i class="fal fa-phone icon-custom-primary"></i>
+                    Información de Contacto
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="form-label font-weight-bold">Email:</label>
+                            <p class="form-control-plaintext">{{ persona.email|default:"No especificado" }}</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="form-label font-weight-bold">Celular:</label>
+                            <p class="form-control-plaintext">{{ persona.celular|default:"No especificado" }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Información de Dirección -->
+        <div class="card mb-4">
+            <div class="card-header bg-light">
+                <h5 class="mb-0 text-custom-primary">
+                    <i class="fal fa-map-marker-alt icon-custom-primary"></i>
+                    Información de Dirección
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-12">
+                        <div class="form-group">
+                            <label class="form-label font-weight-bold">Dirección:</label>
+                            <p class="form-control-plaintext">{{ persona.direccion|default:"No especificada" }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label class="form-label font-weight-bold">Distrito:</label>
+                            <p class="form-control-plaintext">{{ persona.distrito|default:"No especificado" }}</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label class="form-label font-weight-bold">Provincia:</label>
+                            <p class="form-control-plaintext">{{ persona.provincia|default:"No especificada" }}</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label class="form-label font-weight-bold">Departamento:</label>
+                            <p class="form-control-plaintext">{{ persona.departamento|default:"No especificado" }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Información del CV -->
+        {% if cv %}
+        <div class="card mb-4">
+            <div class="card-header bg-light">
+                <h5 class="mb-0 text-custom-primary">
+                    <i class="fal fa-file-alt icon-custom-primary"></i>
+                    Información del CV
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-12">
+                        <div class="form-group">
+                            <label class="form-label font-weight-bold">Resumen Profesional:</label>
+                            <p class="form-control-plaintext">{{ cv.resumen_profesional|default:"No especificado" }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-12">
+                        <div class="form-group">
+                            <label class="form-label font-weight-bold">Objetivo Profesional:</label>
+                            <p class="form-control-plaintext">{{ cv.objetivo_profesional|default:"No especificado" }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="form-label font-weight-bold">Teléfono Profesional:</label>
+                            <p class="form-control-plaintext">{{ cv.telefono_profesional|default:"No especificado" }}</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="form-label font-weight-bold">Email Profesional:</label>
+                            <p class="form-control-plaintext">{{ cv.email_profesional|default:"No especificado" }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="form-label font-weight-bold">LinkedIn:</label>
+                            <p class="form-control-plaintext">
+                                {% if cv.linkedin %}
+                                    <a href="{{ cv.linkedin }}" target="_blank">{{ cv.linkedin }}</a>
+                                {% else %}
+                                    No especificado
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="form-label font-weight-bold">Portfolio:</label>
+                            <p class="form-control-plaintext">
+                                {% if cv.portfolio %}
+                                    <a href="{{ cv.portfolio }}" target="_blank">{{ cv.portfolio }}</a>
+                                {% else %}
+                                    No especificado
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                {% if cv.cv_archivo %}
+                <div class="row">
+                    <div class="col-12">
+                        <div class="form-group">
+                            <label class="form-label font-weight-bold">CV Archivo:</label>
+                            <p class="form-control-plaintext">
+                                <a href="{{ cv.cv_archivo.url }}" target="_blank" class="btn btn-outline-primary btn-sm">
+                                    <i class="fal fa-download mr-1"></i>
+                                    Descargar CV
+                                </a>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Información de Postulaciones -->
+        {% if postulaciones %}
+        <div class="card mb-4">
+            <div class="card-header bg-light">
+                <h5 class="mb-0 text-custom-primary">
+                    <i class="fal fa-briefcase icon-custom-primary"></i>
+                    Postulaciones
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Convocatoria</th>
+                                <th>Fecha de Postulación</th>
+                                <th>Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for postulacion in postulaciones %}
+                            <tr>
+                                <td>{{ postulacion.convocatoria.titulo }}</td>
+                                <td>{{ postulacion.fecha_postulacion|date:"d/m/Y H:i" }}</td>
+                                <td>
+                                    <span class="badge badge-{{ postulacion.estado|default:'secondary' }}">
+                                        {{ postulacion.get_estado_display|default:"Sin estado" }}
+                                    </span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Información de Colaborador -->
+        {% if colaborador %}
+        <div class="card mb-4">
+            <div class="card-header bg-light">
+                <h5 class="mb-0 text-custom-primary">
+                    <i class="fal fa-user-tie icon-custom-primary"></i>
+                    Información de Colaborador
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="form-label font-weight-bold">Cargo:</label>
+                            <p class="form-control-plaintext">{{ colaborador.cargo|default:"No especificado" }}</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="form-label font-weight-bold">Fecha de Ingreso:</label>
+                            <p class="form-control-plaintext">{{ colaborador.fecha_ingreso|date:"d/m/Y"|default:"No especificada" }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="form-label font-weight-bold">Salario:</label>
+                            <p class="form-control-plaintext">{{ colaborador.salario|default:"No especificado" }}</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="form-label font-weight-bold">Estado:</label>
+                            <p class="form-control-plaintext">
+                                <span class="badge badge-{{ colaborador.activo|yesno:'success,danger' }}">
+                                    {{ colaborador.activo|yesno:"Activo,Inactivo" }}
+                                </span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
