@@ -331,8 +331,8 @@ License: You must have a valid license purchased only from wrapbootstrap.com (li
                                         </a>
                                     </li>
                                     <li>
-                                        <a href="{% url 'master:aspirantes' %}" title="Aspirantes" data-filter-tags="aspirante aspirantes">
-                                            <span class="nav-link-text" data-i18n="nav.application_intel_analytics_dashboard">Aspirantes</span>
+                                        <a href="{% url 'master:personas' %}" title="Personas" data-filter-tags="persona personas">
+                                            <span class="nav-link-text" data-i18n="nav.application_intel_analytics_dashboard">Personas</span>
                                         </a>
                                     </li>
                                     <li class="active">
@@ -1241,7 +1241,7 @@ License: You must have a valid license purchased only from wrapbootstrap.com (li
                                                             <button class="btn btn-sm btn-danger" title="Eliminar" onclick="eliminarConvocatoria({{ convocatoria.id }}, '{{ convocatoria.titulo }}')">
                                                                 <i class="fal fa-trash-alt"></i>
                                                             </button>
-                                                            <a href="{% url 'master:aspirantes' %}?convocatoria={{ convocatoria.id }}" class="btn btn-sm btn-success" title="Ver Postulaciones">
+                                                            <a href="{% url 'master:personas' %}?convocatoria={{ convocatoria.id }}" class="btn btn-sm btn-success" title="Ver Postulaciones">
                                                                 <i class="fal fa-users"></i>
                                                             </a>
                                                         </td>
