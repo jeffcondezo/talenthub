@@ -1,0 +1,160 @@
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    
+    <div class="row">
+        <div class="col-12">
+            <h4 class="text-custom-primary mb-4">
+                <i class="fal fa-edit icon-custom-primary"></i>
+                Editar Postulación de {{ postulacion.aspirante.nombre_completo }}
+            </h4>
+            
+            <!-- Información de la Postulación -->
+            <div class="card mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0 text-custom-primary">
+                        <i class="fal fa-briefcase icon-custom-primary"></i>
+                        Información de la Postulación
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="{{ form.estado_postulacion.id_for_label }}" class="form-label">Estado de Postulación *</label>
+                                {{ form.estado_postulacion|add_class:"form-control" }}
+                                {% if form.estado_postulacion.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.estado_postulacion.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="{{ form.experiencia_anios.id_for_label }}" class="form-label">Años de Experiencia *</label>
+                                {{ form.experiencia_anios|add_class:"form-control" }}
+                                {% if form.experiencia_anios.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.experiencia_anios.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="{{ form.nivel_educacion.id_for_label }}" class="form-label">Nivel de Educación</label>
+                                {{ form.nivel_educacion|add_class:"form-control" }}
+                                {% if form.nivel_educacion.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.nivel_educacion.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="{{ form.institucion_educacion.id_for_label }}" class="form-label">Institución de Educación</label>
+                                {{ form.institucion_educacion|add_class:"form-control" }}
+                                {% if form.institucion_educacion.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.institucion_educacion.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="{{ form.cv_archivo.id_for_label }}" class="form-label">Archivo CV</label>
+                                {{ form.cv_archivo|add_class:"form-control" }}
+                                {% if form.cv_archivo.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.cv_archivo.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                                {% if postulacion.cv_archivo %}
+                                    <small class="form-text text-muted">
+                                        Archivo actual: 
+                                        <a href="{{ postulacion.cv_archivo.url }}" target="_blank" class="btn btn-sm btn-success">
+                                            <i class="fal fa-download"></i> {{ postulacion.cv_archivo.name|truncatechars:30 }}
+                                        </a>
+                                    </small>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="form-group">
+                                <label for="{{ form.observaciones.id_for_label }}" class="form-label">Observaciones</label>
+                                {{ form.observaciones|add_class:"form-control" }}
+                                {% if form.observaciones.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.observaciones.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Información de la Convocatoria (Solo lectura) -->
+            <div class="card mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0 text-custom-primary">
+                        <i class="fal fa-info-circle icon-custom-primary"></i>
+                        Información de la Convocatoria
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <p><strong>Convocatoria:</strong> {{ postulacion.convocatoria.titulo }}</p>
+                        </div>
+                        <div class="col-md-4">
+                            <p><strong>Cargo:</strong> {{ postulacion.convocatoria.cargo.nombre }}</p>
+                        </div>
+                        <div class="col-md-4">
+                            <p><strong>Área:</strong> {{ postulacion.convocatoria.cargo.area.nombre }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Botones de Acción -->
+    <div class="row">
+        <div class="col-12">
+            <div class="form-group text-right">
+                <a href="{% url 'master:aspirantes' %}" class="btn btn-secondary mr-2">
+                    <i class="fal fa-times mr-1"></i>
+                    Cancelar
+                </a>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fal fa-save mr-1"></i>
+                    Actualizar
+                </button>
+            </div>
+        </div>
+    </div>
+</form>

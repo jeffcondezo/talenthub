@@ -1,0 +1,168 @@
+{% load static %}
+
+<form method="post" id="formacionAcademicaForm" enctype="multipart/form-data">
+    {% csrf_token %}
+    
+    <!-- Campos ocultos para aspirante/colaborador -->
+    {{ form.aspirante }}
+    {{ form.colaborador }}
+    
+    <div class="row">
+        <div class="col-md-6">
+            <div class="form-group">
+                <label for="{{ form.grado.id_for_label }}">{{ form.grado.label }}</label>
+                {{ form.grado }}
+                {% if form.grado.errors %}
+                    <div class="text-danger">
+                        {% for error in form.grado.errors %}
+                            <small>{{ error }}</small>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="form-group">
+                <label for="{{ form.especialidad.id_for_label }}">{{ form.especialidad.label }}</label>
+                {{ form.especialidad }}
+                {% if form.especialidad.errors %}
+                    <div class="text-danger">
+                        {% for error in form.especialidad.errors %}
+                            <small>{{ error }}</small>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-6">
+            <div class="form-group">
+                <label for="{{ form.centro_estudio.id_for_label }}">{{ form.centro_estudio.label }}</label>
+                {{ form.centro_estudio }}
+                {% if form.centro_estudio.errors %}
+                    <div class="text-danger">
+                        {% for error in form.centro_estudio.errors %}
+                            <small>{{ error }}</small>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="form-group">
+                <label for="{{ form.ciudad.id_for_label }}">{{ form.ciudad.label }}</label>
+                {{ form.ciudad }}
+                {% if form.ciudad.errors %}
+                    <div class="text-danger">
+                        {% for error in form.ciudad.errors %}
+                            <small>{{ error }}</small>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="form-group">
+                <label for="{{ form.pais.id_for_label }}">{{ form.pais.label }}</label>
+                {{ form.pais }}
+                {% if form.pais.errors %}
+                    <div class="text-danger">
+                        {% for error in form.pais.errors %}
+                            <small>{{ error }}</small>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-4">
+            <div class="form-group">
+                <label for="{{ form.fecha_expedicion.id_for_label }}">{{ form.fecha_expedicion.label }}</label>
+                {{ form.fecha_expedicion }}
+                {% if form.fecha_expedicion.errors %}
+                    <div class="text-danger">
+                        {% for error in form.fecha_expedicion.errors %}
+                            <small>{{ error }}</small>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="form-group">
+                <label for="{{ form.fecha_inicio.id_for_label }}">{{ form.fecha_inicio.label }}</label>
+                {{ form.fecha_inicio }}
+                {% if form.fecha_inicio.errors %}
+                    <div class="text-danger">
+                        {% for error in form.fecha_inicio.errors %}
+                            <small>{{ error }}</small>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="form-group">
+                <label for="{{ form.fecha_fin.id_for_label }}">{{ form.fecha_fin.label }}</label>
+                {{ form.fecha_fin }}
+                {% if form.fecha_fin.errors %}
+                    <div class="text-danger">
+                        {% for error in form.fecha_fin.errors %}
+                            <small>{{ error }}</small>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-6">
+            <div class="form-group">
+                <label for="{{ form.promedio.id_for_label }}">{{ form.promedio.label }}</label>
+                {{ form.promedio }}
+                {% if form.promedio.errors %}
+                    <div class="text-danger">
+                        {% for error in form.promedio.errors %}
+                            <small>{{ error }}</small>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="form-group">
+        <label for="{{ form.observaciones.id_for_label }}">{{ form.observaciones.label }}</label>
+        {{ form.observaciones }}
+        {% if form.observaciones.errors %}
+            <div class="text-danger">
+                {% for error in form.observaciones.errors %}
+                    <small>{{ error }}</small>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </div>
+    
+    <div class="form-group text-right">
+        <button type="button" class="btn btn-secondary mr-2" data-dismiss="modal">
+            <i class="fal fa-times mr-1"></i>Cancelar
+        </button>
+        <button type="submit" class="btn btn-primary">
+            <i class="fal fa-save mr-1"></i>
+            {% if es_edicion %}
+                Actualizar
+            {% else %}
+                Guardar
+            {% endif %}
+        </button>
+    </div>
+</form>
+
+
+
+

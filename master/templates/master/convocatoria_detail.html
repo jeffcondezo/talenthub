@@ -1,0 +1,306 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="Detalle de Convocatoria - TalentHub">
+    <meta name="author" content="TalentHub">
+    <title>Detalle de Convocatoria - TalentHub</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="{% static 'img/favicon/favicon.ico' %}">
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="{% static 'css/vendors.bundle.css' %}">
+    <link rel="stylesheet" href="{% static 'css/app.bundle.css' %}">
+    <link rel="stylesheet" href="{% static 'css/skins/skin-master.css' %}">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="{% static 'css/fa-solid.css' %}">
+    <link rel="stylesheet" href="{% static 'css/fa-regular.css' %}">
+    <link rel="stylesheet" href="{% static 'css/fa-light.css' %}">
+    <link rel="stylesheet" href="{% static 'css/fa-brands.css' %}">
+    <link rel="stylesheet" href="{% static 'css/fa-duotone.css' %}">
+    
+    <!-- Estilos personalizados -->
+    <style>
+        .text-custom-primary {
+            color: #12A58A !important;
+        }
+        .icon-custom-primary {
+            color: #12A58A !important;
+            background-color: white !important;
+            padding: 8px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+    </style>
+    
+</head>
+<body>
+    <div class="page-wrapper">
+        <!-- Header -->
+        <div class="page-inner">
+            <div class="page-content-wrapper">
+                <div class="content-wrapper">
+                    <div class="content">
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h3 class="card-title">
+                                            <i class="fal fa-bullhorn mr-2"></i>
+                                            Detalle de Convocatoria
+                                        </h3>
+                                        <div class="card-options">
+                                            <a href="{% url 'master:convocatorias' %}" class="btn btn-secondary">
+                                                <i class="fal fa-arrow-left mr-1"></i>
+                                                Volver a Convocatorias
+                                            </a>
+                                        </div>
+                                    </div>
+                                    <div class="card-body">
+                                        <!-- Información Principal -->
+                                        <div class="row mb-4">
+                                            <div class="col-md-8">
+                                                <h2 class="text-muted mb-2">{{ convocatoria.titulo }}</h2>
+                                                <p class="text-muted mb-3">{{ convocatoria.descripcion }}</p>
+                                                
+                                                <div class="row">
+                                                    <div class="col-md-6">
+                                                        <div class="form-group">
+                                                            <label class="form-label font-weight-bold">Cargo:</label>
+                                                            <p class="form-control-plaintext">{{ convocatoria.cargo.nombre }}</p>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <div class="form-group">
+                                                            <label class="form-label font-weight-bold">Área:</label>
+                                                            <p class="form-control-plaintext">{{ convocatoria.cargo.area.nombre }}</p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <div class="card bg-light">
+                                                    <div class="card-body text-center">
+                                                        <h5 class="card-title">Estado</h5>
+                                                        <span class="badge badge-{% if convocatoria.estado == 'PUBLICADA' %}success{% elif convocatoria.estado == 'EN_PROCESO' %}warning{% elif convocatoria.estado == 'FINALIZADA' %}info{% elif convocatoria.estado == 'CANCELADA' %}danger{% else %}secondary{% endif %} badge-lg">
+                                                            {{ convocatoria.get_estado_display }}
+                                                        </span>
+                                                        <hr>
+                                                        <h5 class="card-title">Tipo</h5>
+                                                        <span class="badge badge-{% if convocatoria.tipo == 'INTERNA' %}primary{% elif convocatoria.tipo == 'EXTERNA' %}success{% else %}info{% endif %} badge-lg">
+                                                            {{ convocatoria.get_tipo_display }}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Fechas y Detalles -->
+                                        <div class="row mb-4">
+                                            <div class="col-md-6">
+                                                <h5 class="text-custom-primary mb-3">
+                                                    <i class="fal fa-calendar-alt icon-custom-primary"></i>
+                                                    Fechas Importantes
+                                                </h5>
+                                                <div class="form-group">
+                                                    <label class="form-label font-weight-bold">Fecha de Apertura:</label>
+                                                    <p class="form-control-plaintext">{{ convocatoria.fecha_apertura|date:"d/m/Y H:i" }}</p>
+                                                </div>
+                                                <div class="form-group">
+                                                    <label class="form-label font-weight-bold">Fecha de Cierre:</label>
+                                                    <p class="form-control-plaintext">{{ convocatoria.fecha_cierre|date:"d/m/Y H:i" }}</p>
+                                                </div>
+                                                {% if convocatoria.fecha_inicio_trabajo %}
+                                                <div class="form-group">
+                                                    <label class="form-label font-weight-bold">Fecha de Inicio de Trabajo:</label>
+                                                    <p class="form-control-plaintext">{{ convocatoria.fecha_inicio_trabajo|date:"d/m/Y" }}</p>
+                                                </div>
+                                                {% endif %}
+                                            </div>
+                                            <div class="col-md-6">
+                                                <h5 class="text-custom-primary mb-3">
+                                                    <i class="fal fa-info-circle icon-custom-primary"></i>
+                                                    Detalles del Puesto
+                                                </h5>
+                                                <div class="form-group">
+                                                    <label class="form-label font-weight-bold">Número de Vacantes:</label>
+                                                    <p class="form-control-plaintext">{{ convocatoria.numero_vacantes }}</p>
+                                                </div>
+                                                {% if convocatoria.salario_ofrecido %}
+                                                <div class="form-group">
+                                                    <label class="form-label font-weight-bold">Salario Ofrecido:</label>
+                                                    <p class="form-control-plaintext">${{ convocatoria.salario_ofrecido|floatformat:2 }}</p>
+                                                </div>
+                                                {% endif %}
+                                                {% if convocatoria.experiencia_minima %}
+                                                <div class="form-group">
+                                                    <label class="form-label font-weight-bold">Experiencia Mínima:</label>
+                                                    <p class="form-control-plaintext">{{ convocatoria.experiencia_minima }} años</p>
+                                                </div>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+
+                                        <!-- Ubicación y Modalidad -->
+                                        {% if convocatoria.ubicacion or convocatoria.modalidad_trabajo %}
+                                        <div class="row mb-4">
+                                            <div class="col-12">
+                                                <h5 class="text-custom-primary mb-3">
+                                                    <i class="fal fa-map-marker-alt icon-custom-primary"></i>
+                                                    Ubicación y Modalidad
+                                                </h5>
+                                                <div class="row">
+                                                    {% if convocatoria.ubicacion %}
+                                                    <div class="col-md-6">
+                                                        <div class="form-group">
+                                                            <label class="form-label font-weight-bold">Ubicación:</label>
+                                                            <p class="form-control-plaintext">{{ convocatoria.ubicacion }}</p>
+                                                        </div>
+                                                    </div>
+                                                    {% endif %}
+                                                    {% if convocatoria.modalidad_trabajo %}
+                                                    <div class="col-md-6">
+                                                        <div class="form-group">
+                                                            <label class="form-label font-weight-bold">Modalidad de Trabajo:</label>
+                                                            <p class="form-control-plaintext">{{ convocatoria.modalidad_trabajo }}</p>
+                                                        </div>
+                                                    </div>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {% endif %}
+
+                                        <!-- Requisitos -->
+                                        {% if convocatoria.requisitos_minimos or convocatoria.requisitos_deseables %}
+                                        <div class="row mb-4">
+                                            <div class="col-12">
+                                                <h5 class="text-custom-primary mb-3">
+                                                    <i class="fal fa-list-check icon-custom-primary"></i>
+                                                    Requisitos
+                                                </h5>
+                                                <div class="row">
+                                                    {% if convocatoria.requisitos_minimos %}
+                                                    <div class="col-md-6">
+                                                        <div class="form-group">
+                                                            <label class="form-label font-weight-bold">Requisitos Mínimos:</label>
+                                                            <div class="form-control-plaintext">
+                                                                {{ convocatoria.requisitos_minimos|linebreaks }}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    {% endif %}
+                                                    {% if convocatoria.requisitos_deseables %}
+                                                    <div class="col-md-6">
+                                                        <div class="form-group">
+                                                            <label class="form-label font-weight-bold">Requisitos Deseables:</label>
+                                                            <div class="form-control-plaintext">
+                                                                {{ convocatoria.requisitos_deseables|linebreaks }}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {% endif %}
+
+                                        <!-- Responsable -->
+                                        {% if convocatoria.responsable_rrhh %}
+                                        <div class="row mb-4">
+                                            <div class="col-12">
+                                                <h5 class="text-custom-primary mb-3">
+                                                    <i class="fal fa-user-tie icon-custom-primary"></i>
+                                                    Responsable
+                                                </h5>
+                                                <div class="form-group">
+                                                    <label class="form-label font-weight-bold">Responsable de RRHH:</label>
+                                                    <p class="form-control-plaintext">{{ convocatoria.responsable_rrhh }}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {% endif %}
+
+                                        <!-- Estadísticas de Postulaciones -->
+                                        <div class="row mb-4">
+                                            <div class="col-12">
+                                                <h5 class="text-custom-primary mb-3">
+                                                    <i class="fal fa-chart-bar icon-custom-primary"></i>
+                                                    Estadísticas de Postulaciones
+                                                </h5>
+                                                <div class="row">
+                                                    <div class="col-md-3">
+                                                        <div class="card bg-primary text-white">
+                                                            <div class="card-body text-center">
+                                                                <h3 class="card-title">{{ total_postulaciones }}</h3>
+                                                                <p class="card-text">Total Postulaciones</p>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    {% for estado, data in postulaciones_por_estado.items %}
+                                                    {% if data.count > 0 %}
+                                                    <div class="col-md-3">
+                                                        <div class="card bg-{% if estado == 'POSTULADO' %}info{% elif estado == 'EN_REVISION' %}warning{% elif estado == 'ENTREVISTA' %}primary{% elif estado == 'EVALUACION' %}secondary{% elif estado == 'APROBADO' %}success{% elif estado == 'RECHAZADO' %}danger{% else %}light{% endif %} text-white">
+                                                            <div class="card-body text-center">
+                                                                <h3 class="card-title">{{ data.count }}</h3>
+                                                                <p class="card-text">{{ data.label }}</p>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    {% endif %}
+                                                    {% endfor %}
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Información del Sistema -->
+                                        <div class="row">
+                                            <div class="col-12">
+                                                <h5 class="text-custom-primary mb-3">
+                                                    <i class="fal fa-cog icon-custom-primary"></i>
+                                                    Información del Sistema
+                                                </h5>
+                                                <div class="row">
+                                                    <div class="col-md-6">
+                                                        <div class="form-group">
+                                                            <label class="form-label font-weight-bold">Fecha de Creación:</label>
+                                                            <p class="form-control-plaintext">{{ convocatoria.fecha_creacion|date:"d/m/Y H:i" }}</p>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <div class="form-group">
+                                                            <label class="form-label font-weight-bold">Última Actualización:</label>
+                                                            <p class="form-control-plaintext">{{ convocatoria.fecha_actualizacion|date:"d/m/Y H:i" }}</p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="form-group">
+                                                    <label class="form-label font-weight-bold">Estado del Sistema:</label>
+                                                    <p class="form-control-plaintext">
+                                                        <span class="badge badge-{% if convocatoria.activo %}success{% else %}danger{% endif %}">
+                                                            {% if convocatoria.activo %}Activo{% else %}Inactivo{% endif %}
+                                                        </span>
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="{% static 'js/vendors.bundle.js' %}"></script>
+    <script src="{% static 'js/app.bundle.js' %}"></script>
+</body>
+</html>
