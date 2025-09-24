@@ -1,12 +1,13 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.views import LoginView, LogoutView
 from django.urls import reverse_lazy, reverse
 from django.contrib import messages
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
 from django.db.models import Q
 from django.utils import timezone
-from .forms import CustomLoginForm, FormacionAcademicaForm, CursoEspecializacionForm, ExperienciaLaboralForm
-from .models import Persona, Cargo, Area, Convocatoria, Postulacion, FormacionAcademica, CursoEspecializacion, ExperienciaLaboral, CV, Colaborador
+from django.http import JsonResponse
+from .forms import CustomLoginForm, FormacionAcademicaForm, CursoEspecializacionForm, ExperienciaLaboralForm, PostulacionForm, ColaboradorForm
+from .models import Persona, Cargo, Area, Convocatoria, Postulacion, FormacionAcademica, CursoEspecializacion, ExperienciaLaboral, CV, Colaborador, Departamento, Provincia, Distrito
 
 # Create your views here.
 
@@ -48,32 +49,30 @@ class CVDetailView(DetailView):
         context = super().get_context_data(**kwargs)
         persona = self.object
         
-        # Determinar si es aspirante o colaborador
-        if hasattr(persona, 'postulaciones'):
-            # Es un aspirante
-            context['es_aspirante'] = True
-            context['es_colaborador'] = False
+        # Obtener CV si existe
+        try:
+            cv = persona.cv
+            context['cv'] = cv
             
-            # Obtener datos del CV del aspirante
-            context['formaciones_academicas'] = persona.formaciones_academicas.all().order_by('-fecha_expedicion')
-            context['cursos_especializacion'] = persona.cursos_especializacion.all().order_by('-fecha_fin')
-            context['experiencias_laborales'] = persona.experiencias_laborales.all().order_by('-fecha_inicio')
+            # Obtener datos del CV
+            context['formaciones_academicas'] = cv.formaciones_academicas.all().order_by('-fecha_expedicion')
+            context['cursos_especializacion'] = cv.cursos_especializacion.all().order_by('-fecha_fin')
+            context['experiencias_laborales'] = cv.experiencias_laborales.all().order_by('-fecha_inicio')
             
-        else:
-            # Es un colaborador
-            context['es_aspirante'] = False
-            context['es_colaborador'] = True
-            
-            # Obtener datos del CV del colaborador
-            context['formaciones_academicas'] = persona.formaciones_academicas.all().order_by('-fecha_expedicion')
-            context['cursos_especializacion'] = persona.cursos_especializacion.all().order_by('-fecha_fin')
-            context['experiencias_laborales'] = persona.experiencias_laborales.all().order_by('-fecha_inicio')
+        except CV.DoesNotExist:
+            context['cv'] = None
+            context['formaciones_academicas'] = []
+            context['cursos_especializacion'] = []
+            context['experiencias_laborales'] = []
+        
+        # Información adicional de la persona (sin depender de tipo)
+        context['tiene_postulaciones'] = persona.postulaciones.exists()
+        context['es_colaborador'] = hasattr(persona, 'colaborador') and persona.colaborador is not None
         
         # Datos adicionales para el contexto
-        context['tipo_persona'] = 'aspirante' if context['es_aspirante'] else 'colaborador'
-        context['total_formaciones'] = context['formaciones_academicas'].count()
-        context['total_cursos'] = context['cursos_especializacion'].count()
-        context['total_experiencias'] = context['experiencias_laborales'].count()
+        context['total_formaciones'] = len(context['formaciones_academicas'])
+        context['total_cursos'] = len(context['cursos_especializacion'])
+        context['total_experiencias'] = len(context['experiencias_laborales'])
         
         return context
 
@@ -143,6 +142,80 @@ class PersonasListView(ListView):
         return context
 
 
+class PostulantesListView(ListView):
+    """
+    Vista basada en clases para listar postulantes de una convocatoria específica
+    """
+    model = Postulacion
+    template_name = 'master/postulantes.html'
+    context_object_name = 'postulaciones'
+    paginate_by = 10
+    ordering = ['-fecha_postulacion']
+    
+    def get_queryset(self):
+        """
+        Filtra las postulaciones por convocatoria y parámetros de búsqueda
+        """
+        convocatoria_id = self.kwargs.get('convocatoria_id')
+        queryset = Postulacion.objects.filter(convocatoria_id=convocatoria_id).select_related(
+            'persona', 'convocatoria', 'convocatoria__cargo'
+        ).order_by('-fecha_postulacion')
+        
+        # Filtro por búsqueda
+        search = self.request.GET.get('search')
+        if search:
+            queryset = queryset.filter(
+                Q(persona__nombres__icontains=search) |
+                Q(persona__apellido_paterno__icontains=search) |
+                Q(persona__apellido_materno__icontains=search) |
+                Q(persona__numero_documento__icontains=search) |
+                Q(persona__email__icontains=search)
+            )
+        
+        # Filtro por estado de postulación
+        estado = self.request.GET.get('estado')
+        if estado:
+            queryset = queryset.filter(estado_postulacion=estado)
+        
+        return queryset
+    
+    def get_context_data(self, **kwargs):
+        """
+        Agrega datos adicionales al contexto
+        """
+        context = super().get_context_data(**kwargs)
+        convocatoria_id = self.kwargs.get('convocatoria_id')
+        
+        # Obtener la convocatoria
+        try:
+            convocatoria = Convocatoria.objects.select_related('cargo', 'cargo__area').get(id=convocatoria_id)
+            context['convocatoria'] = convocatoria
+        except Convocatoria.DoesNotExist:
+            context['convocatoria'] = None
+        
+        # Estadísticas de postulaciones para esta convocatoria
+        postulaciones_queryset = Postulacion.objects.filter(convocatoria_id=convocatoria_id)
+        context['total_postulaciones'] = postulaciones_queryset.count()
+        context['postulaciones_por_estado'] = {
+            'POSTULADO': postulaciones_queryset.filter(estado_postulacion='POSTULADO').count(),
+            'EN_REVISION': postulaciones_queryset.filter(estado_postulacion='EN_REVISION').count(),
+            'ENTREVISTA': postulaciones_queryset.filter(estado_postulacion='ENTREVISTA').count(),
+            'EVALUACION': postulaciones_queryset.filter(estado_postulacion='EVALUACION').count(),
+            'APROBADO': postulaciones_queryset.filter(estado_postulacion='APROBADO').count(),
+            'RECHAZADO': postulaciones_queryset.filter(estado_postulacion='RECHAZADO').count(),
+            'RETIRADO': postulaciones_queryset.filter(estado_postulacion='RETIRADO').count(),
+        }
+        
+        # Parámetros de búsqueda para mantener en la paginación
+        context['search'] = self.request.GET.get('search', '')
+        context['estado'] = self.request.GET.get('estado', '')
+        
+        # Opciones de estado para el filtro
+        context['estado_choices'] = Postulacion.ESTADO_POSTULACION_CHOICES
+        
+        return context
+
+
 class PersonaCreateView(CreateView):
     """
     Vista basada en clases para crear una nueva persona
@@ -161,7 +234,9 @@ class PersonaCreateView(CreateView):
         # Si es petición AJAX, devolver solo el contenido del modal
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
             from django.template.loader import render_to_string
-            context = self.get_context_data()
+            # Para CreateView, no hay objeto aún, solo el formulario
+            form = self.get_form()
+            context = {'form': form}
             html = render_to_string(self.template_name, context, request=request)
             from django.http import HttpResponse
             return HttpResponse(html)
@@ -211,6 +286,8 @@ class PersonaDetailView(DetailView):
         # Si es petición AJAX, devolver solo el contenido del modal
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
             from django.template.loader import render_to_string
+            # Establecer el objeto primero
+            self.object = self.get_object()
             context = self.get_context_data()
             html = render_to_string(self.template_name, context, request=request)
             from django.http import HttpResponse
@@ -241,6 +318,16 @@ class PersonaDetailView(DetailView):
         except Colaborador.DoesNotExist:
             context['colaborador'] = None
         
+        # Obtener la postulación específica si se proporciona el ID
+        postulacion_id = self.request.GET.get('postulacion_id')
+        if postulacion_id:
+            try:
+                context['postulacion_actual'] = persona.postulaciones.get(id=postulacion_id)
+            except Postulacion.DoesNotExist:
+                context['postulacion_actual'] = None
+        else:
+            context['postulacion_actual'] = None
+        
         return context
 
 
@@ -264,6 +351,8 @@ class PersonaUpdateView(UpdateView):
         # Si es petición AJAX, devolver solo el contenido del modal
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
             from django.template.loader import render_to_string
+            # Establecer el objeto primero
+            self.object = self.get_object()
             context = self.get_context_data()
             html = render_to_string(self.template_name, context, request=request)
             from django.http import HttpResponse
@@ -315,6 +404,8 @@ class PersonaDeleteView(DeleteView):
         # Si es petición AJAX, devolver solo el contenido del modal
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
             from django.template.loader import render_to_string
+            # Establecer el objeto primero
+            self.object = self.get_object()
             context = self.get_context_data()
             html = render_to_string(self.template_name, context, request=request)
             from django.http import HttpResponse
@@ -542,6 +633,71 @@ class ConvocatoriaDetailView(DetailView):
         return context
 
 
+class ConvocatoriaCreateView(CreateView):
+    """
+    Vista basada en clases para crear una nueva convocatoria
+    """
+    model = Convocatoria
+    template_name = 'master/convocatoria_create.html'
+    fields = [
+        'titulo', 'descripcion', 'cargo', 'fecha_apertura', 'fecha_cierre',
+        'fecha_inicio_trabajo', 'estado', 'tipo', 'nombre_empresa_externa', 'requisitos_minimos',
+        'requisitos_deseables', 'experiencia_minima', 'numero_vacantes',
+        'salario_ofrecido', 'modalidad_trabajo', 'ubicacion', 'responsable_rrhh', 'activo'
+    ]
+    success_url = reverse_lazy('master:convocatorias')
+    
+    def get(self, request, *args, **kwargs):
+        """Mostrar formulario de creación"""
+        # Si es petición AJAX, devolver solo el contenido del formulario
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            from django.template.loader import render_to_string
+            # Establecer el objeto primero
+            self.object = None
+            context = self.get_context_data()
+            # Renderizar el template completo y extraer solo el formulario
+            html = render_to_string('master/convocatoria_create.html', context, request=request)
+            from django.http import HttpResponse
+            return HttpResponse(html)
+        
+        # Para peticiones normales, usar el comportamiento por defecto
+        return super().get(request, *args, **kwargs)
+    
+    def form_valid(self, form):
+        """
+        Procesar formulario válido
+        """
+        # Guardar el objeto
+        self.object = form.save()
+        
+        # Si es petición AJAX, devolver respuesta JSON
+        if self.request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            from django.http import JsonResponse
+            return JsonResponse({'success': True, 'message': 'Convocatoria creada correctamente'})
+
+        # Para peticiones normales, usar el comportamiento por defecto
+        return super().form_valid(form)
+
+    def form_invalid(self, form):
+        """
+        Procesar formulario inválido
+        """
+        # Si es petición AJAX, devolver errores en JSON
+        if self.request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            from django.http import JsonResponse
+            return JsonResponse({'success': False, 'errors': form.errors})
+
+        # Para peticiones normales, usar el comportamiento por defecto
+        return super().form_invalid(form)
+    
+    def get_context_data(self, **kwargs):
+        """
+        Agregar datos adicionales al contexto
+        """
+        context = super().get_context_data(**kwargs)
+        context['is_create'] = True
+        return context
+
 class ConvocatoriaUpdateView(UpdateView):
     """
     Vista basada en clases para editar una convocatoria
@@ -552,7 +708,7 @@ class ConvocatoriaUpdateView(UpdateView):
     pk_url_kwarg = 'id'
     fields = [
         'titulo', 'descripcion', 'cargo', 'fecha_apertura', 'fecha_cierre',
-        'fecha_inicio_trabajo', 'estado', 'tipo', 'requisitos_minimos',
+        'fecha_inicio_trabajo', 'estado', 'tipo', 'nombre_empresa_externa', 'requisitos_minimos',
         'requisitos_deseables', 'experiencia_minima', 'numero_vacantes',
         'salario_ofrecido', 'modalidad_trabajo', 'ubicacion', 'responsable_rrhh', 'activo'
     ]
@@ -665,16 +821,14 @@ class FormacionAcademicaCreateView(CreateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['persona_id'] = self.kwargs['persona_id']
-        context['tipo_persona'] = self.kwargs['tipo']
         context['es_edicion'] = False
         
-        # Inicializar campos ocultos del formulario
-        if self.kwargs['tipo'] == 'aspirante':
-            context['form'].fields['aspirante'].initial = self.kwargs['persona_id']
-            context['form'].fields['colaborador'].initial = None
-        else:
-            context['form'].fields['colaborador'].initial = self.kwargs['persona_id']
-            context['form'].fields['aspirante'].initial = None
+        # Obtener o crear CV para la persona
+        persona = get_object_or_404(Persona, id=self.kwargs['persona_id'])
+        cv, created = CV.objects.get_or_create(persona=persona)
+        
+        # Inicializar el CV en el formulario
+        context['form'].fields['cv'].initial = cv.id
             
         return context
     
@@ -686,6 +840,12 @@ class FormacionAcademicaCreateView(CreateView):
     
     def form_valid(self, form):
         """Guarda el formulario"""
+        # Obtener o crear CV para la persona
+        persona = get_object_or_404(Persona, id=self.kwargs['persona_id'])
+        cv, created = CV.objects.get_or_create(persona=persona)
+        
+        # Asignar el CV al formulario
+        form.instance.cv = cv
         formacion = form.save()
         
         # Si es petición AJAX, devolver respuesta JSON
@@ -694,9 +854,7 @@ class FormacionAcademicaCreateView(CreateView):
             return JsonResponse({'success': True, 'message': 'Formación académica creada correctamente'})
         
         # Redirigir al CV
-        return redirect('master:cv_detail', 
-                       tipo=self.kwargs['tipo'], 
-                       id=self.kwargs['persona_id'])
+        return redirect('master:cv_detail', id=self.kwargs['persona_id'])
     
     def form_invalid(self, form):
         """Manejar formulario inválido"""
@@ -718,16 +876,17 @@ class FormacionAcademicaUpdateView(UpdateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['persona_id'] = self.kwargs['persona_id']
-        context['tipo_persona'] = self.kwargs['tipo']
         context['es_edicion'] = True
         
-        # Inicializar campos ocultos del formulario
-        if self.kwargs['tipo'] == 'aspirante':
-            context['form'].fields['aspirante'].initial = self.kwargs['persona_id']
-            context['form'].fields['colaborador'].initial = None
-        else:
-            context['form'].fields['colaborador'].initial = self.kwargs['persona_id']
-            context['form'].fields['aspirante'].initial = None
+        # Obtener CV de la persona
+        persona = get_object_or_404(Persona, id=self.kwargs['persona_id'])
+        try:
+            cv = persona.cv
+            context['form'].fields['cv'].initial = cv.id
+        except CV.DoesNotExist:
+            # Si no existe CV, crear uno
+            cv, created = CV.objects.get_or_create(persona=persona)
+            context['form'].fields['cv'].initial = cv.id
             
         return context
     
@@ -739,6 +898,11 @@ class FormacionAcademicaUpdateView(UpdateView):
     
     def form_valid(self, form):
         """Guarda el formulario"""
+        # Asegurar que el CV esté asignado correctamente
+        persona = get_object_or_404(Persona, id=self.kwargs['persona_id'])
+        cv, created = CV.objects.get_or_create(persona=persona)
+        form.instance.cv = cv
+        
         formacion = form.save()
         
         # Si es petición AJAX, devolver respuesta JSON
@@ -747,9 +911,7 @@ class FormacionAcademicaUpdateView(UpdateView):
             return JsonResponse({'success': True, 'message': 'Formación académica actualizada correctamente'})
         
         # Redirigir al CV
-        return redirect('master:cv_detail', 
-                       tipo=self.kwargs['tipo'], 
-                       id=self.kwargs['persona_id'])
+        return redirect('master:cv_detail', id=self.kwargs['persona_id'])
     
     def form_invalid(self, form):
         """Manejar formulario inválido"""
@@ -785,12 +947,7 @@ class FormacionAcademicaDeleteView(DeleteView):
         formacion = self.get_object()
         
         # Obtener información antes de eliminar
-        if formacion.aspirante:
-            persona_id = formacion.aspirante.id
-            tipo = 'aspirante'
-        else:
-            persona_id = formacion.colaborador.id
-            tipo = 'colaborador'
+        persona_id = formacion.cv.persona.id
         
         # Eliminar el objeto
         formacion.delete()
@@ -801,15 +958,12 @@ class FormacionAcademicaDeleteView(DeleteView):
             return JsonResponse({'success': True, 'message': 'Formación académica eliminada correctamente'})
         
         # Redirigir al CV
-        return redirect('master:cv_detail', tipo=tipo, id=persona_id)
+        return redirect('master:cv_detail', id=persona_id)
     
     def get_success_url(self):
         """Redirige al CV después de eliminar"""
         formacion = self.get_object()
-        if formacion.aspirante:
-            return reverse('master:cv_detail', kwargs={'tipo': 'aspirante', 'id': formacion.aspirante.id})
-        else:
-            return reverse('master:cv_detail', kwargs={'tipo': 'colaborador', 'id': formacion.colaborador.id})
+        return reverse('master:cv_detail', kwargs={'id': formacion.cv.persona.id})
 
 
 class CursoEspecializacionCreateView(CreateView):
@@ -821,16 +975,14 @@ class CursoEspecializacionCreateView(CreateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['persona_id'] = self.kwargs['persona_id']
-        context['tipo_persona'] = self.kwargs['tipo']
         context['es_edicion'] = False
         
-        # Inicializar campos ocultos del formulario
-        if self.kwargs['tipo'] == 'aspirante':
-            context['form'].fields['aspirante'].initial = self.kwargs['persona_id']
-            context['form'].fields['colaborador'].initial = None
-        else:
-            context['form'].fields['colaborador'].initial = self.kwargs['persona_id']
-            context['form'].fields['aspirante'].initial = None
+        # Obtener o crear CV para la persona
+        persona = get_object_or_404(Persona, id=self.kwargs['persona_id'])
+        cv, created = CV.objects.get_or_create(persona=persona)
+        
+        # Inicializar el CV en el formulario
+        context['form'].fields['cv'].initial = cv.id
             
         return context
     
@@ -842,6 +994,12 @@ class CursoEspecializacionCreateView(CreateView):
     
     def form_valid(self, form):
         """Guarda el formulario"""
+        # Obtener o crear CV para la persona
+        persona = get_object_or_404(Persona, id=self.kwargs['persona_id'])
+        cv, created = CV.objects.get_or_create(persona=persona)
+        
+        # Asignar el CV al formulario
+        form.instance.cv = cv
         curso = form.save()
         
         # Si es petición AJAX, devolver respuesta JSON
@@ -850,9 +1008,7 @@ class CursoEspecializacionCreateView(CreateView):
             return JsonResponse({'success': True, 'message': 'Curso de especialización creado correctamente'})
         
         # Redirigir al CV
-        return redirect('master:cv_detail', 
-                       tipo=self.kwargs['tipo'], 
-                       id=self.kwargs['persona_id'])
+        return redirect('master:cv_detail', id=self.kwargs['persona_id'])
     
     def form_invalid(self, form):
         """Manejar formulario inválido"""
@@ -874,16 +1030,17 @@ class CursoEspecializacionUpdateView(UpdateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['persona_id'] = self.kwargs['persona_id']
-        context['tipo_persona'] = self.kwargs['tipo']
         context['es_edicion'] = True
         
-        # Inicializar campos ocultos del formulario
-        if self.kwargs['tipo'] == 'aspirante':
-            context['form'].fields['aspirante'].initial = self.kwargs['persona_id']
-            context['form'].fields['colaborador'].initial = None
-        else:
-            context['form'].fields['colaborador'].initial = self.kwargs['persona_id']
-            context['form'].fields['aspirante'].initial = None
+        # Obtener CV de la persona
+        persona = get_object_or_404(Persona, id=self.kwargs['persona_id'])
+        try:
+            cv = persona.cv
+            context['form'].fields['cv'].initial = cv.id
+        except CV.DoesNotExist:
+            # Si no existe CV, crear uno
+            cv, created = CV.objects.get_or_create(persona=persona)
+            context['form'].fields['cv'].initial = cv.id
             
         return context
     
@@ -895,6 +1052,11 @@ class CursoEspecializacionUpdateView(UpdateView):
     
     def form_valid(self, form):
         """Guarda el formulario"""
+        # Asegurar que el CV esté asignado correctamente
+        persona = get_object_or_404(Persona, id=self.kwargs['persona_id'])
+        cv, created = CV.objects.get_or_create(persona=persona)
+        form.instance.cv = cv
+        
         curso = form.save()
         
         # Si es petición AJAX, devolver respuesta JSON
@@ -903,9 +1065,7 @@ class CursoEspecializacionUpdateView(UpdateView):
             return JsonResponse({'success': True, 'message': 'Curso de especialización actualizado correctamente'})
         
         # Redirigir al CV
-        return redirect('master:cv_detail', 
-                       tipo=self.kwargs['tipo'], 
-                       id=self.kwargs['persona_id'])
+        return redirect('master:cv_detail', id=self.kwargs['persona_id'])
     
     def form_invalid(self, form):
         """Manejar formulario inválido"""
@@ -941,12 +1101,7 @@ class CursoEspecializacionDeleteView(DeleteView):
         curso = self.get_object()
         
         # Obtener información antes de eliminar
-        if curso.aspirante:
-            persona_id = curso.aspirante.id
-            tipo = 'aspirante'
-        else:
-            persona_id = curso.colaborador.id
-            tipo = 'colaborador'
+        persona_id = curso.cv.persona.id
         
         # Eliminar el objeto
         curso.delete()
@@ -957,15 +1112,12 @@ class CursoEspecializacionDeleteView(DeleteView):
             return JsonResponse({'success': True, 'message': 'Curso de especialización eliminado correctamente'})
         
         # Redirigir al CV
-        return redirect('master:cv_detail', tipo=tipo, id=persona_id)
+        return redirect('master:cv_detail', id=persona_id)
     
     def get_success_url(self):
         """Redirige al CV después de eliminar"""
         curso = self.get_object()
-        if curso.aspirante:
-            return reverse('master:cv_detail', kwargs={'tipo': 'aspirante', 'id': curso.aspirante.id})
-        else:
-            return reverse('master:cv_detail', kwargs={'tipo': 'colaborador', 'id': curso.colaborador.id})
+        return reverse('master:cv_detail', kwargs={'id': curso.cv.persona.id})
 
 
 class ExperienciaLaboralCreateView(CreateView):
@@ -977,16 +1129,14 @@ class ExperienciaLaboralCreateView(CreateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['persona_id'] = self.kwargs['persona_id']
-        context['tipo_persona'] = self.kwargs['tipo']
         context['es_edicion'] = False
         
-        # Inicializar campos ocultos del formulario
-        if self.kwargs['tipo'] == 'aspirante':
-            context['form'].fields['aspirante'].initial = self.kwargs['persona_id']
-            context['form'].fields['colaborador'].initial = None
-        else:
-            context['form'].fields['colaborador'].initial = self.kwargs['persona_id']
-            context['form'].fields['aspirante'].initial = None
+        # Obtener o crear CV para la persona
+        persona = get_object_or_404(Persona, id=self.kwargs['persona_id'])
+        cv, created = CV.objects.get_or_create(persona=persona)
+        
+        # Inicializar el CV en el formulario
+        context['form'].fields['cv'].initial = cv.id
             
         return context
     
@@ -998,6 +1148,12 @@ class ExperienciaLaboralCreateView(CreateView):
     
     def form_valid(self, form):
         """Guarda el formulario"""
+        # Obtener o crear CV para la persona
+        persona = get_object_or_404(Persona, id=self.kwargs['persona_id'])
+        cv, created = CV.objects.get_or_create(persona=persona)
+        
+        # Asignar el CV al formulario
+        form.instance.cv = cv
         experiencia = form.save()
         
         # Si es petición AJAX, devolver respuesta JSON
@@ -1006,9 +1162,7 @@ class ExperienciaLaboralCreateView(CreateView):
             return JsonResponse({'success': True, 'message': 'Experiencia laboral creada correctamente'})
         
         # Redirigir al CV
-        return redirect('master:cv_detail', 
-                       tipo=self.kwargs['tipo'], 
-                       id=self.kwargs['persona_id'])
+        return redirect('master:cv_detail', id=self.kwargs['persona_id'])
     
     def form_invalid(self, form):
         """Manejar formulario inválido"""
@@ -1030,16 +1184,17 @@ class ExperienciaLaboralUpdateView(UpdateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['persona_id'] = self.kwargs['persona_id']
-        context['tipo_persona'] = self.kwargs['tipo']
         context['es_edicion'] = True
         
-        # Inicializar campos ocultos del formulario
-        if self.kwargs['tipo'] == 'aspirante':
-            context['form'].fields['aspirante'].initial = self.kwargs['persona_id']
-            context['form'].fields['colaborador'].initial = None
-        else:
-            context['form'].fields['colaborador'].initial = self.kwargs['persona_id']
-            context['form'].fields['aspirante'].initial = None
+        # Obtener CV de la persona
+        persona = get_object_or_404(Persona, id=self.kwargs['persona_id'])
+        try:
+            cv = persona.cv
+            context['form'].fields['cv'].initial = cv.id
+        except CV.DoesNotExist:
+            # Si no existe CV, crear uno
+            cv, created = CV.objects.get_or_create(persona=persona)
+            context['form'].fields['cv'].initial = cv.id
             
         return context
     
@@ -1051,6 +1206,11 @@ class ExperienciaLaboralUpdateView(UpdateView):
     
     def form_valid(self, form):
         """Guarda el formulario"""
+        # Asegurar que el CV esté asignado correctamente
+        persona = get_object_or_404(Persona, id=self.kwargs['persona_id'])
+        cv, created = CV.objects.get_or_create(persona=persona)
+        form.instance.cv = cv
+        
         experiencia = form.save()
         
         # Si es petición AJAX, devolver respuesta JSON
@@ -1059,9 +1219,7 @@ class ExperienciaLaboralUpdateView(UpdateView):
             return JsonResponse({'success': True, 'message': 'Experiencia laboral actualizada correctamente'})
         
         # Redirigir al CV
-        return redirect('master:cv_detail', 
-                       tipo=self.kwargs['tipo'], 
-                       id=self.kwargs['persona_id'])
+        return redirect('master:cv_detail', id=self.kwargs['persona_id'])
     
     def form_invalid(self, form):
         """Manejar formulario inválido"""
@@ -1097,12 +1255,7 @@ class ExperienciaLaboralDeleteView(DeleteView):
         experiencia = self.get_object()
         
         # Obtener información antes de eliminar
-        if experiencia.aspirante:
-            persona_id = experiencia.aspirante.id
-            tipo = 'aspirante'
-        else:
-            persona_id = experiencia.colaborador.id
-            tipo = 'colaborador'
+        persona_id = experiencia.cv.persona.id
         
         # Eliminar el objeto
         experiencia.delete()
@@ -1113,12 +1266,898 @@ class ExperienciaLaboralDeleteView(DeleteView):
             return JsonResponse({'success': True, 'message': 'Experiencia laboral eliminada correctamente'})
         
         # Redirigir al CV
-        return redirect('master:cv_detail', tipo=tipo, id=persona_id)
+        return redirect('master:cv_detail', id=persona_id)
     
     def get_success_url(self):
         """Redirige al CV después de eliminar"""
         experiencia = self.get_object()
-        if experiencia.aspirante:
-            return reverse('master:cv_detail', kwargs={'tipo': 'aspirante', 'id': experiencia.aspirante.id})
-        else:
-            return reverse('master:cv_detail', kwargs={'tipo': 'colaborador', 'id': experiencia.colaborador.id})
+        return reverse('master:cv_detail', kwargs={'id': experiencia.cv.persona.id})
+
+
+# Vistas AJAX para filtrado en cascada de ubicaciones
+def get_provincias(request):
+    """Obtener provincias por departamento"""
+    departamento_id = request.GET.get('departamento_id')
+    if departamento_id:
+        provincias = Provincia.objects.filter(departamento_id=departamento_id).order_by('nombre')
+        data = [{'id': p.id, 'nombre': p.nombre} for p in provincias]
+        return JsonResponse(data, safe=False)
+    return JsonResponse([], safe=False)
+
+
+def get_distritos(request):
+    """Obtener distritos por provincia"""
+    provincia_id = request.GET.get('provincia_id')
+    if provincia_id:
+        distritos = Distrito.objects.filter(provincia_id=provincia_id).order_by('nombre')
+        data = [{'id': d.id, 'nombre': d.nombre} for d in distritos]
+        return JsonResponse(data, safe=False)
+    return JsonResponse([], safe=False)
+
+
+def crear_postulacion(request, persona_id):
+    """
+    Vista para crear una nueva postulación para una persona
+    """
+    if request.method == 'POST':
+        try:
+            persona = get_object_or_404(Persona, id=persona_id)
+            convocatoria_id = request.POST.get('convocatoria_id')
+            estado_postulacion = request.POST.get('estado_postulacion', 'POSTULADO')
+            observaciones = request.POST.get('observaciones', '')
+            
+            if not convocatoria_id:
+                return JsonResponse({'success': False, 'errors': {'convocatoria_id': ['Este campo es obligatorio']}})
+            
+            convocatoria = get_object_or_404(Convocatoria, id=convocatoria_id)
+            
+            # Crear la postulación
+            postulacion = Postulacion.objects.create(
+                persona=persona,
+                convocatoria=convocatoria,
+                estado_postulacion=estado_postulacion,
+                observaciones=observaciones
+            )
+            
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({'success': True, 'message': 'Postulación creada correctamente'})
+            
+            messages.success(request, 'Postulación creada correctamente')
+            return redirect('master:persona_detail', id=persona_id)
+            
+        except Exception as e:
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({'success': False, 'errors': {'general': [str(e)]}})
+            
+            messages.error(request, f'Error al crear postulación: {str(e)}')
+            return redirect('master:persona_detail', id=persona_id)
+    
+    return JsonResponse({'success': False, 'errors': {'method': ['Método no permitido']}})
+
+
+def get_convocatorias(request):
+    """Obtener convocatorias activas para el formulario de postulación"""
+    convocatorias = Convocatoria.objects.filter(
+        estado='PUBLICADA',
+        fecha_cierre__gte=timezone.now()
+    ).order_by('titulo')
+    
+    data = [{'id': c.id, 'titulo': c.titulo} for c in convocatorias]
+    return JsonResponse(data, safe=False)
+
+
+class PostulacionUpdateView(UpdateView):
+    """Vista para editar una postulación"""
+    model = Postulacion
+    form_class = PostulacionForm
+    template_name = 'master/postulacion_edit.html'
+    context_object_name = 'postulacion'
+    
+    def get(self, request, *args, **kwargs):
+        """Mostrar formulario de edición"""
+        # Si es petición AJAX, devolver solo el contenido del modal
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            from django.template.loader import render_to_string
+            # Establecer el objeto primero
+            self.object = self.get_object()
+            context = self.get_context_data()
+            html = render_to_string('master/postulacion_edit_modal.html', context, request=request)
+            from django.http import HttpResponse
+            return HttpResponse(html)
+        
+        # Para peticiones normales, usar el comportamiento por defecto
+        return super().get(request, *args, **kwargs)
+    
+    def form_valid(self, form):
+        """
+        Procesar formulario válido
+        """
+        # Guardar el objeto
+        self.object = form.save()
+        
+        # Si es petición AJAX, devolver respuesta JSON
+        if self.request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            from django.http import JsonResponse
+            return JsonResponse({'success': True, 'message': 'Postulación actualizada correctamente'})
+
+        # Para peticiones normales, usar el comportamiento por defecto
+        return super().form_valid(form)
+
+    def form_invalid(self, form):
+        """
+        Procesar formulario inválido
+        """
+        # Si es petición AJAX, devolver errores en JSON
+        if self.request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            from django.http import JsonResponse
+            return JsonResponse({'success': False, 'errors': form.errors})
+
+        # Para peticiones normales, usar el comportamiento por defecto
+        return super().form_invalid(form)
+    
+    def get_success_url(self):
+        """Redirigir a la lista de postulantes de la convocatoria"""
+        return reverse('master:postulantes', kwargs={'convocatoria_id': self.object.convocatoria.id})
+    
+    def get_context_data(self, **kwargs):
+        """Agregar contexto adicional"""
+        context = super().get_context_data(**kwargs)
+        context['convocatoria'] = self.object.convocatoria
+        context['persona'] = self.object.persona
+        return context
+
+
+def registro_postulante(request):
+    """
+    Vista para que los postulantes se registren públicamente (solo datos básicos)
+    """
+    if request.method == 'POST':
+        try:
+            from datetime import datetime
+            
+            # Obtener las instancias de los modelos de ubicación
+            departamento = Departamento.objects.get(id=request.POST.get('departamento'))
+            provincia = Provincia.objects.get(id=request.POST.get('provincia'))
+            distrito = Distrito.objects.get(id=request.POST.get('distrito'))
+            
+            # Convertir fecha de nacimiento de string a date
+            fecha_nacimiento_str = request.POST.get('fecha_nacimiento')
+            fecha_nacimiento = datetime.strptime(fecha_nacimiento_str, '%Y-%m-%d').date() if fecha_nacimiento_str else None
+            
+            # Crear persona
+            persona_data = {
+                'tipo_documento': request.POST.get('tipo_documento'),
+                'numero_documento': request.POST.get('numero_documento'),
+                'nombres': request.POST.get('nombres'),
+                'apellido_paterno': request.POST.get('apellido_paterno'),
+                'apellido_materno': request.POST.get('apellido_materno'),
+                'fecha_nacimiento': fecha_nacimiento,
+                'sexo': request.POST.get('sexo'),
+                'celular': request.POST.get('telefono'),
+                'email': request.POST.get('email'),
+                'direccion': request.POST.get('direccion'),
+                'departamento': departamento,
+                'provincia': provincia,
+                'distrito': distrito,
+            }
+            
+            # Crear la persona
+            persona = Persona.objects.create(**persona_data)
+            
+            # Crear CV básico
+            cv_data = {
+                'persona': persona,
+                'resumen_profesional': '',
+                'objetivo_profesional': '',
+            }
+            
+            cv = CV.objects.create(**cv_data)
+            
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                from django.http import JsonResponse
+                return JsonResponse({
+                    'success': True, 
+                    'message': 'Registro completado exitosamente.',
+                    'redirect_url': f'/master/postulante/{persona.id}/'
+                })
+            
+            from django.contrib import messages
+            messages.success(request, 'Registro completado exitosamente.')
+            return redirect('master:postulante_detail', persona_id=persona.id)
+            
+        except Exception as e:
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                from django.http import JsonResponse
+                return JsonResponse({'success': False, 'errors': {'general': [str(e)]}})
+            
+            from django.contrib import messages
+            messages.error(request, f'Error al registrar: {str(e)}')
+            return redirect('master:registro_postulante')
+    
+    # Para peticiones GET, mostrar el formulario
+    context = {
+        'departamentos': Departamento.objects.all(),
+        'provincias': Provincia.objects.none(),
+        'distritos': Distrito.objects.none(),
+    }
+    return render(request, 'master/registro_postulante.html', context)
+
+def postulante_detail(request, persona_id):
+    """
+    Vista de detalle del postulante con opciones para agregar datos del CV
+    """
+    try:
+        persona = Persona.objects.get(id=persona_id)
+        cv = CV.objects.get(persona=persona)
+        formaciones = FormacionAcademica.objects.filter(cv=cv)
+        cursos = CursoEspecializacion.objects.filter(cv=cv)
+        experiencias = ExperienciaLaboral.objects.filter(cv=cv)
+        
+        
+        context = {
+            'persona': persona,
+            'cv': cv,
+            'formaciones': formaciones,
+            'cursos': cursos,
+            'experiencias': experiencias,
+        }
+        return render(request, 'master/postulante_detail.html', context)
+    except Persona.DoesNotExist:
+        from django.contrib import messages
+        messages.error(request, 'Postulante no encontrado.')
+        return redirect('master:registro_postulante')
+    except CV.DoesNotExist:
+        from django.contrib import messages
+        messages.error(request, 'CV no encontrado.')
+        return redirect('master:registro_postulante')
+
+def agregar_formacion(request, persona_id):
+    """
+    Vista para agregar formación académica via AJAX
+    """
+    if request.method == 'POST':
+        try:
+            persona = Persona.objects.get(id=persona_id)
+            cv = CV.objects.get(persona=persona)
+            
+            # Convertir fechas de string a date
+            from datetime import datetime
+            fecha_expedicion = None
+            fecha_inicio = None
+            fecha_fin = None
+            
+            if request.POST.get('fecha_expedicion'):
+                fecha_expedicion = datetime.strptime(request.POST.get('fecha_expedicion'), '%Y-%m-%d').date()
+            if request.POST.get('fecha_inicio'):
+                fecha_inicio = datetime.strptime(request.POST.get('fecha_inicio'), '%Y-%m-%d').date()
+            if request.POST.get('fecha_fin'):
+                fecha_fin = datetime.strptime(request.POST.get('fecha_fin'), '%Y-%m-%d').date()
+            
+            formacion = FormacionAcademica.objects.create(
+                cv=cv,
+                grado=request.POST.get('grado'),
+                especialidad=request.POST.get('especialidad'),
+                centro_estudio=request.POST.get('centro_estudio'),
+                ciudad=request.POST.get('ciudad'),
+                pais=request.POST.get('pais'),
+                fecha_expedicion=fecha_expedicion,
+                fecha_inicio=fecha_inicio,
+                fecha_fin=fecha_fin,
+                promedio=request.POST.get('promedio') or None,
+                observaciones=request.POST.get('observaciones') or None,
+            )
+            
+            from django.http import JsonResponse
+            return JsonResponse({
+                'success': True,
+                'message': 'Formación académica agregada correctamente.',
+                'formacion': {
+                    'id': formacion.id,
+                    'grado': formacion.get_grado_display(),
+                    'especialidad': formacion.especialidad,
+                    'centro_estudio': formacion.centro_estudio,
+                    'ciudad': formacion.ciudad,
+                    'pais': formacion.pais,
+                    'fecha_expedicion': formacion.fecha_expedicion.strftime('%Y-%m-%d') if formacion.fecha_expedicion else '',
+                    'fecha_inicio': formacion.fecha_inicio.strftime('%Y-%m-%d') if formacion.fecha_inicio else '',
+                    'fecha_fin': formacion.fecha_fin.strftime('%Y-%m-%d') if formacion.fecha_fin else '',
+                    'promedio': str(formacion.promedio) if formacion.promedio else '',
+                    'observaciones': formacion.observaciones or '',
+                }
+            })
+        except Exception as e:
+            from django.http import JsonResponse
+            return JsonResponse({'success': False, 'errors': {'general': [str(e)]}})
+    
+    return render(request, 'master/modal_formacion.html')
+
+def editar_formacion(request, persona_id, formacion_id):
+    """
+    Vista para editar formación académica via AJAX
+    """
+    if request.method == 'POST':
+        try:
+            persona = Persona.objects.get(id=persona_id)
+            cv = CV.objects.get(persona=persona)
+            formacion = FormacionAcademica.objects.get(id=formacion_id, cv=cv)
+            
+            # Convertir fechas de string a date
+            from datetime import datetime
+            fecha_expedicion = None
+            fecha_inicio = None
+            fecha_fin = None
+            
+            if request.POST.get('fecha_expedicion'):
+                fecha_expedicion = datetime.strptime(request.POST.get('fecha_expedicion'), '%Y-%m-%d').date()
+            if request.POST.get('fecha_inicio'):
+                fecha_inicio = datetime.strptime(request.POST.get('fecha_inicio'), '%Y-%m-%d').date()
+            if request.POST.get('fecha_fin'):
+                fecha_fin = datetime.strptime(request.POST.get('fecha_fin'), '%Y-%m-%d').date()
+            
+            # Actualizar la formación
+            formacion.grado = request.POST.get('grado')
+            formacion.especialidad = request.POST.get('especialidad')
+            formacion.centro_estudio = request.POST.get('centro_estudio')
+            formacion.ciudad = request.POST.get('ciudad')
+            formacion.pais = request.POST.get('pais')
+            formacion.fecha_expedicion = fecha_expedicion
+            formacion.fecha_inicio = fecha_inicio
+            formacion.fecha_fin = fecha_fin
+            formacion.promedio = request.POST.get('promedio') or None
+            formacion.observaciones = request.POST.get('observaciones') or None
+            formacion.save()
+            
+            from django.http import JsonResponse
+            return JsonResponse({
+                'success': True,
+                'message': 'Formación académica actualizada correctamente.',
+                'formacion': {
+                    'id': formacion.id,
+                    'grado': formacion.get_grado_display(),
+                    'especialidad': formacion.especialidad,
+                    'centro_estudio': formacion.centro_estudio,
+                    'ciudad': formacion.ciudad,
+                    'pais': formacion.pais,
+                    'fecha_expedicion': formacion.fecha_expedicion.strftime('%Y-%m-%d') if formacion.fecha_expedicion else '',
+                    'fecha_inicio': formacion.fecha_inicio.strftime('%Y-%m-%d') if formacion.fecha_inicio else '',
+                    'fecha_fin': formacion.fecha_fin.strftime('%Y-%m-%d') if formacion.fecha_fin else '',
+                    'promedio': str(formacion.promedio) if formacion.promedio else '',
+                    'observaciones': formacion.observaciones or '',
+                }
+            })
+        except Exception as e:
+            from django.http import JsonResponse
+            return JsonResponse({'success': False, 'errors': {'general': [str(e)]}})
+    
+    # Para peticiones GET, mostrar el formulario con datos existentes
+    try:
+        persona = Persona.objects.get(id=persona_id)
+        cv = CV.objects.get(persona=persona)
+        formacion = FormacionAcademica.objects.get(id=formacion_id, cv=cv)
+        
+        context = {
+            'formacion': formacion,
+            'es_edicion': True,
+        }
+        return render(request, 'master/modal_formacion.html', context)
+    except Exception as e:
+        from django.http import JsonResponse
+        return JsonResponse({'success': False, 'errors': {'general': [str(e)]}})
+
+def eliminar_formacion(request, persona_id, formacion_id):
+    """
+    Vista para eliminar formación académica via AJAX
+    """
+    if request.method == 'POST':
+        try:
+            persona = Persona.objects.get(id=persona_id)
+            cv = CV.objects.get(persona=persona)
+            formacion = FormacionAcademica.objects.get(id=formacion_id, cv=cv)
+            especialidad = formacion.especialidad
+            formacion.delete()
+            
+            from django.http import JsonResponse
+            return JsonResponse({
+                'success': True,
+                'message': f'Formación académica "{especialidad}" eliminada correctamente.'
+            })
+        except Exception as e:
+            from django.http import JsonResponse
+            return JsonResponse({'success': False, 'errors': {'general': [str(e)]}})
+    
+    # Para peticiones GET, mostrar modal de confirmación
+    try:
+        persona = Persona.objects.get(id=persona_id)
+        cv = CV.objects.get(persona=persona)
+        formacion = FormacionAcademica.objects.get(id=formacion_id, cv=cv)
+        
+        context = {
+            'formacion': formacion,
+        }
+        return render(request, 'master/modal_eliminar_formacion.html', context)
+    except Exception as e:
+        from django.http import JsonResponse
+        return JsonResponse({'success': False, 'errors': {'general': [str(e)]}})
+
+def agregar_curso(request, persona_id):
+    """
+    Vista para agregar curso de especialización via AJAX
+    """
+    if request.method == 'POST':
+        try:
+            persona = Persona.objects.get(id=persona_id)
+            cv = CV.objects.get(persona=persona)
+            
+            # Convertir fechas de string a date
+            from datetime import datetime
+            fecha_inicio = None
+            fecha_fin = None
+            
+            if request.POST.get('fecha_inicio'):
+                fecha_inicio = datetime.strptime(request.POST.get('fecha_inicio'), '%Y-%m-%d').date()
+            if request.POST.get('fecha_fin'):
+                fecha_fin = datetime.strptime(request.POST.get('fecha_fin'), '%Y-%m-%d').date()
+            
+            curso = CursoEspecializacion.objects.create(
+                cv=cv,
+                tipo_estudio=request.POST.get('tipo_estudio'),
+                descripcion=request.POST.get('descripcion'),
+                institucion=request.POST.get('institucion'),
+                pais=request.POST.get('pais'),
+                ciudad=request.POST.get('ciudad'),
+                fecha_inicio=fecha_inicio,
+                fecha_fin=fecha_fin,
+                horas_lectivas=request.POST.get('horas_lectivas') or None,
+                nivel=request.POST.get('nivel') or None,
+                observaciones=request.POST.get('observaciones') or None,
+            )
+            
+            # Manejar archivo de certificado si se proporciona
+            if 'certificado' in request.FILES:
+                curso.certificado = request.FILES['certificado']
+                curso.save()
+            
+            from django.http import JsonResponse
+            return JsonResponse({
+                'success': True,
+                'message': 'Curso de especialización agregado correctamente.',
+                'curso': {
+                    'id': curso.id,
+                    'tipo_estudio': curso.get_tipo_estudio_display(),
+                    'descripcion': curso.descripcion,
+                    'institucion': curso.institucion,
+                    'pais': curso.pais,
+                    'ciudad': curso.ciudad,
+                    'fecha_inicio': curso.fecha_inicio.strftime('%Y-%m-%d') if curso.fecha_inicio else '',
+                    'fecha_fin': curso.fecha_fin.strftime('%Y-%m-%d') if curso.fecha_fin else '',
+                    'horas_lectivas': str(curso.horas_lectivas) if curso.horas_lectivas else '',
+                    'nivel': curso.get_nivel_display() if curso.nivel else '',
+                    'certificado': curso.certificado.url if curso.certificado else '',
+                    'certificado_nombre': curso.certificado.name if curso.certificado else '',
+                    'observaciones': curso.observaciones or '',
+                }
+            })
+        except Exception as e:
+            from django.http import JsonResponse
+            return JsonResponse({'success': False, 'errors': {'general': [str(e)]}})
+    
+    return render(request, 'master/modal_curso.html')
+
+def editar_curso(request, persona_id, curso_id):
+    """
+    Vista para editar curso de especialización via AJAX
+    """
+    if request.method == 'POST':
+        try:
+            persona = Persona.objects.get(id=persona_id)
+            cv = CV.objects.get(persona=persona)
+            curso = CursoEspecializacion.objects.get(id=curso_id, cv=cv)
+            
+            # Convertir fechas de string a date
+            from datetime import datetime
+            fecha_inicio = None
+            fecha_fin = None
+            
+            if request.POST.get('fecha_inicio'):
+                fecha_inicio = datetime.strptime(request.POST.get('fecha_inicio'), '%Y-%m-%d').date()
+            if request.POST.get('fecha_fin'):
+                fecha_fin = datetime.strptime(request.POST.get('fecha_fin'), '%Y-%m-%d').date()
+            
+            # Actualizar el curso
+            curso.tipo_estudio = request.POST.get('tipo_estudio')
+            curso.descripcion = request.POST.get('descripcion')
+            curso.institucion = request.POST.get('institucion')
+            curso.pais = request.POST.get('pais')
+            curso.ciudad = request.POST.get('ciudad')
+            curso.fecha_inicio = fecha_inicio
+            curso.fecha_fin = fecha_fin
+            curso.horas_lectivas = request.POST.get('horas_lectivas') or None
+            curso.nivel = request.POST.get('nivel') or None
+            curso.observaciones = request.POST.get('observaciones') or None
+            
+            # Manejar archivo de certificado si se proporciona uno nuevo
+            if 'certificado' in request.FILES:
+                curso.certificado = request.FILES['certificado']
+            
+            curso.save()
+            
+            from django.http import JsonResponse
+            return JsonResponse({
+                'success': True,
+                'message': 'Curso de especialización actualizado correctamente.',
+                'curso': {
+                    'id': curso.id,
+                    'tipo_estudio': curso.get_tipo_estudio_display(),
+                    'descripcion': curso.descripcion,
+                    'institucion': curso.institucion,
+                    'pais': curso.pais,
+                    'ciudad': curso.ciudad,
+                    'fecha_inicio': curso.fecha_inicio.strftime('%Y-%m-%d') if curso.fecha_inicio else '',
+                    'fecha_fin': curso.fecha_fin.strftime('%Y-%m-%d') if curso.fecha_fin else '',
+                    'horas_lectivas': str(curso.horas_lectivas) if curso.horas_lectivas else '',
+                    'nivel': curso.get_nivel_display() if curso.nivel else '',
+                    'certificado': curso.certificado.url if curso.certificado else '',
+                    'certificado_nombre': curso.certificado.name if curso.certificado else '',
+                    'observaciones': curso.observaciones or '',
+                }
+            })
+        except Exception as e:
+            from django.http import JsonResponse
+            return JsonResponse({'success': False, 'errors': {'general': [str(e)]}})
+    
+    # Para peticiones GET, mostrar el formulario con datos existentes
+    try:
+        persona = Persona.objects.get(id=persona_id)
+        cv = CV.objects.get(persona=persona)
+        curso = CursoEspecializacion.objects.get(id=curso_id, cv=cv)
+        
+        context = {
+            'curso': curso,
+            'es_edicion': True,
+        }
+        return render(request, 'master/modal_curso.html', context)
+    except Exception as e:
+        from django.http import JsonResponse
+        return JsonResponse({'success': False, 'errors': {'general': [str(e)]}})
+
+def eliminar_curso(request, persona_id, curso_id):
+    """
+    Vista para eliminar curso de especialización via AJAX
+    """
+    if request.method == 'POST':
+        try:
+            persona = Persona.objects.get(id=persona_id)
+            cv = CV.objects.get(persona=persona)
+            curso = CursoEspecializacion.objects.get(id=curso_id, cv=cv)
+            nombre_curso = curso.descripcion
+            curso.delete()
+            
+            from django.http import JsonResponse
+            return JsonResponse({
+                'success': True,
+                'message': f'Curso de especialización "{nombre_curso}" eliminado correctamente.'
+            })
+        except Exception as e:
+            from django.http import JsonResponse
+            return JsonResponse({'success': False, 'errors': {'general': [str(e)]}})
+    
+    # Para peticiones GET, mostrar modal de confirmación
+    try:
+        persona = Persona.objects.get(id=persona_id)
+        cv = CV.objects.get(persona=persona)
+        curso = CursoEspecializacion.objects.get(id=curso_id, cv=cv)
+        
+        context = {
+            'curso': curso,
+        }
+        return render(request, 'master/modal_eliminar_curso.html', context)
+    except Exception as e:
+        from django.http import JsonResponse
+        return JsonResponse({'success': False, 'errors': {'general': [str(e)]}})
+
+def agregar_experiencia(request, persona_id):
+    """
+    Vista para agregar experiencia laboral via AJAX
+    """
+    if request.method == 'POST':
+        try:
+            persona = Persona.objects.get(id=persona_id)
+            cv = CV.objects.get(persona=persona)
+            
+            # Convertir fechas de string a date
+            from datetime import datetime
+            fecha_inicio = None
+            fecha_fin = None
+            
+            if request.POST.get('fecha_inicio'):
+                fecha_inicio = datetime.strptime(request.POST.get('fecha_inicio'), '%Y-%m-%d').date()
+            if request.POST.get('fecha_fin'):
+                fecha_fin = datetime.strptime(request.POST.get('fecha_fin'), '%Y-%m-%d').date()
+            
+            experiencia = ExperienciaLaboral.objects.create(
+                cv=cv,
+                tipo_experiencia=request.POST.get('tipo_experiencia'),
+                tipo_entidad=request.POST.get('tipo_entidad'),
+                nombre_entidad=request.POST.get('nombre_entidad'),
+                cargo=request.POST.get('cargo'),
+                fecha_inicio=fecha_inicio,
+                fecha_fin=fecha_fin,
+                salario=request.POST.get('salario') or None,
+                motivo_salida=request.POST.get('motivo_salida') or None,
+                supervisor=request.POST.get('supervisor') or None,
+                telefono_referencia=request.POST.get('telefono_referencia') or None,
+                logros=request.POST.get('logros') or None,
+                responsabilidades=request.POST.get('responsabilidades') or None,
+                observaciones=request.POST.get('observaciones') or None,
+            )
+            
+            from django.http import JsonResponse
+            return JsonResponse({
+                'success': True,
+                'message': 'Experiencia laboral agregada correctamente.',
+                'experiencia': {
+                    'id': experiencia.id,
+                    'tipo_experiencia': experiencia.get_tipo_experiencia_display(),
+                    'tipo_entidad': experiencia.get_tipo_entidad_display(),
+                    'nombre_entidad': experiencia.nombre_entidad,
+                    'cargo': experiencia.cargo,
+                    'fecha_inicio': experiencia.fecha_inicio.strftime('%Y-%m-%d') if experiencia.fecha_inicio else '',
+                    'fecha_fin': experiencia.fecha_fin.strftime('%Y-%m-%d') if experiencia.fecha_fin else '',
+                    'salario': str(experiencia.salario) if experiencia.salario else '',
+                    'motivo_salida': experiencia.get_motivo_salida_display() if experiencia.motivo_salida else '',
+                    'supervisor': experiencia.supervisor or '',
+                    'telefono_referencia': experiencia.telefono_referencia or '',
+                    'logros': experiencia.logros or '',
+                    'responsabilidades': experiencia.responsabilidades or '',
+                    'observaciones': experiencia.observaciones or '',
+                }
+            })
+        except Exception as e:
+            from django.http import JsonResponse
+            return JsonResponse({'success': False, 'errors': {'general': [str(e)]}})
+    
+    return render(request, 'master/modal_experiencia.html')
+
+def editar_experiencia(request, persona_id, experiencia_id):
+    """
+    Vista para editar experiencia laboral via AJAX
+    """
+    if request.method == 'POST':
+        try:
+            persona = Persona.objects.get(id=persona_id)
+            cv = CV.objects.get(persona=persona)
+            experiencia = ExperienciaLaboral.objects.get(id=experiencia_id, cv=cv)
+            
+            # Convertir fechas de string a date
+            from datetime import datetime
+            fecha_inicio = None
+            fecha_fin = None
+            
+            if request.POST.get('fecha_inicio'):
+                fecha_inicio = datetime.strptime(request.POST.get('fecha_inicio'), '%Y-%m-%d').date()
+            if request.POST.get('fecha_fin'):
+                fecha_fin = datetime.strptime(request.POST.get('fecha_fin'), '%Y-%m-%d').date()
+            
+            # Actualizar la experiencia
+            experiencia.tipo_experiencia = request.POST.get('tipo_experiencia')
+            experiencia.tipo_entidad = request.POST.get('tipo_entidad')
+            experiencia.nombre_entidad = request.POST.get('nombre_entidad')
+            experiencia.cargo = request.POST.get('cargo')
+            experiencia.fecha_inicio = fecha_inicio
+            experiencia.fecha_fin = fecha_fin
+            experiencia.salario = request.POST.get('salario') or None
+            experiencia.motivo_salida = request.POST.get('motivo_salida') or None
+            experiencia.supervisor = request.POST.get('supervisor') or None
+            experiencia.telefono_referencia = request.POST.get('telefono_referencia') or None
+            experiencia.logros = request.POST.get('logros') or None
+            experiencia.responsabilidades = request.POST.get('responsabilidades') or None
+            experiencia.observaciones = request.POST.get('observaciones') or None
+            experiencia.save()
+            
+            from django.http import JsonResponse
+            return JsonResponse({
+                'success': True,
+                'message': 'Experiencia laboral actualizada correctamente.',
+                'experiencia': {
+                    'id': experiencia.id,
+                    'tipo_experiencia': experiencia.get_tipo_experiencia_display(),
+                    'tipo_entidad': experiencia.get_tipo_entidad_display(),
+                    'nombre_entidad': experiencia.nombre_entidad,
+                    'cargo': experiencia.cargo,
+                    'fecha_inicio': experiencia.fecha_inicio.strftime('%Y-%m-%d') if experiencia.fecha_inicio else '',
+                    'fecha_fin': experiencia.fecha_fin.strftime('%Y-%m-%d') if experiencia.fecha_fin else '',
+                    'salario': str(experiencia.salario) if experiencia.salario else '',
+                    'motivo_salida': experiencia.get_motivo_salida_display() if experiencia.motivo_salida else '',
+                    'supervisor': experiencia.supervisor or '',
+                    'telefono_referencia': experiencia.telefono_referencia or '',
+                    'logros': experiencia.logros or '',
+                    'responsabilidades': experiencia.responsabilidades or '',
+                    'observaciones': experiencia.observaciones or '',
+                }
+            })
+        except Exception as e:
+            from django.http import JsonResponse
+            return JsonResponse({'success': False, 'errors': {'general': [str(e)]}})
+    
+    # Para peticiones GET, mostrar el formulario con datos existentes
+    try:
+        persona = Persona.objects.get(id=persona_id)
+        cv = CV.objects.get(persona=persona)
+        experiencia = ExperienciaLaboral.objects.get(id=experiencia_id, cv=cv)
+        
+        context = {
+            'experiencia': experiencia,
+            'es_edicion': True,
+        }
+        return render(request, 'master/modal_experiencia.html', context)
+    except Exception as e:
+        from django.http import JsonResponse
+        return JsonResponse({'success': False, 'errors': {'general': [str(e)]}})
+
+def eliminar_experiencia(request, persona_id, experiencia_id):
+    """
+    Vista para eliminar experiencia laboral via AJAX
+    """
+    if request.method == 'POST':
+        try:
+            persona = Persona.objects.get(id=persona_id)
+            cv = CV.objects.get(persona=persona)
+            experiencia = ExperienciaLaboral.objects.get(id=experiencia_id, cv=cv)
+            cargo = experiencia.cargo
+            experiencia.delete()
+            
+            from django.http import JsonResponse
+            return JsonResponse({
+                'success': True,
+                'message': f'Experiencia laboral "{cargo}" eliminada correctamente.'
+            })
+        except Exception as e:
+            from django.http import JsonResponse
+            return JsonResponse({'success': False, 'errors': {'general': [str(e)]}})
+    
+    # Para peticiones GET, mostrar modal de confirmación
+    try:
+        persona = Persona.objects.get(id=persona_id)
+        cv = CV.objects.get(persona=persona)
+        experiencia = ExperienciaLaboral.objects.get(id=experiencia_id, cv=cv)
+        
+        context = {
+            'experiencia': experiencia,
+        }
+        return render(request, 'master/modal_eliminar_experiencia.html', context)
+    except Exception as e:
+        from django.http import JsonResponse
+        return JsonResponse({'success': False, 'errors': {'general': [str(e)]}})
+
+def registrar_colaborador(request, postulacion_id):
+    """
+    Vista para registrar un colaborador desde una postulación aprobada
+    """
+    if request.method == 'POST':
+        try:
+            # Obtener la postulación
+            postulacion = get_object_or_404(Postulacion, id=postulacion_id)
+            
+            # Verificar que la postulación esté aprobada
+            if postulacion.estado_postulacion != 'APROBADO':
+                return JsonResponse({
+                    'success': False, 
+                    'errors': {'general': ['Solo se pueden registrar colaboradores de postulaciones aprobadas.']}
+                })
+            
+            # Verificar que la persona no sea ya colaborador
+            if hasattr(postulacion.persona, 'colaborador'):
+                return JsonResponse({
+                    'success': False, 
+                    'errors': {'general': ['Esta persona ya es colaborador de la empresa.']}
+                })
+            
+            # Crear el formulario con los datos enviados
+            form = ColaboradorForm(request.POST)
+            
+            if form.is_valid():
+                # Crear el colaborador
+                colaborador = form.save(commit=False)
+                colaborador.persona = postulacion.persona
+                
+                # Si no se proporciona número de empleado, generar uno automático
+                if not colaborador.numero_empleado:
+                    # Generar número de empleado automático
+                    ultimo_colaborador = Colaborador.objects.filter(
+                        numero_empleado__isnull=False
+                    ).exclude(numero_empleado='').order_by('-numero_empleado').first()
+                    
+                    if ultimo_colaborador and ultimo_colaborador.numero_empleado:
+                        try:
+                            ultimo_numero = int(ultimo_colaborador.numero_empleado.replace('EMP', ''))
+                            nuevo_numero = ultimo_numero + 1
+                        except (ValueError, AttributeError):
+                            nuevo_numero = 1
+                    else:
+                        nuevo_numero = 1
+                    
+                    colaborador.numero_empleado = f"EMP{nuevo_numero:03d}"
+                
+                colaborador.save()
+                
+                if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                    return JsonResponse({
+                        'success': True, 
+                        'message': f'Colaborador registrado exitosamente. Número de empleado: {colaborador.numero_empleado}'
+                    })
+                
+                messages.success(request, f'Colaborador registrado exitosamente. Número de empleado: {colaborador.numero_empleado}')
+                return redirect('master:postulantes', convocatoria_id=postulacion.convocatoria.id)
+            else:
+                if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                    return JsonResponse({'success': False, 'errors': form.errors})
+                
+                messages.error(request, 'Por favor, corrija los errores en el formulario.')
+                
+        except Exception as e:
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({'success': False, 'errors': {'general': [str(e)]}})
+            
+            messages.error(request, f'Error al registrar colaborador: {str(e)}')
+            return redirect('master:postulantes', convocatoria_id=postulacion.convocatoria.id)
+    
+    # Para peticiones GET, devolver el formulario
+    try:
+        postulacion = get_object_or_404(Postulacion, id=postulacion_id)
+        
+        # Verificar que la postulación esté aprobada
+        if postulacion.estado_postulacion != 'APROBADO':
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'success': False, 
+                    'errors': {'general': ['Solo se pueden registrar colaboradores de postulaciones aprobadas.']}
+                })
+            messages.error(request, 'Solo se pueden registrar colaboradores de postulaciones aprobadas.')
+            return redirect('master:postulantes', convocatoria_id=postulacion.convocatoria.id)
+        
+        # Verificar que la persona no sea ya colaborador
+        if hasattr(postulacion.persona, 'colaborador'):
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'success': False, 
+                    'errors': {'general': ['Esta persona ya es colaborador de la empresa.']}
+                })
+            messages.error(request, 'Esta persona ya es colaborador de la empresa.')
+            return redirect('master:postulantes', convocatoria_id=postulacion.convocatoria.id)
+        
+        # Crear formulario con datos iniciales
+        form = ColaboradorForm(initial={
+            'cargo': postulacion.convocatoria.cargo,
+            'fecha_ingreso': timezone.now().date(),
+            'estado_laboral': 'ACTIVO',
+            'tipo_contrato': 'TIEMPO_COMPLETO',
+        })
+        
+        # Si es petición AJAX, devolver el formulario
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            from django.template.loader import render_to_string
+            context = {
+                'form': form,
+                'postulacion': postulacion,
+                'persona': postulacion.persona,
+                'convocatoria': postulacion.convocatoria
+            }
+            html = render_to_string('master/colaborador_create_modal.html', context, request=request)
+            from django.http import HttpResponse
+            return HttpResponse(html)
+        
+        # Para peticiones normales, renderizar página completa
+        context = {
+            'form': form,
+            'postulacion': postulacion,
+            'persona': postulacion.persona,
+            'convocatoria': postulacion.convocatoria
+        }
+        return render(request, 'master/colaborador_create.html', context)
+        
+    except Exception as e:
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'success': False, 'errors': {'general': [str(e)]}})
+        
+        messages.error(request, f'Error: {str(e)}')
+        return redirect('master:convocatorias')

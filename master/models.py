@@ -3,6 +3,88 @@ from django.core.validators import RegexValidator
 from django.utils import timezone
 
 
+class Departamento(models.Model):
+    """
+    Modelo para los departamentos del Perú
+    """
+    nombre = models.CharField(
+        max_length=100,
+        unique=True,
+        verbose_name='Nombre del Departamento'
+    )
+    codigo = models.CharField(
+        max_length=2,
+        unique=True,
+        verbose_name='Código del Departamento'
+    )
+    
+    class Meta:
+        verbose_name = 'Departamento'
+        verbose_name_plural = 'Departamentos'
+        ordering = ['nombre']
+    
+    def __str__(self):
+        return self.nombre
+
+
+class Provincia(models.Model):
+    """
+    Modelo para las provincias del Perú
+    """
+    nombre = models.CharField(
+        max_length=100,
+        verbose_name='Nombre de la Provincia'
+    )
+    codigo = models.CharField(
+        max_length=4,
+        verbose_name='Código de la Provincia'
+    )
+    departamento = models.ForeignKey(
+        Departamento,
+        on_delete=models.CASCADE,
+        related_name='provincias',
+        verbose_name='Departamento'
+    )
+    
+    class Meta:
+        verbose_name = 'Provincia'
+        verbose_name_plural = 'Provincias'
+        ordering = ['nombre']
+        unique_together = ['codigo', 'departamento']
+    
+    def __str__(self):
+        return f"{self.nombre} - {self.departamento.nombre}"
+
+
+class Distrito(models.Model):
+    """
+    Modelo para los distritos del Perú
+    """
+    nombre = models.CharField(
+        max_length=100,
+        verbose_name='Nombre del Distrito'
+    )
+    codigo = models.CharField(
+        max_length=6,
+        verbose_name='Código del Distrito'
+    )
+    provincia = models.ForeignKey(
+        Provincia,
+        on_delete=models.CASCADE,
+        related_name='distritos',
+        verbose_name='Provincia'
+    )
+    
+    class Meta:
+        verbose_name = 'Distrito'
+        verbose_name_plural = 'Distritos'
+        ordering = ['nombre']
+        unique_together = ['codigo', 'provincia']
+    
+    def __str__(self):
+        return f"{self.nombre} - {self.provincia.nombre}"
+
+
 class Persona(models.Model):
     """
     Modelo para el registro de personas
@@ -111,25 +193,28 @@ class Persona(models.Model):
         verbose_name='Dirección'
     )
     
-    distrito = models.CharField(
-        max_length=100,
+    departamento = models.ForeignKey(
+        Departamento,
+        on_delete=models.SET_NULL,
         blank=True,
         null=True,
-        verbose_name='Distrito'
+        verbose_name='Departamento'
     )
     
-    provincia = models.CharField(
-        max_length=100,
+    provincia = models.ForeignKey(
+        Provincia,
+        on_delete=models.SET_NULL,
         blank=True,
         null=True,
         verbose_name='Provincia'
     )
     
-    departamento = models.CharField(
-        max_length=100,
+    distrito = models.ForeignKey(
+        Distrito,
+        on_delete=models.SET_NULL,
         blank=True,
         null=True,
-        verbose_name='Departamento'
+        verbose_name='Distrito'
     )
     
     # Campos de auditoría
@@ -351,6 +436,14 @@ class Convocatoria(models.Model):
         choices=TIPO_CONVOCATORIA_CHOICES,
         default='EXTERNA',
         verbose_name='Tipo de Convocatoria'
+    )
+    
+    nombre_empresa_externa = models.CharField(
+        max_length=200,
+        blank=True,
+        null=True,
+        verbose_name='Nombre de la Empresa Externa',
+        help_text='Nombre de la empresa externa para convocatorias de tipo Externa o Mixta'
     )
     
     # Requisitos
@@ -1205,6 +1298,14 @@ class ExperienciaLaboral(models.Model):
         ('MIXTO', 'Mixto'),
     ]
     
+    MOTIVO_SALIDA_CHOICES = [
+        ('RENUNCIA', 'Renuncia'),
+        ('DESPIDO', 'Despido'),
+        ('CONTRATO_VENCIDO', 'Contrato Vencido'),
+        ('TERMINO_PROYECTO', 'Término de Proyecto'),
+        ('OTRO', 'Otro'),
+    ]
+    
     # Relación con CV
     cv = models.ForeignKey(
         CV,
@@ -1259,7 +1360,8 @@ class ExperienciaLaboral(models.Model):
     )
     
     motivo_salida = models.CharField(
-        max_length=200,
+        max_length=20,
+        choices=MOTIVO_SALIDA_CHOICES,
         blank=True,
         null=True,
         verbose_name='Motivo de Salida'

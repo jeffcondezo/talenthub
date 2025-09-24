@@ -1,0 +1,127 @@
+{% load static %}
+
+<form method="post" id="experienciaForm" enctype="multipart/form-data">
+    {% csrf_token %}
+    
+    <div class="row">
+        <div class="col-md-6">
+            <div class="form-group">
+                <label for="tipo_experiencia">Tipo de Experiencia</label>
+                <select name="tipo_experiencia" id="tipo_experiencia" class="form-control" required>
+                    <option value="">Seleccionar...</option>
+                    <option value="LABORAL" {% if experiencia and experiencia.tipo_experiencia == 'LABORAL' %}selected{% endif %}>Laboral</option>
+                    <option value="PRACTICAS" {% if experiencia and experiencia.tipo_experiencia == 'PRACTICAS' %}selected{% endif %}>Prácticas</option>
+                    <option value="VOLUNTARIADO" {% if experiencia and experiencia.tipo_experiencia == 'VOLUNTARIADO' %}selected{% endif %}>Voluntariado</option>
+                </select>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="form-group">
+                <label for="tipo_entidad">Tipo de Entidad</label>
+                <select name="tipo_entidad" id="tipo_entidad" class="form-control" required>
+                    <option value="">Seleccionar...</option>
+                    <option value="EMPRESA" {% if experiencia and experiencia.tipo_entidad == 'EMPRESA' %}selected{% endif %}>Empresa</option>
+                    <option value="ONG" {% if experiencia and experiencia.tipo_entidad == 'ONG' %}selected{% endif %}>ONG</option>
+                    <option value="GOBIERNO" {% if experiencia and experiencia.tipo_entidad == 'GOBIERNO' %}selected{% endif %}>Gobierno</option>
+                    <option value="UNIVERSIDAD" {% if experiencia and experiencia.tipo_entidad == 'UNIVERSIDAD' %}selected{% endif %}>Universidad</option>
+                </select>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-6">
+            <div class="form-group">
+                <label for="nombre_entidad">Nombre de la Entidad</label>
+                <input type="text" name="nombre_entidad" id="nombre_entidad" class="form-control" value="{% if experiencia %}{{ experiencia.nombre_entidad }}{% endif %}" required>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="form-group">
+                <label for="cargo">Cargo</label>
+                <input type="text" name="cargo" id="cargo" class="form-control" value="{% if experiencia %}{{ experiencia.cargo }}{% endif %}" required>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-4">
+            <div class="form-group">
+                <label for="fecha_inicio">Fecha de Inicio</label>
+                <input type="date" name="fecha_inicio" id="fecha_inicio" class="form-control" value="{% if experiencia and experiencia.fecha_inicio %}{{ experiencia.fecha_inicio|date:'Y-m-d' }}{% endif %}" required>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="form-group">
+                <label for="fecha_fin">Fecha de Fin</label>
+                <input type="date" name="fecha_fin" id="fecha_fin" class="form-control" value="{% if experiencia and experiencia.fecha_fin %}{{ experiencia.fecha_fin|date:'Y-m-d' }}{% endif %}" required>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="form-group">
+                <label for="salario">Salario</label>
+                <input type="number" name="salario" id="salario" class="form-control" placeholder="Ej: 3000" step="0.01" value="{% if experiencia and experiencia.salario %}{{ experiencia.salario }}{% endif %}">
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-6">
+            <div class="form-group">
+                <label for="motivo_salida">Motivo de Salida</label>
+                <select name="motivo_salida" id="motivo_salida" class="form-control">
+                    <option value="">Seleccionar...</option>
+                    <option value="RENUNCIA" {% if experiencia and experiencia.motivo_salida == 'RENUNCIA' %}selected{% endif %}>Renuncia</option>
+                    <option value="DESPIDO" {% if experiencia and experiencia.motivo_salida == 'DESPIDO' %}selected{% endif %}>Despido</option>
+                    <option value="CONTRATO_VENCIDO" {% if experiencia and experiencia.motivo_salida == 'CONTRATO_VENCIDO' %}selected{% endif %}>Contrato Vencido</option>
+                    <option value="TERMINO_PROYECTO" {% if experiencia and experiencia.motivo_salida == 'TERMINO_PROYECTO' %}selected{% endif %}>Término de Proyecto</option>
+                    <option value="OTRO" {% if experiencia and experiencia.motivo_salida == 'OTRO' %}selected{% endif %}>Otro</option>
+                </select>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="form-group">
+                <label for="supervisor">Supervisor</label>
+                <input type="text" name="supervisor" id="supervisor" class="form-control" value="{% if experiencia %}{{ experiencia.supervisor }}{% endif %}">
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-6">
+            <div class="form-group">
+                <label for="telefono_referencia">Teléfono de Referencia</label>
+                <input type="text" name="telefono_referencia" id="telefono_referencia" class="form-control" value="{% if experiencia %}{{ experiencia.telefono_referencia }}{% endif %}">
+            </div>
+        </div>
+    </div>
+    
+    <div class="form-group">
+        <label for="logros">Logros</label>
+        <textarea name="logros" id="logros" class="form-control" rows="3" placeholder="Describa sus logros principales...">{% if experiencia and experiencia.logros %}{{ experiencia.logros }}{% endif %}</textarea>
+    </div>
+    
+    <div class="form-group">
+        <label for="responsabilidades">Responsabilidades</label>
+        <textarea name="responsabilidades" id="responsabilidades" class="form-control" rows="3" placeholder="Describa sus responsabilidades...">{% if experiencia and experiencia.responsabilidades %}{{ experiencia.responsabilidades }}{% endif %}</textarea>
+    </div>
+    
+    <div class="form-group">
+        <label for="observaciones">Observaciones</label>
+        <textarea name="observaciones" id="observaciones" class="form-control" rows="3" placeholder="Observaciones adicionales...">{% if experiencia and experiencia.observaciones %}{{ experiencia.observaciones }}{% endif %}</textarea>
+    </div>
+    
+    <div class="form-group text-right">
+        <button type="button" class="btn btn-secondary mr-2" data-dismiss="modal">
+            <i class="fal fa-times mr-1"></i>Cancelar
+        </button>
+        <button type="submit" class="btn btn-primary">
+            <i class="fal fa-save mr-1"></i>
+            {% if es_edicion %}
+                Actualizar
+            {% else %}
+                Guardar
+            {% endif %}
+        </button>
+    </div>
+</form>

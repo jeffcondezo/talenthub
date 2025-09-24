@@ -1,0 +1,208 @@
+{% load static %}
+<div class="modal fade" id="editarPostulacionModal" tabindex="-1" role="dialog" aria-labelledby="editarPostulacionModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editarPostulacionModalLabel">
+                    <i class="fal fa-edit text-primary"></i>
+                    Editar Postulación
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <form method="post" id="editarPostulacionForm" action="{% url 'master:postulacion_edit' pk=postulacion.id %}">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <!-- Información del Postulante -->
+                    <div class="row mb-3">
+                        <div class="col-12">
+                            <div class="alert alert-info">
+                                <i class="fal fa-user mr-2"></i>
+                                <strong>Postulante:</strong> {{ persona.nombre_completo }}
+                                <br>
+                                <i class="fal fa-bullhorn mr-2"></i>
+                                <strong>Convocatoria:</strong> {{ convocatoria.titulo }}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Información de la Postulación -->
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="{{ form.convocatoria.id_for_label }}" class="form-label">Convocatoria *</label>
+                                {{ form.convocatoria }}
+                                {% if form.convocatoria.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.convocatoria.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="{{ form.estado_postulacion.id_for_label }}" class="form-label">Estado de Postulación *</label>
+                                {{ form.estado_postulacion }}
+                                {% if form.estado_postulacion.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.estado_postulacion.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Información Adicional -->
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="{{ form.experiencia_anios.id_for_label }}" class="form-label">Años de Experiencia</label>
+                                {{ form.experiencia_anios }}
+                                {% if form.experiencia_anios.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.experiencia_anios.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="{{ form.nivel_educacion.id_for_label }}" class="form-label">Nivel de Educación</label>
+                                {{ form.nivel_educacion }}
+                                {% if form.nivel_educacion.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.nivel_educacion.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="form-group">
+                                <label for="{{ form.institucion_educacion.id_for_label }}" class="form-label">Institución de Educación</label>
+                                {{ form.institucion_educacion }}
+                                {% if form.institucion_educacion.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.institucion_educacion.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="form-group">
+                                <label for="{{ form.observaciones.id_for_label }}" class="form-label">Observaciones</label>
+                                {{ form.observaciones }}
+                                {% if form.observaciones.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.observaciones.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                        <i class="fal fa-times"></i> Cancelar
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fal fa-save"></i> Guardar Cambios
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Estilos específicos para el modal */
+.modal-header {
+    background: #12A58A;
+    color: white;
+    border-bottom: none;
+}
+
+.modal-header .close {
+    color: white;
+    opacity: 0.8;
+}
+
+.modal-header .close:hover {
+    opacity: 1;
+}
+
+.form-label {
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 0.5rem;
+}
+
+.form-control {
+    border: 1px solid #ced4da;
+    border-radius: 0.375rem;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.form-control:focus {
+    border-color: #12A58A;
+    outline: 0;
+    box-shadow: 0 0 0 0.2rem rgba(18, 165, 138, 0.25);
+}
+
+.text-danger {
+    color: #dc3545 !important;
+}
+
+.btn {
+    border-radius: 0.375rem;
+    font-weight: 500;
+    padding: 0.5rem 1rem;
+    transition: all 0.15s ease-in-out;
+}
+
+.btn-primary {
+    background-color: #12A58A;
+    border-color: #12A58A;
+}
+
+.btn-primary:hover {
+    background-color: #0d8a73;
+    border-color: #0d8a73;
+}
+
+.btn-secondary {
+    background-color: #6c757d;
+    border-color: #6c757d;
+}
+
+.btn-secondary:hover {
+    background-color: #545b62;
+    border-color: #4e555b;
+}
+
+.alert-info {
+    background-color: #d1ecf1;
+    border-color: #bee5eb;
+    color: #0c5460;
+}
+</style>

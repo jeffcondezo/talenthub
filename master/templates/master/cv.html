@@ -313,46 +313,26 @@ License: You must have a valid license purchased only from wrapbootstrap.com (li
                             </a>
                         </div>
                         <ul id="js-nav-menu" class="nav-menu">
+                            <li class="nav-title">Sistema de Gestión de Talentos</li>
                             <li>
-                                <a href="#" title="Application Intel" data-filter-tags="maestro maestros">
-                                    <i class="fal fa-info-circle"></i>
-                                    <span class="nav-link-text" data-i18n="nav.application_intel">Maestros</span>
+                                <a href="#" title="Maestros" data-filter-tags="maestros personas">
+                                    <i class="fal fa-database"></i>
+                                    <span class="nav-link-text">Maestros</span>
                                 </a>
                                 <ul>
                                     <li>
-                                        <a href="colaboradores.html" title="Colaboradores" data-filter-tags="colaborador colaboradores">
-                                            <span class="nav-link-text" data-i18n="nav.application_intel_analytics_dashboard">Colaboradores</span>
-                                        </a>
-                                    </li>
-                                    <li>
-                                        <a href="{% url 'master:personas' %}" title="Personas" data-filter-tags="persona personas">
-                                            <span class="nav-link-text" data-i18n="nav.application_intel_analytics_dashboard">Personas</span>
-                                        </a>
-                                    </li>
-                                    <li>
-                                        <a href="perfiles.html" title="Perfiles" data-filter-tags="perfil perfiles">
-                                            <span class="nav-link-text" data-i18n="nav.application_intel_analytics_dashboard">Perfiles</span>
+                                        <a href="{% url 'master:personas' %}" title="Personas" data-filter-tags="personas">
+                                            <i class="fal fa-user"></i>
+                                            <span class="nav-link-text">Personas</span>
                                         </a>
                                     </li>
                                 </ul>
                             </li> 
                             <li>
-                                <a href="#" title="Application X" data-filter-tags="herramienta herramientas">
-                                    <i class="fal fa-info-circle"></i>
-                                    <span class="nav-link-text" data-i18n="nav.application_x">Herramientas</span>
+                                <a href="{% url 'master:convocatorias' %}" title="Convocatorias" data-filter-tags="convocatorias">
+                                    <i class="fal fa-bullhorn"></i>
+                                    <span class="nav-link-text">Convocatorias</span>
                                 </a>
-                                <ul>
-                                    <li>
-                                        <a href="capacitacion.html" title="Cursos" data-filter-tags="curso cursos">
-                                            <span class="nav-link-text" data-i18n="nav.application_x_analytics_dashboard">Cursos de Capacitación</span>
-                                        </a>
-                                    </li>
-                                    <li>
-                                        <a href="proyecto.html" title="Proyecto" data-filter-tags="proyecto proyectos">
-                                            <span class="nav-link-text" data-i18n="nav.application_x_analytics_dashboard">Selector de Candidatos</span>
-                                        </a>
-                                    </li>
-                                </ul>
                             </li>                   
                         </ul>
                         <div class="filter-message js-filter-message bg-success-600"></div>
@@ -1107,9 +1087,10 @@ License: You must have a valid license purchased only from wrapbootstrap.com (li
                                     <div class="panel-hdr">
                                         <h2>
                                             CV de <span class="fw-300"><i>{{ persona.nombre_completo }}</i></span>
-                                            {% if es_aspirante %}
-                                                <span class="badge badge-primary ml-2">Aspirante</span>
-                                            {% elif es_colaborador %}
+                                            {% if tiene_postulaciones %}
+                                                <span class="badge badge-primary ml-2">Con Postulaciones</span>
+                                            {% endif %}
+                                            {% if es_colaborador %}
                                                 <span class="badge badge-success ml-2">Colaborador</span>
                                             {% endif %}
                                         </h2>
@@ -1270,11 +1251,15 @@ License: You must have a valid license purchased only from wrapbootstrap.com (li
                 <div class="col-md-6">
                     <p><strong>Fecha de Nacimiento:</strong> {{ persona.fecha_nacimiento|date:"d/m/Y"|default:"No especificada" }}</p>
                     <p><strong>Dirección:</strong> {{ persona.direccion|default:"No especificada" }}</p>
-                    <p><strong>Tipo:</strong> 
-                        {% if es_aspirante %}
-                            <span class="badge badge-primary">Aspirante</span>
-                        {% elif es_colaborador %}
+                    <p><strong>Estado:</strong> 
+                        {% if tiene_postulaciones %}
+                            <span class="badge badge-primary">Con Postulaciones</span>
+                        {% endif %}
+                        {% if es_colaborador %}
                             <span class="badge badge-success">Colaborador</span>
+                        {% endif %}
+                        {% if not tiene_postulaciones and not es_colaborador %}
+                            <span class="badge badge-secondary">Persona</span>
                         {% endif %}
                     </p>
                 </div>
@@ -2371,7 +2356,6 @@ License: You must have a valid license purchased only from wrapbootstrap.com (li
         </script>
         <script>
             // Variables globales para el contexto
-            const tipoPersona = '{{ tipo_persona|default:"aspirante" }}';
             const personaId = {{ persona.id|default:"0" }};
             
             // ===== FUNCIONES PARA FORMACIÓN ACADÉMICA =====
@@ -2394,7 +2378,7 @@ License: You must have a valid license purchased only from wrapbootstrap.com (li
                 
                 // Hacer petición AJAX para obtener el formulario
                 $.ajax({
-                    url: `/master/cv/${tipoPersona}/${personaId}/formacion/`,
+                    url: `/master/cv/${personaId}/formacion/`,
                     type: 'GET',
                     headers: {
                         'X-Requested-With': 'XMLHttpRequest'
@@ -2445,7 +2429,7 @@ License: You must have a valid license purchased only from wrapbootstrap.com (li
                 
                 // Hacer petición AJAX para obtener el formulario de edición
                 $.ajax({
-                    url: `/master/cv/${tipoPersona}/${personaId}/formacion/${formacionId}/`,
+                    url: `/master/cv/${personaId}/formacion/${formacionId}/`,
                     type: 'GET',
                     headers: {
                         'X-Requested-With': 'XMLHttpRequest'
@@ -2557,8 +2541,8 @@ License: You must have a valid license purchased only from wrapbootstrap.com (li
                 const formData = new FormData(form[0]);
                 
                 const url = formacionId 
-                    ? `/master/cv/${tipoPersona}/${personaId}/formacion/${formacionId}/`
-                    : `/master/cv/${tipoPersona}/${personaId}/formacion/`;
+                    ? `/master/cv/${personaId}/formacion/${formacionId}/`
+                    : `/master/cv/${personaId}/formacion/`;
                 
                 $.ajax({
                     url: url,
@@ -2604,7 +2588,7 @@ License: You must have a valid license purchased only from wrapbootstrap.com (li
                 
                 // Hacer petición AJAX para obtener el formulario
                 $.ajax({
-                    url: `/master/cv/${tipoPersona}/${personaId}/curso/`,
+                    url: `/master/cv/${personaId}/curso/`,
                     type: 'GET',
                     success: function(data) {
                         // Usar todo el contenido del template del modal
@@ -2652,7 +2636,7 @@ License: You must have a valid license purchased only from wrapbootstrap.com (li
                 
                 // Hacer petición AJAX para obtener el formulario de edición
                 $.ajax({
-                    url: `/master/cv/${tipoPersona}/${personaId}/curso/${cursoId}/`,
+                    url: `/master/cv/${personaId}/curso/${cursoId}/`,
                     type: 'GET',
                     success: function(data) {
                         // Usar todo el contenido del template del modal
@@ -2761,8 +2745,8 @@ License: You must have a valid license purchased only from wrapbootstrap.com (li
                 const formData = new FormData(form[0]);
                 
                 const url = cursoId 
-                    ? `/master/cv/${tipoPersona}/${personaId}/curso/${cursoId}/`
-                    : `/master/cv/${tipoPersona}/${personaId}/curso/`;
+                    ? `/master/cv/${personaId}/curso/${cursoId}/`
+                    : `/master/cv/${personaId}/curso/`;
                 
                 $.ajax({
                     url: url,
@@ -2808,7 +2792,7 @@ License: You must have a valid license purchased only from wrapbootstrap.com (li
                 
                 // Hacer petición AJAX para obtener el formulario
                 $.ajax({
-                    url: `/master/cv/${tipoPersona}/${personaId}/experiencia/`,
+                    url: `/master/cv/${personaId}/experiencia/`,
                     type: 'GET',
                     success: function(data) {
                         // Usar todo el contenido del template del modal
@@ -2856,7 +2840,7 @@ License: You must have a valid license purchased only from wrapbootstrap.com (li
                 
                 // Hacer petición AJAX para obtener el formulario de edición
                 $.ajax({
-                    url: `/master/cv/${tipoPersona}/${personaId}/experiencia/${experienciaId}/`,
+                    url: `/master/cv/${personaId}/experiencia/${experienciaId}/`,
                     type: 'GET',
                     success: function(data) {
                         // Usar todo el contenido del template del modal
@@ -2965,8 +2949,8 @@ License: You must have a valid license purchased only from wrapbootstrap.com (li
                 const formData = new FormData(form[0]);
                 
                 const url = experienciaId 
-                    ? `/master/cv/${tipoPersona}/${personaId}/experiencia/${experienciaId}/`
-                    : `/master/cv/${tipoPersona}/${personaId}/experiencia/`;
+                    ? `/master/cv/${personaId}/experiencia/${experienciaId}/`
+                    : `/master/cv/${personaId}/experiencia/`;
                 
                 $.ajax({
                     url: url,

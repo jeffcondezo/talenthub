@@ -3,9 +3,8 @@
 <form method="post" id="experienciaLaboralForm" enctype="multipart/form-data">
     {% csrf_token %}
     
-    <!-- Campos ocultos para aspirante/colaborador -->
-    {{ form.aspirante }}
-    {{ form.colaborador }}
+    <!-- Campo oculto para CV -->
+    {{ form.cv }}
     
     <div class="row">
         <div class="col-md-6">

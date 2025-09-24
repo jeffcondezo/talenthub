@@ -319,51 +319,26 @@ License: You must have a valid license purchased only from wrapbootstrap.com (li
                             </a>
                         </div>
                         <ul id="js-nav-menu" class="nav-menu">
+                            <li class="nav-title">Sistema de Gestión de Talentos</li>
                             <li>
-                                <a href="#" title="Application Intel" data-filter-tags="maestro maestros">
-                                    <i class="fal fa-info-circle"></i>
-                                    <span class="nav-link-text" data-i18n="nav.application_intel">Maestros</span>
+                                <a href="#" title="Maestros" data-filter-tags="maestros personas">
+                                    <i class="fal fa-database"></i>
+                                    <span class="nav-link-text">Maestros</span>
                                 </a>
                                 <ul>
                                     <li>
-                                        <a href="colaboradores.html" title="Colaboradores" data-filter-tags="colaborador colaboradores">
-                                            <span class="nav-link-text" data-i18n="nav.application_intel_analytics_dashboard">Colaboradores</span>
+                                        <a href="{% url 'master:personas' %}" title="Personas" data-filter-tags="personas">
+                                            <i class="fal fa-user"></i>
+                                            <span class="nav-link-text">Personas</span>
                                         </a>
                                     </li>
-                                    <li>
-                                        <a href="{% url 'master:personas' %}" title="Personas" data-filter-tags="persona personas">
-                                            <span class="nav-link-text" data-i18n="nav.application_intel_analytics_dashboard">Personas</span>
-                                        </a>
+                                </ul>
                                     </li>
                                     <li class="active">
-                                        <a href="{% url 'master:convocatorias' %}" title="Convocatorias" data-filter-tags="convocatoria convocatorias">
-                                            <span class="nav-link-text" data-i18n="nav.application_intel_analytics_dashboard">Convocatorias</span>
-                                        </a>
-                                    </li>
-                                    <li>
-                                        <a href="perfiles.html" title="Perfiles" data-filter-tags="perfil perfiles">
-                                            <span class="nav-link-text" data-i18n="nav.application_intel_analytics_dashboard">Perfiles</span>
-                                        </a>
-                                    </li>
-                                </ul>
-                            </li> 
-                            <li>
-                                <a href="#" title="Application X" data-filter-tags="herramienta herramientas">
-                                    <i class="fal fa-info-circle"></i>
-                                    <span class="nav-link-text" data-i18n="nav.application_x">Herramientas</span>
+                                <a href="{% url 'master:convocatorias' %}" title="Convocatorias" data-filter-tags="convocatorias">
+                                    <i class="fal fa-bullhorn"></i>
+                                    <span class="nav-link-text">Convocatorias</span>
                                 </a>
-                                <ul>
-                                    <li>
-                                        <a href="capacitacion.html" title="Cursos" data-filter-tags="curso cursos">
-                                            <span class="nav-link-text" data-i18n="nav.application_x_analytics_dashboard">Cursos de Capacitación</span>
-                                        </a>
-                                    </li>
-                                    <li>
-                                        <a href="proyecto.html" title="Proyecto" data-filter-tags="proyecto proyectos">
-                                            <span class="nav-link-text" data-i18n="nav.application_x_analytics_dashboard">Selector de Candidatos</span>
-                                        </a>
-                                    </li>
-                                </ul>
                             </li>                   
                         </ul>
                   
@@ -1082,6 +1057,12 @@ License: You must have a valid license purchased only from wrapbootstrap.com (li
                                     Lista de convocatorias de la empresa.
                                 </small>
                             </h1>
+                            <div class="subheader-block">
+                                <button type="button" class="btn btn-primary" onclick="crearConvocatoria()">
+                                    <i class="fal fa-plus mr-1"></i>
+                                    Nueva Convocatoria
+                                </button>
+                            </div>
                         </div>
                         <!--<div class="alert alert-primary">
                             <div class="d-flex flex-start w-100">
@@ -1199,7 +1180,6 @@ License: You must have a valid license purchased only from wrapbootstrap.com (li
                                                         <th>Área</th>
                                                         <th>Estado</th>
                                                         <th>Tipo</th>
-                                                        <th>Fecha Apertura</th>
                                                         <th>Fecha Cierre</th>
                                                         <th>Vacantes</th>
                                                         <th>Acciones</th>
@@ -1225,8 +1205,11 @@ License: You must have a valid license purchased only from wrapbootstrap.com (li
                                                             <span class="badge badge-{% if convocatoria.tipo == 'INTERNA' %}primary{% elif convocatoria.tipo == 'EXTERNA' %}success{% else %}info{% endif %}">
                                                                 {{ convocatoria.get_tipo_display }}
                                                             </span>
+                                                            {% if convocatoria.nombre_empresa_externa %}
+                                                            <br>
+                                                            <small class="text-muted">{{ convocatoria.nombre_empresa_externa }}</small>
+                                                            {% endif %}
                                                         </td>
-                                                        <td>{{ convocatoria.fecha_apertura|date:"d/m/Y H:i" }}</td>
                                                         <td>{{ convocatoria.fecha_cierre|date:"d/m/Y H:i" }}</td>
                                                         <td>
                                                             <span class="badge badge-info">{{ convocatoria.numero_vacantes }}</span>
@@ -1241,7 +1224,7 @@ License: You must have a valid license purchased only from wrapbootstrap.com (li
                                                             <button class="btn btn-sm btn-danger" title="Eliminar" onclick="eliminarConvocatoria({{ convocatoria.id }}, '{{ convocatoria.titulo }}')">
                                                                 <i class="fal fa-trash-alt"></i>
                                                             </button>
-                                                            <a href="{% url 'master:personas' %}?convocatoria={{ convocatoria.id }}" class="btn btn-sm btn-success" title="Ver Postulaciones">
+                                                            <a href="{% url 'master:postulantes' convocatoria_id=convocatoria.id %}" class="btn btn-sm btn-success" title="Ver Postulantes">
                                                                 <i class="fal fa-users"></i>
                                                             </a>
                                                         </td>
@@ -1262,7 +1245,6 @@ License: You must have a valid license purchased only from wrapbootstrap.com (li
                                                         <th>Área</th>
                                                         <th>Estado</th>
                                                         <th>Tipo</th>
-                                                        <th>Fecha Apertura</th>
                                                         <th>Fecha Cierre</th>
                                                         <th>Vacantes</th>
                                                         <th>Acciones</th>
@@ -2360,6 +2342,41 @@ License: You must have a valid license purchased only from wrapbootstrap.com (li
                         // Configurar textarea
                         $('#editConvocatoriaModalBody textarea').attr('rows', '3');
                         
+                        // Configurar campos de fecha correctamente
+                        $('#editConvocatoriaModalBody input[name="fecha_apertura"]').attr('type', 'datetime-local');
+                        $('#editConvocatoriaModalBody input[name="fecha_cierre"]').attr('type', 'datetime-local');
+                        $('#editConvocatoriaModalBody input[name="fecha_inicio_trabajo"]').attr('type', 'date');
+                        
+                        // Función para mostrar/ocultar campo de empresa externa
+                        function toggleEmpresaExterna() {
+                            const tipoValue = $('#editConvocatoriaModalBody #id_tipo').val();
+                            const empresaExternaRow = $('#editConvocatoriaModalBody #empresa-externa-row');
+                            const empresaExternaInput = $('#editConvocatoriaModalBody #id_nombre_empresa_externa');
+                            
+                            console.log('Tipo seleccionado:', tipoValue);
+                            console.log('Elemento empresa-externa-row encontrado:', empresaExternaRow.length > 0);
+                            
+                            if (tipoValue === 'EXTERNA' || tipoValue === 'MIXTA') {
+                                empresaExternaRow.show();
+                                console.log('Mostrando campo empresa externa');
+                            } else {
+                                empresaExternaRow.hide();
+                                if (empresaExternaInput.length > 0) {
+                                    empresaExternaInput.val(''); // Limpiar el campo si se oculta
+                                }
+                                console.log('Ocultando campo empresa externa');
+                            }
+                        }
+                        
+                        // Ejecutar al cargar el formulario
+                        toggleEmpresaExterna();
+                        
+                        // Agregar event listener para el cambio de tipo
+                        $('#editConvocatoriaModalBody #id_tipo').on('change', function() {
+                            console.log('Cambio detectado en tipo de convocatoria');
+                            toggleEmpresaExterna();
+                        });
+                        
                         // Mostrar botón de guardar
                         $('#saveConvocatoriaBtn').show();
                         
@@ -2408,6 +2425,35 @@ License: You must have a valid license purchased only from wrapbootstrap.com (li
                                         $('#editConvocatoriaModalBody input[type="checkbox"]').removeClass('form-control').addClass('form-check-input');
                                         $('#editConvocatoriaModalBody textarea').attr('rows', '3');
                                         
+                                        // Configurar campos de fecha correctamente
+                                        $('#editConvocatoriaModalBody input[name="fecha_apertura"]').attr('type', 'datetime-local');
+                                        $('#editConvocatoriaModalBody input[name="fecha_cierre"]').attr('type', 'datetime-local');
+                                        $('#editConvocatoriaModalBody input[name="fecha_inicio_trabajo"]').attr('type', 'date');
+                                        
+                                        // Re-aplicar funcionalidad del campo condicional
+                                        function toggleEmpresaExternaError() {
+                                            const tipoValue = $('#editConvocatoriaModalBody #id_tipo').val();
+                                            const empresaExternaRow = $('#editConvocatoriaModalBody #empresa-externa-row');
+                                            const empresaExternaInput = $('#editConvocatoriaModalBody #id_nombre_empresa_externa');
+                                            
+                                            if (tipoValue === 'EXTERNA' || tipoValue === 'MIXTA') {
+                                                empresaExternaRow.show();
+                                            } else {
+                                                empresaExternaRow.hide();
+                                                if (empresaExternaInput.length > 0) {
+                                                    empresaExternaInput.val('');
+                                                }
+                                            }
+                                        }
+                                        
+                                        // Ejecutar al cargar el formulario con errores
+                                        toggleEmpresaExternaError();
+                                        
+                                        // Agregar event listener para el cambio de tipo
+                                        $('#editConvocatoriaModalBody #id_tipo').on('change', function() {
+                                            toggleEmpresaExternaError();
+                                        });
+                                        
                                         // Eliminar botones del formulario si existen
                                         $('#editConvocatoriaForm .form-group.text-right').remove();
                                     }
@@ -2422,6 +2468,205 @@ License: You must have a valid license purchased only from wrapbootstrap.com (li
                             <div class="alert alert-danger">
                                 <i class="fal fa-exclamation-triangle mr-2"></i>
                                 Error al cargar el formulario de edición. Por favor, intente nuevamente.
+                            </div>
+                        `);
+                    }
+                });
+            }
+        
+            function crearConvocatoria() {
+                console.log('Crear nueva convocatoria');
+                
+                // Mostrar el modal
+                $('#createConvocatoriaModal').modal('show');
+                
+                // Mostrar spinner de carga
+                $('#createConvocatoriaModalBody').html(`
+                    <div class="text-center">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="sr-only">Cargando...</span>
+                        </div>
+                        <p class="mt-2">Cargando formulario de creación...</p>
+                    </div>
+                `);
+                
+                // Ocultar botón de guardar
+                $('#saveCreateConvocatoriaBtn').hide();
+                
+                // Hacer petición AJAX para obtener el formulario de creación
+                $.ajax({
+                    url: `/master/convocatorias/create/`,
+                    type: 'GET',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRFToken': $('[name=csrfmiddlewaretoken]').val()
+                    },
+                    success: function(data) {
+                        console.log('Respuesta recibida:', data);
+                        
+                        // Si la respuesta es HTML completo, extraer el formulario
+                        if (typeof data === 'string' && data.includes('<form')) {
+                            const formContent = $(data).find('form').html();
+                            if (formContent) {
+                                // Actualizar el contenido del modal
+                                $('#createConvocatoriaModalBody').html(`
+                                    <form method="post" id="createConvocatoriaForm">
+                                        ${formContent}
+                                    </form>
+                                `);
+                            } else {
+                                // Si no se encuentra el formulario, usar la respuesta completa
+                                $('#createConvocatoriaModalBody').html(data);
+                            }
+                        } else {
+                            // Si la respuesta es solo el formulario, usarla directamente
+                            $('#createConvocatoriaModalBody').html(data);
+                        }
+                        
+                        // Aplicar estilos a los campos del formulario
+                        $('#createConvocatoriaModalBody input, #createConvocatoriaModalBody select, #createConvocatoriaModalBody textarea').addClass('form-control');
+                        $('#createConvocatoriaModalBody input[type="checkbox"]').removeClass('form-control').addClass('form-check-input');
+                        
+                        // Configurar textarea
+                        $('#createConvocatoriaModalBody textarea').attr('rows', '3');
+                        
+                        // Configurar campos de fecha correctamente
+                        $('#createConvocatoriaModalBody input[name="fecha_apertura"]').attr('type', 'datetime-local');
+                        $('#createConvocatoriaModalBody input[name="fecha_cierre"]').attr('type', 'datetime-local');
+                        $('#createConvocatoriaModalBody input[name="fecha_inicio_trabajo"]').attr('type', 'date');
+                        
+                        // Función para mostrar/ocultar campo de empresa externa
+                        function toggleEmpresaExternaCreate() {
+                            const tipoValue = $('#createConvocatoriaModalBody #id_tipo').val();
+                            const empresaExternaRow = $('#createConvocatoriaModalBody #empresa-externa-row');
+                            const empresaExternaInput = $('#createConvocatoriaModalBody #id_nombre_empresa_externa');
+                            
+                            console.log('Tipo seleccionado:', tipoValue);
+                            console.log('Elemento empresa-externa-row encontrado:', empresaExternaRow.length > 0);
+                            
+                            if (tipoValue === 'EXTERNA' || tipoValue === 'MIXTA') {
+                                empresaExternaRow.show();
+                                console.log('Mostrando campo empresa externa');
+                            } else {
+                                empresaExternaRow.hide();
+                                if (empresaExternaInput.length > 0) {
+                                    empresaExternaInput.val(''); // Limpiar el campo si se oculta
+                                }
+                                console.log('Ocultando campo empresa externa');
+                            }
+                        }
+                        
+                        // Ejecutar al cargar el formulario
+                        toggleEmpresaExternaCreate();
+                        
+                        // Agregar event listener para el cambio de tipo
+                        $('#createConvocatoriaModalBody #id_tipo').on('change', function() {
+                            console.log('Cambio detectado en tipo de convocatoria');
+                            toggleEmpresaExternaCreate();
+                        });
+                        
+                        // Mostrar botón de guardar
+                        $('#saveCreateConvocatoriaBtn').show();
+                        
+                        // Eliminar botones del formulario si existen
+                        $('#createConvocatoriaForm .form-group.text-right').remove();
+                        
+                        // Manejar click del botón guardar
+                        $('#saveCreateConvocatoriaBtn').off('click').on('click', function() {
+                            const formData = new FormData($('#createConvocatoriaForm')[0]);
+                            
+                            $.ajax({
+                                url: `/master/convocatorias/create/`,
+                                type: 'POST',
+                                data: formData,
+                                processData: false,
+                                contentType: false,
+                                headers: {
+                                    'X-Requested-With': 'XMLHttpRequest',
+                                    'X-CSRFToken': $('[name=csrfmiddlewaretoken]').val()
+                                },
+                                success: function(response) {
+                                    if (response.success) {
+                                        // Cerrar modal
+                                        $('#createConvocatoriaModal').modal('hide');
+                                        
+                                        // Mostrar notificación de éxito persistente
+                                        showPersistentToast(response.message || 'Convocatoria creada correctamente', 'success', 5000);
+                                        
+                                        // Recargar la página para mostrar los cambios
+                                        setTimeout(() => {
+                                            location.reload();
+                                        }, 1500);
+                                    } else {
+                                        showToast('Error al crear la convocatoria', 'error', 5000);
+                                    }
+                                },
+                                error: function(xhr, status, error) {
+                                    console.error('Error al crear:', error);
+                                    
+                                    // Mostrar notificación de error
+                                    showToast('Error al crear la convocatoria. Por favor, revise los datos e intente nuevamente.', 'error', 5000);
+                                    
+                                    // Mostrar errores si los hay
+                                    if (xhr.responseText) {
+                                        const errorContent = $(xhr.responseText).find('form').html();
+                                        $('#createConvocatoriaModalBody').html(`
+                                            <form method="post" id="createConvocatoriaForm">
+                                                ${errorContent}
+                                            </form>
+                                        `);
+                                        
+                                        // Re-aplicar estilos
+                                        $('#createConvocatoriaModalBody input, #createConvocatoriaModalBody select, #createConvocatoriaModalBody textarea').addClass('form-control');
+                                        $('#createConvocatoriaModalBody input[type="checkbox"]').removeClass('form-control').addClass('form-check-input');
+                                        $('#createConvocatoriaModalBody textarea').attr('rows', '3');
+                                        
+                                        // Configurar campos de fecha correctamente
+                                        $('#createConvocatoriaModalBody input[name="fecha_apertura"]').attr('type', 'datetime-local');
+                                        $('#createConvocatoriaModalBody input[name="fecha_cierre"]').attr('type', 'datetime-local');
+                                        $('#createConvocatoriaModalBody input[name="fecha_inicio_trabajo"]').attr('type', 'date');
+                                        
+                                        // Re-aplicar funcionalidad del campo condicional
+                                        function toggleEmpresaExternaCreateError() {
+                                            const tipoValue = $('#createConvocatoriaModalBody #id_tipo').val();
+                                            const empresaExternaRow = $('#createConvocatoriaModalBody #empresa-externa-row');
+                                            const empresaExternaInput = $('#createConvocatoriaModalBody #id_nombre_empresa_externa');
+                                            
+                                            if (tipoValue === 'EXTERNA' || tipoValue === 'MIXTA') {
+                                                empresaExternaRow.show();
+                                            } else {
+                                                empresaExternaRow.hide();
+                                                if (empresaExternaInput.length > 0) {
+                                                    empresaExternaInput.val('');
+                                                }
+                                            }
+                                        }
+                                        
+                                        // Ejecutar al cargar el formulario con errores
+                                        toggleEmpresaExternaCreateError();
+                                        
+                                        // Agregar event listener para el cambio de tipo
+                                        $('#createConvocatoriaModalBody #id_tipo').on('change', function() {
+                                            toggleEmpresaExternaCreateError();
+                                        });
+                                        
+                                        // Eliminar botones del formulario si existen
+                                        $('#createConvocatoriaForm .form-group.text-right').remove();
+                                    }
+                                }
+                            });
+                        });
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Error al cargar formulario:', error);
+                        console.error('Status:', status);
+                        console.error('Response:', xhr.responseText);
+                        showToast('Error al cargar el formulario de creación. Por favor, intente nuevamente.', 'error', 5000);
+                        $('#createConvocatoriaModalBody').html(`
+                            <div class="alert alert-danger">
+                                <i class="fal fa-exclamation-triangle mr-2"></i>
+                                Error al cargar el formulario de creación. Por favor, intente nuevamente.
+                                <br><small>Error: ${error}</small>
                             </div>
                         `);
                     }
@@ -2655,6 +2900,41 @@ License: You must have a valid license purchased only from wrapbootstrap.com (li
                 <button type="button" class="btn btn-primary" id="saveConvocatoriaBtn" style="display: none;">
                     <i class="fal fa-save mr-1"></i>
                     Guardar Cambios
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para crear convocatoria -->
+<div class="modal fade" id="createConvocatoriaModal" tabindex="-1" role="dialog" aria-labelledby="createConvocatoriaModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="createConvocatoriaModalLabel">
+                    <i class="fal fa-plus mr-2"></i>
+                    Crear Nueva Convocatoria
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" id="createConvocatoriaModalBody">
+                <div class="text-center">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="sr-only">Cargando...</span>
+                    </div>
+                    <p class="mt-2">Cargando formulario de creación...</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                    <i class="fal fa-times mr-1"></i>
+                    Cancelar
+                </button>
+                <button type="button" class="btn btn-primary" id="saveCreateConvocatoriaBtn" style="display: none;">
+                    <i class="fal fa-save mr-1"></i>
+                    Crear Convocatoria
                 </button>
             </div>
         </div>

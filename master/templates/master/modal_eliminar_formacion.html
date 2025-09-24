@@ -1,0 +1,31 @@
+<div class="text-center">
+    {% csrf_token %}
+    
+    <div class="mb-4">
+        <i class="fal fa-exclamation-triangle text-warning" style="font-size: 3rem;"></i>
+    </div>
+    
+    <h5 class="mb-3">¿Está seguro de eliminar esta formación académica?</h5>
+    
+    <div class="alert alert-info text-left">
+        <strong>Formación a eliminar:</strong><br>
+        <strong>Grado:</strong> {{ formacion.get_grado_display }}<br>
+        <strong>Especialidad:</strong> {{ formacion.especialidad }}<br>
+        <strong>Centro:</strong> {{ formacion.centro_estudio }}<br>
+        <strong>Ubicación:</strong> {{ formacion.ciudad }}, {{ formacion.pais }}
+    </div>
+    
+    <p class="text-muted">
+        <i class="fal fa-info-circle mr-1"></i>
+        Esta acción no se puede deshacer.
+    </p>
+    
+    <div class="mt-4">
+        <button type="button" class="btn btn-secondary mr-2" data-dismiss="modal">
+            <i class="fal fa-times mr-1"></i>Cancelar
+        </button>
+        <button type="button" class="btn btn-danger" onclick="confirmarEliminarFormacion({{ formacion.id }})">
+            <i class="fal fa-trash mr-1"></i>Eliminar
+        </button>
+    </div>
+</div>

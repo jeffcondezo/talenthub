@@ -240,46 +240,26 @@ License: You must have a valid license purchased only from wrapbootstrap.com (li
                             </a>
                         </div>
                         <ul id="js-nav-menu" class="nav-menu">
+                            <li class="nav-title">Sistema de Gestión de Talentos</li>
                             <li>
-                                <a href="#" title="Application Intel" data-filter-tags="maestro maestros">
-                                    <i class="fal fa-info-circle"></i>
-                                    <span class="nav-link-text" data-i18n="nav.application_intel">Maestros</span>
+                                <a href="#" title="Maestros" data-filter-tags="maestros personas">
+                                    <i class="fal fa-database"></i>
+                                    <span class="nav-link-text">Maestros</span>
                                 </a>
                                 <ul>
                                     <li>
-                                        <a href="colaboradores.html" title="Colaboradores" data-filter-tags="colaborador colaboradores">
-                                            <span class="nav-link-text" data-i18n="nav.application_intel_analytics_dashboard">Colaboradores</span>
-                                        </a>
-                                    </li>
-                                    <li>
-                                        <a href="{% url 'master:personas' %}" title="Personas" data-filter-tags="persona personas">
-                                            <span class="nav-link-text" data-i18n="nav.application_intel_analytics_dashboard">Personas</span>
-                                        </a>
-                                    </li>
-                                    <li>
-                                        <a href="perfiles.html" title="Perfiles" data-filter-tags="perfil perfiles">
-                                            <span class="nav-link-text" data-i18n="nav.application_intel_analytics_dashboard">Perfiles</span>
+                                        <a href="{% url 'master:personas' %}" title="Personas" data-filter-tags="personas">
+                                            <i class="fal fa-user"></i>
+                                            <span class="nav-link-text">Personas</span>
                                         </a>
                                     </li>
                                 </ul>
                             </li> 
                             <li>
-                                <a href="#" title="Application X" data-filter-tags="herramienta herramientas">
-                                    <i class="fal fa-info-circle"></i>
-                                    <span class="nav-link-text" data-i18n="nav.application_x">Herramientas</span>
+                                <a href="{% url 'master:convocatorias' %}" title="Convocatorias" data-filter-tags="convocatorias">
+                                    <i class="fal fa-bullhorn"></i>
+                                    <span class="nav-link-text">Convocatorias</span>
                                 </a>
-                                <ul>
-                                    <li>
-                                        <a href="capacitacion.html" title="Cursos" data-filter-tags="curso cursos">
-                                            <span class="nav-link-text" data-i18n="nav.application_x_analytics_dashboard">Cursos de Capacitación</span>
-                                        </a>
-                                    </li>
-                                    <li>
-                                        <a href="proyecto.html" title="Proyecto" data-filter-tags="proyecto proyectos">
-                                            <span class="nav-link-text" data-i18n="nav.application_x_analytics_dashboard">Selector de Candidatos</span>
-                                        </a>
-                                    </li>
-                                </ul>
                             </li>                   
                         </ul>
                         <div class="filter-message js-filter-message bg-success-600"></div>

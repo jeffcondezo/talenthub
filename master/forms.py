@@ -1,6 +1,6 @@
 from django import forms
 from django.contrib.auth.forms import AuthenticationForm
-from .models import Postulacion, Convocatoria, FormacionAcademica, CursoEspecializacion, ExperienciaLaboral, Persona, CV
+from .models import Postulacion, Convocatoria, FormacionAcademica, CursoEspecializacion, ExperienciaLaboral, Persona, CV, Colaborador
 
 class CustomLoginForm(AuthenticationForm):
     """Formulario personalizado de login"""
@@ -289,3 +289,66 @@ class ExperienciaLaboralForm(forms.ModelForm):
             'telefono_referencia': 'Teléfono de Referencia',
             'observaciones': 'Observaciones',
         }
+
+
+class ColaboradorForm(forms.ModelForm):
+    """
+    Formulario para crear un colaborador desde una postulación aprobada
+    """
+    
+    class Meta:
+        model = Colaborador
+        fields = [
+            'cargo', 'fecha_ingreso', 'estado_laboral', 'tipo_contrato', 
+            'salario', 'numero_empleado', 'supervisor'
+        ]
+        widgets = {
+            'fecha_ingreso': forms.DateInput(attrs={
+                'type': 'date',
+                'class': 'form-control'
+            }),
+            'salario': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'step': '0.01',
+                'min': '0'
+            }),
+            'numero_empleado': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Ej: EMP001'
+            }),
+        }
+        labels = {
+            'cargo': 'Cargo *',
+            'fecha_ingreso': 'Fecha de Ingreso *',
+            'estado_laboral': 'Estado Laboral *',
+            'tipo_contrato': 'Tipo de Contrato *',
+            'salario': 'Salario',
+            'numero_empleado': 'Número de Empleado',
+            'supervisor': 'Supervisor',
+        }
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        
+        # Hacer que el cargo sea requerido
+        self.fields['cargo'].required = True
+        self.fields['fecha_ingreso'].required = True
+        self.fields['estado_laboral'].required = True
+        self.fields['tipo_contrato'].required = True
+        
+        # Agregar clases CSS a todos los campos
+        for field_name, field in self.fields.items():
+            if field_name not in ['cargo', 'supervisor']:
+                field.widget.attrs.update({'class': 'form-control'})
+            else:
+                field.widget.attrs.update({'class': 'form-control'})
+    
+    def clean_numero_empleado(self):
+        """
+        Validar que el número de empleado sea único
+        """
+        numero_empleado = self.cleaned_data.get('numero_empleado')
+        if numero_empleado:
+            if Colaborador.objects.filter(numero_empleado=numero_empleado).exists():
+                raise forms.ValidationError('Este número de empleado ya existe.')
+        return numero_empleado

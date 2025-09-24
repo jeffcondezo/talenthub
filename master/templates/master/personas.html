@@ -351,33 +351,9 @@ License: You must have a valid license purchased only from wrapbootstrap.com (li
                     <ul id="js-nav-menu" class="nav-menu">
                         <li class="nav-title">Sistema de Gestión de Talentos</li>
                         <li>
-                            <a href="{% url 'master:induccion' %}" title="Inducción" data-filter-tags="induccion">
-                                <i class="fal fa-home"></i>
-                                <span class="nav-link-text">Inducción</span>
-                            </a>
-                        </li>
-                        <li>
-                            <a href="{% url 'master:proyecto' %}" title="Proyecto" data-filter-tags="proyecto">
-                                <i class="fal fa-project-diagram"></i>
-                                <span class="nav-link-text">Proyecto</span>
-                            </a>
-                        </li>
-                        <li>
-                            <a href="{% url 'master:perfiles' %}" title="Perfiles" data-filter-tags="perfiles">
-                                <i class="fal fa-user-tag"></i>
-                                <span class="nav-link-text">Perfiles</span>
-                            </a>
-                        </li>
-                        <li>
-                            <a href="{% url 'master:capacitacion' %}" title="Capacitación" data-filter-tags="capacitacion">
-                                <i class="fal fa-graduation-cap"></i>
-                                <span class="nav-link-text">Capacitación</span>
-                            </a>
-                        </li>
-                        <li class="active open">
-                            <a href="#" title="Gestión de Personas" data-filter-tags="personas postulaciones colaboradores">
-                                <i class="fal fa-users"></i>
-                                <span class="nav-link-text">Gestión de Personas</span>
+                            <a href="#" title="Maestros" data-filter-tags="maestros personas">
+                                <i class="fal fa-database"></i>
+                                <span class="nav-link-text">Maestros</span>
                             </a>
                             <ul>
                                 <li class="active">
@@ -386,30 +362,12 @@ License: You must have a valid license purchased only from wrapbootstrap.com (li
                                         <span class="nav-link-text">Personas</span>
                                     </a>
                                 </li>
-                                <li>
-                                    <a href="{% url 'master:convocatorias' %}" title="Postulaciones" data-filter-tags="postulaciones convocatorias">
-                                        <i class="fal fa-file-alt"></i>
-                                        <span class="nav-link-text">Postulaciones</span>
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="{% url 'master:colaboradores' %}" title="Colaboradores" data-filter-tags="colaboradores">
-                                        <i class="fal fa-user-tie"></i>
-                                        <span class="nav-link-text">Colaboradores</span>
-                                    </a>
-                                </li>
                             </ul>
                         </li>
                         <li>
                             <a href="{% url 'master:convocatorias' %}" title="Convocatorias" data-filter-tags="convocatorias">
                                 <i class="fal fa-bullhorn"></i>
                                 <span class="nav-link-text">Convocatorias</span>
-                            </a>
-                        </li>
-                        <li>
-                            <a href="{% url 'master:cv' %}" title="CV" data-filter-tags="cv curriculum">
-                                <i class="fal fa-file-user"></i>
-                                <span class="nav-link-text">CV</span>
                             </a>
                         </li>
                     </ul>
@@ -467,12 +425,6 @@ License: You must have a valid license purchased only from wrapbootstrap.com (li
                                                 </form>
                                             </div>
                                             <div class="col-md-6 text-right">
-                                                <div class="btn-group" role="group">
-                                                    <button type="button" class="btn btn-outline-primary btn-sm">
-                                                        <i class="fal fa-download mr-1"></i>
-                                                        Exportar
-                                                    </button>
-                                                </div>
                                             </div>
                                         </div>
 
@@ -636,6 +588,9 @@ License: You must have a valid license purchased only from wrapbootstrap.com (li
                                                                 <button class="btn btn-danger btn-sm" onclick="eliminarPersona({{ persona.id }}, '{{ persona.nombre_completo }}')" title="Eliminar">
                                                                     <i class="fal fa-trash"></i>
                                                                 </button>
+                                                                <a href="{% url 'master:cv_detail' id=persona.id %}" class="btn btn-success btn-sm" title="Ver CV">
+                                                                    <i class="fal fa-folder"></i>
+                                                                </a>
                                                             </div>
                                                         </td>
                                                     </tr>
@@ -748,6 +703,10 @@ License: You must have a valid license purchased only from wrapbootstrap.com (li
                         <!-- Contenido cargado dinámicamente -->
                     </div>
                     <div class="modal-footer">
+                        <button type="button" class="btn btn-success" id="agregarPostulacionBtn" style="display: none;">
+                            <i class="fal fa-plus mr-1"></i>
+                            Agregar Postulación
+                        </button>
                         <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
                     </div>
                 </div>
@@ -771,13 +730,39 @@ License: You must have a valid license purchased only from wrapbootstrap.com (li
             </div>
         </div>
 
+        <!-- Modal para agregar postulación -->
+        <div class="modal fade" id="agregarPostulacionModal" tabindex="-1" role="dialog" aria-labelledby="agregarPostulacionModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="agregarPostulacionModalLabel">Agregar Postulación</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body" id="agregarPostulacionModalBody">
+                        <!-- Contenido cargado dinámicamente -->
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                        <button type="button" class="btn btn-primary" id="guardarPostulacionBtn" style="display: none;">Guardar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <script src="{% static 'js/vendors.bundle.js' %}"></script>
         <script src="{% static 'js/app.bundle.js' %}"></script>
         <script>
+            // CSRF token para AJAX
+            const csrfToken = '{{ csrf_token }}';
             // Función para agregar persona
             function agregarPersona() {
                 console.log('Agregar persona');
 
+                // Ocultar botón Guardar inicialmente
+                $('#guardarNuevaPersonaBtn').hide();
+                
                 $('#agregarPersonaModal').modal('show');
                 $('#agregarPersonaModalLabel').text('Agregar Nueva Persona');
 
@@ -796,7 +781,8 @@ License: You must have a valid license purchased only from wrapbootstrap.com (li
                     url: `/master/personas/create/`,
                     type: 'GET',
                     headers: {
-                        'X-Requested-With': 'XMLHttpRequest'
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRFToken': csrfToken
                     },
                     success: function(data) {
                         // Usar todo el contenido del template del modal
@@ -808,7 +794,15 @@ License: You must have a valid license purchased only from wrapbootstrap.com (li
                         // Aplicar estilos a los campos del formulario
                         $('#agregarPersonaModalBody input, #agregarPersonaModalBody select, #agregarPersonaModalBody textarea').addClass('form-control');
 
-                        // Configurar envío del formulario
+                        // Mostrar botón Guardar del modal
+                        $('#guardarNuevaPersonaBtn').show();
+                        
+                        // Configurar evento del botón Guardar
+                        $('#guardarNuevaPersonaBtn').off('click').on('click', function() {
+                            guardarPersona();
+                        });
+                        
+                        // Configurar envío del formulario (por si se envía con Enter)
                         $('#agregarPersonaForm').on('submit', function(e) {
                             e.preventDefault();
                             guardarPersona();
@@ -838,7 +832,8 @@ License: You must have a valid license purchased only from wrapbootstrap.com (li
                     processData: false,
                     contentType: false,
                     headers: {
-                        'X-Requested-With': 'XMLHttpRequest'
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRFToken': csrfToken
                     },
                     success: function(response) {
                         $('#agregarPersonaModal').modal('hide');
@@ -867,6 +862,9 @@ License: You must have a valid license purchased only from wrapbootstrap.com (li
             function verPersona(id) {
                 console.log('Ver persona:', id);
 
+                // Ocultar botón Agregar Postulación inicialmente
+                $('#agregarPostulacionBtn').hide();
+                
                 $('#verPersonaModal').modal('show');
                 $('#verPersonaModalLabel').text('Detalles de la Persona');
 
@@ -885,10 +883,19 @@ License: You must have a valid license purchased only from wrapbootstrap.com (li
                     url: `/master/personas/${id}/`,
                     type: 'GET',
                     headers: {
-                        'X-Requested-With': 'XMLHttpRequest'
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRFToken': csrfToken
                     },
                     success: function(data) {
                         $('#verPersonaModalBody').html(data);
+                        
+                        // Mostrar botón Agregar Postulación
+                        $('#agregarPostulacionBtn').show();
+                        
+                        // Configurar evento del botón Agregar Postulación
+                        $('#agregarPostulacionBtn').off('click').on('click', function() {
+                            agregarPostulacion(id);
+                        });
                     },
                     error: function(xhr, status, error) {
                         console.error('Error al cargar detalles:', error);
@@ -906,6 +913,9 @@ License: You must have a valid license purchased only from wrapbootstrap.com (li
             function editarPersona(id) {
                 console.log('Editar persona:', id);
 
+                // Ocultar botón Actualizar inicialmente
+                $('#actualizarPersonaBtn').hide();
+                
                 $('#editarPersonaModal').modal('show');
                 $('#editarPersonaModalLabel').text('Editar Persona');
 
@@ -924,15 +934,24 @@ License: You must have a valid license purchased only from wrapbootstrap.com (li
                     url: `/master/personas/${id}/edit/`,
                     type: 'GET',
                     headers: {
-                        'X-Requested-With': 'XMLHttpRequest'
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRFToken': csrfToken
                     },
                     success: function(data) {
                         $('#editarPersonaModalBody').html(data);
 
+                        // Mostrar botón Actualizar del modal
+                        $('#actualizarPersonaBtn').show();
+                        
+                        // Configurar evento del botón Actualizar
+                        $('#actualizarPersonaBtn').off('click').on('click', function() {
+                            actualizarPersona(id);
+                        });
+
                         // Aplicar estilos a los campos del formulario
                         $('#editarPersonaModalBody input, #editarPersonaModalBody select, #editarPersonaModalBody textarea').addClass('form-control');
 
-                        // Configurar envío del formulario
+                        // Configurar envío del formulario (por si se envía con Enter)
                         $('#editarPersonaForm').on('submit', function(e) {
                             e.preventDefault();
                             actualizarPersona(id);
@@ -962,7 +981,8 @@ License: You must have a valid license purchased only from wrapbootstrap.com (li
                     processData: false,
                     contentType: false,
                     headers: {
-                        'X-Requested-With': 'XMLHttpRequest'
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRFToken': csrfToken
                     },
                     success: function(response) {
                         $('#editarPersonaModal').modal('hide');
@@ -1009,7 +1029,8 @@ License: You must have a valid license purchased only from wrapbootstrap.com (li
                     url: `/master/personas/${id}/delete/`,
                     type: 'GET',
                     headers: {
-                        'X-Requested-With': 'XMLHttpRequest'
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRFToken': csrfToken
                     },
                     success: function(data) {
                         // Usar todo el contenido del template del modal
@@ -1100,6 +1121,188 @@ License: You must have a valid license purchased only from wrapbootstrap.com (li
                 // Remover el toast después de que se oculte
                 $(`#${toastId}`).on('hidden.bs.toast', function() {
                     $(this).remove();
+                });
+            }
+
+            // Función para agregar postulación
+            function agregarPostulacion(personaId) {
+                console.log('Agregar postulación para persona:', personaId);
+
+                // Cerrar modal de detalle
+                $('#verPersonaModal').modal('hide');
+                
+                // Ocultar botón Guardar inicialmente
+                $('#guardarPostulacionBtn').hide();
+                
+                // Mostrar modal de agregar postulación
+                $('#agregarPostulacionModal').modal('show');
+                $('#agregarPostulacionModalLabel').text('Agregar Postulación');
+
+                // Mostrar spinner de carga
+                $('#agregarPostulacionModalBody').html(`
+                    <div class="text-center">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="sr-only">Cargando...</span>
+                        </div>
+                        <p class="mt-2">Cargando formulario...</p>
+                    </div>
+                `);
+
+                // Cargar formulario de postulación
+                $.ajax({
+                    url: `/master/convocatorias/`,
+                    type: 'GET',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRFToken': csrfToken
+                    },
+                    success: function(data) {
+                        // Crear formulario simple para postulación
+                        const formHtml = `
+                            <form method="post" id="agregarPostulacionForm" enctype="multipart/form-data">
+                                <input type="hidden" name="csrfmiddlewaretoken" value="${csrfToken}">
+                                <input type="hidden" name="persona_id" value="${personaId}">
+                                
+                                <div class="row">
+                                    <div class="col-12">
+                                        <h4 class="text-custom-primary mb-4">
+                                            <i class="fal fa-file-plus icon-custom-primary"></i>
+                                            Nueva Postulación
+                                        </h4>
+                                        
+                                        <div class="card mb-4">
+                                            <div class="card-header bg-light">
+                                                <h5 class="mb-0 text-custom-primary">
+                                                    <i class="fal fa-briefcase icon-custom-primary"></i>
+                                                    Información de la Postulación
+                                                </h5>
+                                            </div>
+                                            <div class="card-body">
+                                                <div class="row">
+                                                    <div class="col-md-6">
+                                                        <div class="form-group">
+                                                            <label class="form-label">Convocatoria *</label>
+                                                            <select name="convocatoria_id" class="form-control" required>
+                                                                <option value="">Seleccionar convocatoria...</option>
+                                                                <!-- Las convocatorias se cargarán dinámicamente -->
+                                                            </select>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <div class="form-group">
+                                                            <label class="form-label">Estado</label>
+                                                            <select name="estado_postulacion" class="form-control">
+                                                                <option value="POSTULADO" selected>Postulado</option>
+                                                                <option value="EN_REVISION">En Revisión</option>
+                                                                <option value="ENTREVISTA">En Entrevista</option>
+                                                                <option value="EVALUACION">En Evaluación</option>
+                                                                <option value="APROBADO">Aprobado</option>
+                                                                <option value="RECHAZADO">Rechazado</option>
+                                                                <option value="RETIRADO">Retirado</option>
+                                                            </select>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="row">
+                                                    <div class="col-12">
+                                                        <div class="form-group">
+                                                            <label class="form-label">Observaciones</label>
+                                                            <textarea name="observaciones" class="form-control" rows="3" placeholder="Observaciones adicionales..."></textarea>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
+                        `;
+                        
+                        $('#agregarPostulacionModalBody').html(formHtml);
+
+                        // Mostrar botón Guardar del modal
+                        $('#guardarPostulacionBtn').show();
+                        
+                        // Configurar evento del botón Guardar
+                        $('#guardarPostulacionBtn').off('click').on('click', function() {
+                            guardarPostulacion(personaId);
+                        });
+
+                        // Cargar convocatorias disponibles
+                        cargarConvocatorias();
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Error al cargar formulario:', error);
+                        $('#agregarPostulacionModalBody').html(`
+                            <div class="alert alert-danger">
+                                <i class="fal fa-exclamation-triangle mr-2"></i>
+                                Error al cargar el formulario. Por favor, intente nuevamente.
+                            </div>
+                        `);
+                    }
+                });
+            }
+
+            // Función para cargar convocatorias
+            function cargarConvocatorias() {
+                $.ajax({
+                    url: '{% url "master:get_convocatorias" %}',
+                    type: 'GET',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRFToken': csrfToken
+                    },
+                    success: function(data) {
+                        const select = $('#agregarPostulacionForm select[name="convocatoria_id"]');
+                        select.empty().append('<option value="">Seleccionar convocatoria...</option>');
+                        
+                        $.each(data, function(index, convocatoria) {
+                            select.append(`<option value="${convocatoria.id}">${convocatoria.titulo}</option>`);
+                        });
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Error al cargar convocatorias:', error);
+                        const select = $('#agregarPostulacionForm select[name="convocatoria_id"]');
+                        select.empty().append('<option value="">Error al cargar convocatorias</option>');
+                    }
+                });
+            }
+
+            // Función para guardar postulación
+            function guardarPostulacion(personaId) {
+                const form = $('#agregarPostulacionForm');
+                const formData = new FormData(form[0]);
+
+                $.ajax({
+                    url: `/master/personas/${personaId}/postulacion/`,
+                    type: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRFToken': csrfToken
+                    },
+                    success: function(response) {
+                        $('#agregarPostulacionModal').modal('hide');
+                        showPersistentToast('Postulación creada correctamente', 'success');
+                        setTimeout(() => {
+                            location.reload();
+                        }, 1000);
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Error al guardar postulación:', error);
+                        if (xhr.responseJSON && xhr.responseJSON.errors) {
+                            // Mostrar errores de validación
+                            let errorMessage = 'Errores de validación:\n';
+                            for (const field in xhr.responseJSON.errors) {
+                                errorMessage += `• ${field}: ${xhr.responseJSON.errors[field].join(', ')}\n`;
+                            }
+                            showToast(errorMessage, 'error');
+                        } else {
+                            showToast('Error al guardar la postulación. Por favor, intente nuevamente.', 'error');
+                        }
+                    }
                 });
             }
 

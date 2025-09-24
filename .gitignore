@@ -129,7 +129,8 @@ dmypy.json
 .pyre/
 
 # Django specific
-media/
+media/*
+!media/certificados/.gitkeep
 staticfiles/
 static/
 

@@ -94,7 +94,11 @@
                                                         <h5 class="card-title">Tipo</h5>
                                                         <span class="badge badge-{% if convocatoria.tipo == 'INTERNA' %}primary{% elif convocatoria.tipo == 'EXTERNA' %}success{% else %}info{% endif %} badge-lg">
                                                             {{ convocatoria.get_tipo_display }}
-                                                        </span>
+                                                        </span> {% if convocatoria.nombre_empresa_externa %}
+                                                        <br>
+                                                        <small class="text-muted">{{ convocatoria.nombre_empresa_externa }}</small>
+                                                        {% endif %}
+
                                                     </div>
                                                 </div>
                                             </div>

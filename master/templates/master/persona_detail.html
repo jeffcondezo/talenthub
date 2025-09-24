@@ -307,5 +307,41 @@
             </div>
         </div>
         {% endif %}
+
+        <!-- Botón para Registrar Colaborador -->
+        {% if postulacion_actual and postulacion_actual.estado_postulacion == 'APROBADO' and not colaborador %}
+        <div class="card mb-4">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">
+                    <i class="fal fa-user-plus"></i>
+                    Registrar como Colaborador
+                </h5>
+            </div>
+            <div class="card-body">
+                <p class="mb-3">
+                    <i class="fal fa-info-circle text-info"></i>
+                    Esta postulación ha sido <strong>aprobada</strong>. Puedes registrar a esta persona como colaborador de la empresa.
+                </p>
+                <button type="button" class="btn btn-success btn-lg" onclick="registrarColaborador({{ postulacion_actual.id }})">
+                    <i class="fal fa-user-plus"></i> Registrar Colaborador
+                </button>
+            </div>
+        </div>
+        {% elif colaborador %}
+        <div class="card mb-4">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">
+                    <i class="fal fa-check-circle"></i>
+                    Estado de Colaborador
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-success">
+                    <i class="fal fa-check-circle"></i>
+                    <strong>Esta persona ya es colaborador de la empresa.</strong>
+                </div>
+            </div>
+        </div>
+        {% endif %}
     </div>
 </div>
