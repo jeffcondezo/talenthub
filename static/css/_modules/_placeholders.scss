@@ -1,0 +1,67 @@
+// Placeholders SCSS file
+// This file contains placeholder styles and color definitions
+
+// Color definitions
+$primary-color: #12A58A;
+$secondary-color: #7c62a4;
+
+// Placeholder styles
+%primary-background {
+  background-color: $primary-color;
+}
+
+%primary-text {
+  color: $primary-color;
+}
+
+%primary-border {
+  border-color: $primary-color;
+}
+
+// Button placeholders
+%primary-button {
+  background-color: $primary-color;
+  color: white;
+  border: 1px solid $primary-color;
+  
+  &:hover {
+    background-color: darken($primary-color, 10%);
+    border-color: darken($primary-color, 10%);
+  }
+}
+
+// Form placeholders
+%primary-input {
+  border-color: $primary-color;
+  
+  &:focus {
+    border-color: $primary-color;
+    box-shadow: 0 0 0 0.2rem rgba(18, 165, 138, 0.25);
+  }
+}
+
+// Navigation placeholders
+%primary-nav {
+  background-color: $primary-color;
+  
+  .nav-link {
+    color: white;
+    
+    &:hover {
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+  }
+}
+
+// Card placeholders
+%primary-card {
+  border-left: 4px solid $primary-color;
+}
+
+// Alert placeholders
+%primary-alert {
+  background-color: rgba(18, 165, 138, 0.1);
+  border-color: $primary-color;
+  color: darken($primary-color, 20%);
+}
+
