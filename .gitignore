@@ -131,8 +131,6 @@ dmypy.json
 # Django specific
 media/*
 !media/certificados/.gitkeep
-staticfiles/
-static/
 
 # IDE
 .vscode/
