@@ -1,3 +1,5 @@
+
+
 <form method="post" id="editarPersonaForm" enctype="multipart/form-data">
     {% csrf_token %}
     
@@ -258,7 +260,6 @@ $(document).ready(function() {
         distritoSelect.empty().append('<option value="">Seleccionar distrito...</option>');
         
         if (departamentoId) {
-            // Cargar provincias del departamento seleccionado
             $.ajax({
                 url: '{% url "master:get_provincias" %}',
                 data: {
@@ -274,7 +275,6 @@ $(document).ready(function() {
         }
     });
     
-    // Cuando cambia la provincia
     $('#id_provincia').change(function() {
         var provinciaId = $(this).val();
         var distritoSelect = $('#id_distrito');
@@ -283,7 +283,6 @@ $(document).ready(function() {
         distritoSelect.empty().append('<option value="">Seleccionar distrito...</option>');
         
         if (provinciaId) {
-            // Cargar distritos de la provincia seleccionada
             $.ajax({
                 url: '{% url "master:get_distritos" %}',
                 data: {

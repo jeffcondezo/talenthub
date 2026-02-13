@@ -1,0 +1,42 @@
+{% load static %}
+<div class="sidebar" id="mySidebar">
+    <div class="p-4 d-flex align-items-center justify-content-between">
+        <img id="logo-sidebar" src="{% static 'img/prayaga-logo-sidebar.webp' %}" alt="TalentHub Logo"
+            style="width: 70%;">
+        <button id="toggleSidebar"><i class="fal fa-bars"></i></button>
+    </div>
+
+    <nav class="nav flex-column mt-3">
+        <div class="px-4 mb-2"><small class="text-muted text-uppercase">Navegación</small></div>
+
+        <a class="nav-link {% if '/master/inicio' in request.path %}active{% endif %}" href="{% url 'master:inicio' %}">
+            <i class="fal fa-home-alt"></i> <span>Dashboard</span>
+        </a>
+        <a class="nav-link {% if '/master/convocatorias' in request.path %}active{% endif %}" href="{% url 'master:convocatorias' %}">
+            <i class="fal fa-search"></i> <span>Convocatorias</span>
+        </a>
+        <a class="nav-link {% if '/master/colaboradores' in request.path %}active{% endif %}" href="{% url 'master:colaboradores' %}">
+            <i class="fal fa-users"></i> <span>Empleados</span>
+        </a>
+        <a class="nav-link {% if '/master/capacitacion' in request.path %}active{% endif %}" href="{% url 'master:capacitacion' %}">
+            <i class="fal fa-book-open"></i> <span>Aprender</span>
+        </a>
+        <a class="nav-link {% if '/master/proyecto' in request.path %}active{% endif %}" href="{% url 'master:proyecto' %}">
+            <i class="fal fa-briefcase"></i> <span>Proyectos</span>
+        </a>
+        <a class="nav-link {% if '/master/analitica' in request.path %}active{% endif %}" href="{% url 'master:analitica' %}">
+            <i class="fal fa-chart-bar"></i> <span>Analíticas</span>
+        </a>
+        <div class="mt-5 px-4 mb-2"><small class="text-muted text-uppercase">Cuenta</small></div>
+
+        <a class="nav-link" href="#">
+            <i class="fal fa-cog"></i> <span>Ajustes</span>
+        </a>
+        <form action="{% url 'master:logout' %}" method="post" class="mt-2">
+            {% csrf_token %}
+            <button type="submit" class="nav-link w-100 text-start border-0 bg-transparent text-danger">
+                <i class="fal fa-sign-out"></i> <span>Cerrar sesión</span>
+            </button>
+        </form>
+    </nav>
+</div>

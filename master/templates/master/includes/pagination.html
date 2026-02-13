@@ -1,0 +1,33 @@
+{% load static %}
+<div class="d-flex justify-content-between align-items-center mt-4">
+    <div class="text-muted small">
+        Mostrando {{ convocatorias.start_index }} - {{ convocatorias.end_index }} de {{ convocatorias.paginator.count }} registros
+    </div>
+    <nav>
+        <ul class="pagination pagination-sm mb-0">
+            {% if convocatorias.has_previous %}
+                <li class="page-item">
+                    <a class="page-link rounded-circle mr-1" href="?page={{ convocatorias.previous_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
+                        <i class="fal fa-chevron-left"></i>
+                    </a>
+                </li>
+            {% endif %}
+
+            {% for num in convocatorias.paginator.page_range %}
+                {% if convocatorias.number == num %}
+                    <li class="page-item active"><span class="page-link rounded-circle mr-1">{{ num }}</span></li>
+                {% elif num > convocatorias.number|add:'-3' and num < convocatorias.number|add:'3' %}
+                    <li class="page-item"><a class="page-link rounded-circle mr-1" href="?page={{ num }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">{{ num }}</a></li>
+                {% endif %}
+            {% endfor %}
+
+            {% if convocatorias.has_next %}
+                <li class="page-item">
+                    <a class="page-link rounded-circle" href="?page={{ convocatorias.next_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
+                        <i class="fal fa-chevron-right"></i>
+                    </a>
+                </li>
+            {% endif %}
+        </ul>
+    </nav>
+</div>

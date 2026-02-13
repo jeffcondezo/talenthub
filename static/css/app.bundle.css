@@ -797,7 +797,6 @@ html {
 html body {
   direction: ltr;
   text-rendering: optimizeLegibility;
-  background-color: #fff;
 }
 html body a {
   color: #886ab5;
@@ -2762,7 +2761,6 @@ html body a:hover {
 }
 
 .page-content-wrapper {
-  background-color: #faf8fb;
   display: -webkit-box;
   display: -ms-flexbox;
   display: flex;

@@ -1,55 +1,12 @@
+{% extends 'master/includes/base.html' %}
 {% load static %}
-<!DOCTYPE html>
-<!-- 
-Template Name:  SmartAdmin Responsive WebApp - Template build with Twitter Bootstrap 4
-Version: 4.6.0
-Author: Sunnyat A.
-Website: http://gootbootstrap.com
-Purchase: https://wrapbootstrap.com/theme/smartadmin-responsive-webapp-WB0573SK0?ref=myorange
-License: You must have a valid license purchased only from wrapbootstrap.com (link above) in order to legally use this theme for your project.
--->
-<html lang="en">
-    <head>
-        <meta charset="utf-8">
-        <title>
-            Personas - SmartAdmin v4.6.0
-        </title>
-        <meta name="description" content="Gestión de Personas">
-        <meta http-equiv="X-UA-Compatible" content="IE=edge">
-        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no, user-scalable=no, minimal-ui">
-        <!-- Call App Mode on ios devices -->
-        <meta name="apple-mobile-web-app-title" content="Personas">
-        <meta name="apple-mobile-web-app-capable" content="yes">
-        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-        <!-- Mobile proof your site -->
-        <link rel="manifest" href="{% static 'media/data/manifest.json' %}">
-        <!-- Remove phone, date, address and email as default links -->
-        <meta name="format-detection" content="telephone=no">
-        <meta name="format-detection" content="date=no">
-        <meta name="format-detection" content="address=no">
-        <meta name="format-detection" content="email=no">
-        <meta name="theme-color" content="#37393e">
-        <!-- iDevice splash screens -->
-        <link href="{% static 'img/splashscreens/iphone6_splash.png' %}" media="(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2)" rel="apple-touch-startup-image">
-        <link href="{% static 'img/splashscreens/iphoneplus_splash.png' %}" media="(device-width: 621px) and (device-height: 1104px) and (-webkit-device-pixel-ratio: 3)" rel="apple-touch-startup-image">
-        <link href="{% static 'img/splashscreens/iphonex_splash.png' %}" media="(device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3)" rel="apple-touch-startup-image">
-        <link href="{% static 'img/splashscreens/iphonexr_splash.png' %}" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2)" rel="apple-touch-startup-image">
-        <link href="{% static 'img/splashscreens/iphonexsmax_splash.png' %}" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3)" rel="apple-touch-startup-image">
-        <link href="{% static 'img/splashscreens/ipad_splash.png' %}" media="(device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2)" rel="apple-touch-startup-image">
-        <link href="{% static 'img/splashscreens/ipadpro1_splash.png' %}" media="(device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2)" rel="apple-touch-startup-image">
-        <link href="{% static 'img/splashscreens/ipadpro3_splash.png' %}" media="(device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2)" rel="apple-touch-startup-image">
-        <link href="{% static 'img/splashscreens/ipadpro2_splash.png' %}" media="(device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2)" rel="apple-touch-startup-image">
-        <!-- Remove Tap Highlight on Windows Phone IE -->
-        <meta name="msapplication-tap-highlight" content="no">
-        <!-- base css -->
-        <link id="vendorsbundle" rel="stylesheet" media="screen, print" href="{% static 'css/vendors.bundle.css' %}">
-        <link id="appbundle" rel="stylesheet" media="screen, print" href="{% static 'css/app.bundle.css' %}">
-        <link id="mytheme" rel="stylesheet" media="screen, print" href="#">
-        <link id="myskin" rel="stylesheet" media="screen, print" href="{% static 'css/skins/skin-master.css' %}">
-        <!-- Place favicon.ico in the root directory -->
-        <link rel="apple-touch-icon" sizes="180x180" href="{% static 'img/favicon/apple-touch-icon.png' %}">
-        <link rel="icon" type="image/png" sizes="32x32" href="{% static 'img/favicon/favicon-32x32.png' %}">
-        <link rel="mask-icon" href="{% static 'img/favicon/safari-pinned-tab.svg' %}" color="#5bbad5">
+
+{% block title %} Proyectos {% endblock %}
+
+{% block content %}
+
+
+
                <style>
     /* Sobrescribe el color principal */
     .color-primary-500,
@@ -324,55 +281,7 @@ License: You must have a valid license purchased only from wrapbootstrap.com (li
         </script>
         <div class="page-wrapper">
             <div class="page-inner">
-                <nav id="js-primary-nav" class="primary-nav" role="navigation">
-                    <div class="nav-filter">
-                        <div class="position-relative">
-                            <input type="text" placeholder="Filter menu" class="form-control" tabindex="0">
-                            <a href="#" onclick="return false;" class="btn-primary btn-search-close js-waves-off" data-action="toggle" data-class="list-filter-active" data-target=".page-sidebar">
-                                <i class="fal fa-chevron-up"></i>
-                            </a>
-                        </div>
-                    </div>
-                    <div class="info-card">
-                        <img src="{% static 'img/demo/avatars/avatar-m.png' %}" class="profile-image rounded-circle" alt="Dr. Codex Lantern">
-                        <div class="info-card-text">
-                            <a href="#" class="d-flex align-items-center text-white">
-                                <span class="text-truncate text-truncate-sm d-inline-block">
-                                    Dr. Codex Lantern
-                                </span>
-                            </a>
-                            <span class="d-none d-sm-inline-block text-truncate text-truncate-sm">Administrador</span>
-                        </div>
-                        <img src="{% static 'img/card-backgrounds/cover-2-lg.png' %}" class="cover" alt="cover">
-                        <a href="#" onclick="return false;" class="pull-trigger-btn" data-action="toggle" data-class="list-filter-active" data-target=".page-sidebar" data-focus="nav_filter_input">
-                            <i class="fal fa-angle-down"></i>
-                        </a>
-                    </div>
-                    <ul id="js-nav-menu" class="nav-menu">
-                        <li class="nav-title">Sistema de Gestión de Talentos</li>
-                        <li>
-                            <a href="#" title="Maestros" data-filter-tags="maestros personas">
-                                <i class="fal fa-database"></i>
-                                <span class="nav-link-text">Maestros</span>
-                            </a>
-                            <ul>
-                                <li class="active">
-                                    <a href="{% url 'master:personas' %}" title="Personas" data-filter-tags="personas">
-                                        <i class="fal fa-user"></i>
-                                        <span class="nav-link-text">Personas</span>
-                                    </a>
-                                </li>
-                            </ul>
-                        </li>
-                        <li>
-                            <a href="{% url 'master:convocatorias' %}" title="Convocatorias" data-filter-tags="convocatorias">
-                                <i class="fal fa-bullhorn"></i>
-                                <span class="nav-link-text">Convocatorias</span>
-                            </a>
-                        </li>
-                    </ul>
-                    <div class="filter-message js-filter-message bg-success-600"></div>
-                </nav>
+                
                 <main id="js-page-content" role="main" class="page-content">
                     <ol class="breadcrumb page-breadcrumb">
                         <li class="breadcrumb-item"><a href="javascript:void(0);">SmartAdmin</a></li>
@@ -1332,5 +1241,7 @@ License: You must have a valid license purchased only from wrapbootstrap.com (li
                 }
             });
         </script>
+
+        {% endblock %}
     </body>
 </html>

@@ -1,11 +1,19 @@
 from django.urls import path
 from . import views
+from django.contrib import admin
+from django.urls import path, include
+from django.views.generic import RedirectView # <--- Importante
+
 
 app_name = 'master'
 
 urlpatterns = [
+    
+    path('', RedirectView.as_view(url='/master/login/', permanent=True)),
     # Página de login
     path('login/', views.CustomLoginView.as_view(), name='login'),
+
+    path('inicio/', views.inicio_view, name='inicio'),
     
     # Página de logout
     path('logout/', views.CustomLogoutView.as_view(), name='logout'),
@@ -16,6 +24,7 @@ urlpatterns = [
     # Páginas del sistema
     path('proyecto/', views.proyecto_view, name='proyecto'),
     path('perfiles/', views.perfiles_view, name='perfiles'),
+    path('analitica/', views.analitica_view, name='analitica'),
     path('capacitacion/', views.capacitacion_view, name='capacitacion'),
     path('cv/', views.cv_view, name='cv'),
     path('cv/<int:id>/', views.CVDetailView.as_view(), name='cv_detail'),
@@ -44,6 +53,7 @@ urlpatterns = [
     path('convocatorias/<int:id>/edit/', views.ConvocatoriaUpdateView.as_view(), name='convocatoria_edit'),
     path('convocatorias/<int:id>/delete/', views.ConvocatoriaDeleteView.as_view(), name='convocatoria_delete'),
     path('colaboradores/', views.colaboradores_view, name='colaboradores'),
+    path('colaboradores/<int:id>/delete/', views.eliminar_colaborador, name='eliminar_colaborador'),
     
     # URLs AJAX para filtrado en cascada de ubicaciones
     path('ajax/get-provincias/', views.get_provincias, name='get_provincias'),

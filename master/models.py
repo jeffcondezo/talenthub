@@ -1,6 +1,7 @@
 from django.db import models
 from django.core.validators import RegexValidator
 from django.utils import timezone
+from django.contrib.auth.models import User
 
 
 class Departamento(models.Model):
@@ -111,6 +112,15 @@ class Persona(models.Model):
         ('M', 'Masculino'),
         ('F', 'Femenino'),
     ]
+
+    user = models.OneToOneField(
+        User, 
+        on_delete=models.CASCADE, 
+        related_name='perfil',
+        null=True,  
+        blank=True,
+        verbose_name='Usuario de Acceso'
+    )
     
     # Campos principales
     tipo_documento = models.CharField(
@@ -1272,6 +1282,29 @@ class CursoEspecializacion(models.Model):
         self.clean()
         super().save(*args, **kwargs)
 
+
+class PasoInduccion(models.Model):
+    ESTADOS = [
+        ('pendiente', 'Pendiente'),
+        ('progreso', 'En Desarrollo'),
+        ('completo', 'Completado'),
+    ]
+
+    nombre = models.CharField(max_length=200, verbose_name="Nombre de la Tarea")
+    descripcion = models.TextField(verbose_name="¿Qué debe hacer?")
+    encargado = models.CharField(max_length=100, verbose_name="Persona de apoyo")
+    progreso = models.PositiveIntegerField(default=0, help_text="Número de 0 a 100")
+    estado = models.CharField(max_length=20, choices=ESTADOS, default='pendiente')
+    tiempo_estatuto = models.CharField(max_length=50, help_text="Ej: 2 días restantes", null=True, blank=True)    
+    orden = models.PositiveIntegerField(default=0, verbose_name="Orden en la ruta")
+
+    class Meta:
+        ordering = ['orden']
+        verbose_name = "Paso de Inducción"
+        verbose_name_plural = "Pasos de Inducción"
+
+    def __str__(self):
+        return f"{self.orden}. {self.nombre}"
 
 class ExperienciaLaboral(models.Model):
     """

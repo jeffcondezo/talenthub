@@ -11,7 +11,6 @@ class CustomLoginForm(AuthenticationForm):
             'class': 'form-control',
             'placeholder': 'Usuario',
             'autocomplete': 'username',
-            'required': True,
         }),
         label='Usuario'
     )
@@ -21,7 +20,7 @@ class CustomLoginForm(AuthenticationForm):
             'class': 'form-control',
             'placeholder': 'Contraseña',
             'autocomplete': 'current-password',
-            'required': True,
+
         }),
         label='Contraseña'
     )
@@ -29,7 +28,7 @@ class CustomLoginForm(AuthenticationForm):
     remember_me = forms.BooleanField(
         required=False,
         widget=forms.CheckboxInput(attrs={
-            'class': 'form-check-input',
+            'class': 'custom-control-input',
         }),
         label='Recordarme'
     )

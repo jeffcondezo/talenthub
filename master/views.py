@@ -5,15 +5,44 @@ from django.contrib import messages
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
 from django.db.models import Q
 from django.utils import timezone
+from django.db.models import Count
+from .models import PasoInduccion
 from django.http import JsonResponse
 from .forms import CustomLoginForm, FormacionAcademicaForm, CursoEspecializacionForm, ExperienciaLaboralForm, PostulacionForm, ColaboradorForm
 from .models import Persona, Cargo, Area, Convocatoria, Postulacion, FormacionAcademica, CursoEspecializacion, ExperienciaLaboral, CV, Colaborador, Departamento, Provincia, Distrito
+from django.shortcuts import render, redirect
+from django.contrib.auth.decorators import login_required # <--- 1. Importa esto
 
-# Create your views here.
+@login_required # 
+def inicio_view(request):
+    """Dashboard principal siguiendo el diseño de TalentHub"""
+    recientes = Postulacion.objects.select_related('persona', 'convocatoria__cargo').order_by('-fecha_postulacion')[:3]
+    
+    try:
+        nombre_display = request.user.perfil.nombres
+    except AttributeError:
+        nombre_display = request.user.first_name or request.user.username
+
+    context = {
+        'postulantes_activos': Postulacion.objects.filter(estado_postulacion='POSTULADO').count(),
+        'total_empleados': Colaborador.objects.filter(estado_laboral='ACTIVO').count(),
+        'total_departamentos': Departamento.objects.count(),
+        'proyectos_activos_count': 10, 
+        
+        'postulaciones_recientes': recientes,
+        'nombre_usuario': nombre_display
+    }
+    return render(request, 'master/inicio.html', context)
 
 def induccion_view(request):
     """View para la página de inducción"""
     return render(request, 'master/induccion.html')
+
+
+def onboarding_view(request):
+    # Traemos los pasos de la ruta de bienvenida
+    pasos = PasoInduccion.objects.all().order_by('orden')
+    return render(request, 'master/induccion.html', {'cursos': pasos})
 
 def proyecto_view(request):
     """View para la página de proyectos"""
@@ -24,8 +53,114 @@ def perfiles_view(request):
     return render(request, 'master/perfiles.html')
 
 def capacitacion_view(request):
-    """View para la página de capacitación"""
-    return render(request, 'master/capacitacion.html')
+    """View para la página de capacitación con filtros sobre CursoEspecializacion"""
+    cursos = CursoEspecializacion.objects.select_related('cv', 'cv__persona').all()
+
+    # filtros
+    tipo = request.GET.get('tipo_estudio')
+    nivel = request.GET.get('nivel')
+    pais = request.GET.get('pais')
+    ciudad = request.GET.get('ciudad')
+    institucion = request.GET.get('institucion')
+    search = request.GET.get('search')
+
+    if tipo:
+        cursos = cursos.filter(tipo_estudio=tipo)
+    if nivel:
+        cursos = cursos.filter(nivel=nivel)
+    if pais:
+        cursos = cursos.filter(pais__icontains=pais)
+    if ciudad:
+        cursos = cursos.filter(ciudad__icontains=ciudad)
+    if institucion:
+        cursos = cursos.filter(institucion__icontains=institucion)
+    if search:
+        cursos = cursos.filter(
+            Q(descripcion__icontains=search) |
+            Q(institucion__icontains=search) |
+            Q(ciudad__icontains=search) |
+            Q(pais__icontains=search)
+        )
+
+    context = {
+        'cursos': cursos,
+        'tipos': CursoEspecializacion.TIPO_ESTUDIO_CHOICES,
+        'niveles': CursoEspecializacion.NIVEL_CHOICES,
+        'filters': {
+            'tipo_estudio': tipo or '',
+            'nivel': nivel or '',
+            'pais': pais or '',
+            'ciudad': ciudad or '',
+            'institucion': institucion or '',
+            'search': search or ''
+        }
+    }
+
+    return render(request, 'master/capacitacion.html', context)
+
+
+def analitica_view(request):
+    """Vista de analíticas con datos mock para las pestañas: Recruitment, Departments, Performance, Training"""
+    # Mock summary cards
+    summaries = [
+        {'title': 'Total Empleados', 'value': 129, 'delta': '+8.2% vs last month'},
+        {'title': 'Total Solicitantes', 'value': 1334, 'delta': '+12.5% vs last month'},
+        {'title': 'Tasa de Contratación', 'value': '9.7%', 'delta': '-2.1% vs last month'},
+        {'title': 'Promedio de Desempeño', 'value': 4.6, 'delta': '+0.3 vs last quarter'},
+    ]
+
+    # Mock recruitment trend (months + counts)
+    recruitment_trend = {
+        'labels': ['Ene','Feb','Mar','Abr','May','Jun'],
+        'applicants': [120,160,220,190,260,300],
+        'hired': [12,18,20,15,22,28]
+    }
+
+    # Mock pipeline counts (compute percentage for progress bars)
+    pipeline_raw = [
+        ('Aplicado', 234),
+        ('Revisión Inicial', 89),
+        ('Entrevista', 45),
+        ('Revisión Final', 23),
+        ('Oferta de Empleo', 12),
+    ]
+
+    total_pipeline = sum(v for _, v in pipeline_raw) or 0
+    pipeline = []
+    for name, count in pipeline_raw:
+        if total_pipeline:
+            percent = int(round((count / total_pipeline) * 100))
+        else:
+            # fallback: cap to 100 if somehow total is zero
+            percent = min(int(count), 100)
+        pipeline.append({'name': name, 'count': count, 'percent': percent})
+
+    departments_labels = ['Engineering','Sales','HR','Finance']
+    departments_values = [42, 28, 18, 12]
+
+    departments_pairs = list(zip(departments_labels, departments_values))
+
+    context = {
+        'summaries': summaries,
+        'recruitment_trend': recruitment_trend,
+        'pipeline': pipeline,
+        # additional mock sections for other tabs
+        'departments_data': {
+            'labels': departments_labels,
+            'values': departments_values,
+            'pairs': departments_pairs,
+        },
+        'performance_data': {
+            'average': 4.6,
+            'distribution': [5, 20, 60, 15]
+        },
+        'training_data': {
+            'courses': 18,
+            'active': 6
+        }
+    }
+
+    return render(request, 'master/analitica.html', context)
 
 class CVDetailView(DetailView):
     """
@@ -552,34 +687,52 @@ class ConvocatoriasListView(ListView):
 
 def colaboradores_view(request):
     """View para la página de colaboradores"""
-    return render(request, 'master/colaboradores.html')
+    # Obtener colaboradores activos con relaciones para mostrar en la plantilla
+    colaboradores_qs = Colaborador.objects.select_related('persona', 'cargo', 'cargo__area').all()
+    context = {
+        'colaboradores': colaboradores_qs,
+        'total_colaboradores': colaboradores_qs.count(),
+        'colaboradores_activos': Colaborador.objects.filter(estado_laboral='ACTIVO').count(),
+    }
+    return render(request, 'master/colaboradores.html', context)
+
+
+def eliminar_colaborador(request, id):
+    """Eliminar un colaborador por id. Responde JSON para peticiones AJAX."""
+    from django.views.decorators.http import require_POST
+    from django.http import JsonResponse
+
+    if request.method == 'POST':
+        try:
+            colaborador = Colaborador.objects.get(id=id)
+            colaborador.delete()
+            return JsonResponse({'success': True, 'message': 'Colaborador eliminado'})
+        except Colaborador.DoesNotExist:
+            return JsonResponse({'success': False, 'message': 'Colaborador no encontrado'}, status=404)
+    return JsonResponse({'success': False, 'message': 'Método no permitido'}, status=405)
 
 class CustomLoginView(LoginView):
-    """Vista basada en clases para el login"""
-    
     template_name = 'master/login.html'
     form_class = CustomLoginForm
     redirect_authenticated_user = True
     
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        # Si el usuario solo está entrando a la página (GET), 
+        # forzamos a que no existan datos para validar.
+        if self.request.method == 'GET':
+            kwargs['data'] = None
+            kwargs['files'] = None
+        return kwargs
+
     def get_success_url(self):
-        """Redirigir a inducción después del login exitoso"""
-        return reverse_lazy('master:induccion')
-    
-    def form_valid(self, form):
-        """Procesar login exitoso""" 
-        # Llamar al método padre para manejar el login automáticamente
-        return super().form_valid(form)
-    
+        return reverse_lazy('master:inicio')
+
     def form_invalid(self, form):
-        """Procesar login fallido"""
-        # El formulario ya maneja los mensajes de error personalizados
+        # Solo añadimos el mensaje de error si el usuario REALMENTE intentó loguearse
+        # if self.request.method == 'POST':
+          #  messages.error(self.request, 'Usuario o contraseña incorrectos.')
         return super().form_invalid(form)
-    
-    def get_context_data(self, **kwargs):
-        """Agregar datos adicionales al contexto"""
-        context = super().get_context_data(**kwargs)
-        context['title'] = 'Iniciar Sesión'
-        return context
 
 class CustomLogoutView(LogoutView):
     """Vista basada en clases para el logout"""
