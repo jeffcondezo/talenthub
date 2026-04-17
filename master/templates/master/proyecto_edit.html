@@ -1,0 +1,96 @@
+{% extends 'master/includes/base.html' %}
+{% load static %}
+
+{% block title %}Editar proyecto · {{ proyecto.nombre }}{% endblock %}
+
+{% block content %}
+<div class="page-content p-4" style="background-color: #fbfcfb;">
+    <div class="mb-4">
+        <a href="{% url 'master:proyecto_detail' proyecto.id %}" class="btn btn-outline-secondary btn-sm mb-2">
+            <i class="fal fa-arrow-left mr-1"></i> Volver al proyecto
+        </a>
+        <h1 class="h3 mb-0" style="color: #15b79a; font-weight: 700;"><i class="fal fa-cog mr-2"></i>Editar proyecto</h1>
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-lg">
+        <div class="card-body p-4">
+            <form method="post">
+                {% csrf_token %}
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="form-group">
+                            <label for="id_nombre" class="font-weight-bold">Nombre *</label>
+                            <input type="text" name="nombre" value="{{ form.nombre.value|default:'' }}" id="id_nombre" class="form-control" maxlength="200" required>
+                            {% if form.nombre.errors %}<div class="text-danger small">{{ form.nombre.errors.0 }}</div>{% endif %}
+                        </div>
+                        <div class="form-group">
+                            <label for="id_descripcion" class="font-weight-bold">Descripción</label>
+                            <textarea name="descripcion" id="id_descripcion" class="form-control" rows="4">{{ form.descripcion.value|default:'' }}</textarea>
+                            {% if form.descripcion.errors %}<div class="text-danger small">{{ form.descripcion.errors.0 }}</div>{% endif %}
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 form-group">
+                                <label for="id_fecha_inicio" class="font-weight-bold">Fecha de inicio</label>
+                                <input type="date" name="fecha_inicio" value="{% if form.fecha_inicio.value %}{{ form.fecha_inicio.value|date:'Y-m-d' }}{% endif %}" id="id_fecha_inicio" class="form-control">
+                                {% if form.fecha_inicio.errors %}<div class="text-danger small">{{ form.fecha_inicio.errors.0 }}</div>{% endif %}
+                            </div>
+                            <div class="col-md-6 form-group">
+                                <label for="id_fecha_fin" class="font-weight-bold">Fecha de fin</label>
+                                <input type="date" name="fecha_fin" value="{% if form.fecha_fin.value %}{{ form.fecha_fin.value|date:'Y-m-d' }}{% endif %}" id="id_fecha_fin" class="form-control">
+                                {% if form.fecha_fin.errors %}<div class="text-danger small">{{ form.fecha_fin.errors.0 }}</div>{% endif %}
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 form-group">
+                                <label for="id_estado" class="font-weight-bold">Estado</label>
+                                <select name="estado" id="id_estado" class="form-control">
+                                    {% for value, label in form.fields.estado.choices %}
+                                    <option value="{{ value }}" {% if form.estado.value == value %}selected{% endif %}>{{ label }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-6 form-group">
+                                <label for="id_especialidad" class="font-weight-bold">Especialidad *</label>
+                                <select name="especialidad" id="id_especialidad" class="form-control" required>
+                                    {% for esp in especialidades %}
+                                    <option value="{{ esp.id }}" {% if form.especialidad.value == esp.id %}selected{% endif %}>{{ esp.area.nombre }} · {{ esp.nombre }}</option>
+                                    {% endfor %}
+                                </select>
+                                {% if form.especialidad.errors %}<div class="text-danger small">{{ form.especialidad.errors.0 }}</div>{% endif %}
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="id_slug" class="font-weight-bold">Slug (opcional)</label>
+                            <input type="text" name="slug" value="{{ form.slug.value|default:'' }}" id="id_slug" class="form-control" maxlength="200">
+                            {% if form.slug.errors %}<div class="text-danger small">{{ form.slug.errors.0 }}</div>{% endif %}
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label class="font-weight-bold">Colaboradores (integrantes)</label>
+                            <div class="border rounded p-3" style="max-height: 280px; overflow-y: auto;">
+                                {% for choice in form.colaboradores %}
+                                <div class="custom-control custom-checkbox">
+                                    {{ choice.tag }}
+                                    <label class="custom-control-label" for="{{ choice.id_for_label }}">{{ choice.choice_label }}</label>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            {% if form.colaboradores.errors %}<div class="text-danger small">{{ form.colaboradores.errors.0 }}</div>{% endif %}
+                        </div>
+                    </div>
+                </div>
+                <hr>
+                <div class="d-flex justify-content-end">
+                    <a href="{% url 'master:proyecto_detail' proyecto.id %}" class="btn btn-secondary mr-2">Cancelar</a>
+                    <button type="submit" class="btn btn-teal"><i class="fal fa-save mr-1"></i> Guardar cambios</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<style>
+.btn-teal { background-color: #15b79a; color: white; border: none; }
+.btn-teal:hover { background-color: #12a087; color: white; }
+</style>
+{% endblock %}

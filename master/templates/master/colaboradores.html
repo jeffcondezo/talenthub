@@ -1,5 +1,6 @@
 {% extends 'master/includes/base.html' %}
 {% load static %}
+{% load custom_filters %}
 
 {% block title %} Empleados {% endblock %}
 
@@ -85,20 +86,12 @@
                         </form>
                     </div>
                     <div class="ml-auto d-flex">
-                          activate app search icon (mobile) -->
                         <div class="hidden-sm-up">
                             <a href="#" class="header-icon" data-action="toggle" data-class="mobile-search-on"
                                 data-focus="search-field" title="Search">
                                 <i class="fal fa-search"></i>
                             </a>
                         </div>
-                          app settings -->
-                         <div class="hidden-md-down" data-toggle="tooltip" data-placement="bottom" data-original-title="Layout Settings" data-trigger="hover">
-                                <a href="#" class="header-icon" data-toggle="modal" data-target=".js-modal-settings">
-                                    <i class="fal fa-cog"></i>
-                                </a>
-                            </div>-->
-                          app darkmode -->
                         
                         <!-- app notification -->
                         <div data-toggle="tooltip" data-placement="bottom" data-original-title="Notifications"
@@ -608,11 +601,11 @@
 
 
                         <div class="subheader-block">
-                            <button type="button" class="btn btn-primary btn-plus-modern waves-effect waves-themed"
-                                onclick="crearColaborador()">
-                                <i class="fal fa-plus-circle mr-2"></i>
-                                Nuevo Empleado
-                            </button>
+                            <a href="{% url 'master:convocatorias' %}" class="btn btn-primary btn-plus-modern waves-effect waves-themed"
+                                title="Ir a Convocatorias para registrar colaboradores desde postulantes aprobados">
+                                <i class="fal fa-user-plus mr-2"></i>
+                                Registrar desde postulante aprobado
+                            </a>
                         </div>
 
                     </div>
@@ -765,6 +758,15 @@
                             border: 2px solid #fff;
                             box-shadow: 0 0 0 2px #eef2f2;
                         }
+                        .colaborador-avatar-iniciales {
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            background: linear-gradient(135deg, #0d9488 0%, #0f766e 100%);
+                            color: #fff;
+                            font-weight: 700;
+                            font-size: 1rem;
+                        }
                         .name-link { color: #0b1311; font-weight: 700; font-size: 1rem; margin-bottom: 2px; }
                         .colaborador-meta { color: #64748b; font-size: 0.85rem; }
 
@@ -777,27 +779,18 @@
                             font-size: 0.75rem;
                         }
 
-                        .btn-action-custom {
-                            width: 38px;
-                            height: 38px;
-                            display: inline-flex;
-                            align-items: center;
-                            justify-content: center;
-                            border-radius: 10px;
+                        /* Botones de acción alineados con el resto del sistema (convocatorias, etc.) */
+                        .colaborador-actions .btn-action {
+                            width: 32px;
+                            height: 32px;
+                            padding: 0;
+                            line-height: 32px;
+                            border-radius: 8px;
                             transition: all 0.2s;
-                            margin-left: 4px;
-                            border: 1px solid #e2e8f0;
-                            background: white;
-                            color: #64748b;
                         }
-                        .btn-action-custom:hover { background: #0b1311; color: #fff; border-color: #0b1311; }
-                        .btn-cv-custom {
-                            background: #15b79a;
-                            color: white !important;
-                            border: none;
+                        .colaborador-actions .btn-action:hover {
+                            transform: translateY(-2px);
                         }
-                        .btn-cv-custom:hover { background: #0e967e; transform: scale(1.05); }
-                        .btn-delete-custom:hover { background: #ef4444; border-color: #ef4444; color: white; }
                     </style>
 
                     <div class="stats-container">
@@ -821,10 +814,20 @@
                         {% for c in colaboradores %}
                         <div class="colaborador-card">
                             <div class="colaborador-info">
-                                <div class="colaborador-avatar" style="background-image:url('{% static "img/demo/authors/josh.png" %}')"></div>
+                                {% if c.persona.cv and c.persona.cv.foto_perfil %}
+                                <div class="colaborador-avatar" style="background-image:url('{{ c.persona.cv.foto_perfil.url }}');"></div>
+                                {% else %}
+                                <div class="colaborador-avatar colaborador-avatar-iniciales" title="{{ c.persona.nombre_completo }}">{{ c.persona.nombre_completo|iniciales }}</div>
+                                {% endif %}
                                 <div>
                                     <div class="name-link">{{ c.persona.nombre_completo }}</div>
-                                    <div class="colaborador-meta">{{ c.cargo.nombre }}</div>
+                                    <div class="colaborador-meta d-flex align-items-center">
+                                        <span>{{ c.cargo.nombre }}</span>
+                                        <button type="button" class="btn btn-link btn-sm p-0 ml-1 text-primary" title="Cambiar puesto"
+                                                onclick="abrirCambiarPuesto({{ c.id }}, '{{ c.persona.nombre_completo|escapejs }}', {{ c.cargo.id }}, '{{ c.cargo.nombre|escapejs }}')">
+                                            <i class="fal fa-edit" style="font-size: 0.75rem;"></i>
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
 
@@ -832,21 +835,24 @@
                                 <span class="badge-area">{{ c.cargo.area.nombre }}</span>
                             </div>
 
-                            <div class="colaborador-actions">
-                                <a href="{% url 'master:persona_detail' c.persona.id %}" class="btn-action-custom" title="Ver Perfil">
+                            <div class="colaborador-actions d-flex align-items-center">
+                                <button type="button" class="btn btn-action btn-outline-info mr-1" title="Ver Perfil"
+                                        onclick="verPersona({{ c.persona.id }})">
                                     <i class="fal fa-eye"></i>
-                                </a>
-                                <a href="{% url 'master:persona_edit' c.persona.id %}" class="btn-action-custom" title="Editar">
+                                </button>
+                                <button type="button" class="btn btn-action btn-outline-warning mr-1" title="Editar"
+                                        onclick="editarPersona({{ c.persona.id }})">
                                     <i class="fal fa-edit"></i>
-                                </a>
-                                <button class="btn-action-custom btn-delete-custom" title="Eliminar" 
-                                        data-toggle="modal" data-target="#eliminarColaboradorModal" 
+                                </button>
+                                <button type="button" class="btn btn-action btn-outline-danger mr-1" title="Eliminar"
+                                        data-toggle="modal" data-target="#eliminarColaboradorModal"
                                         onclick="eliminarColaborador({{ c.id }}, '{{ c.persona.nombre_completo|escapejs }}')">
                                     <i class="fal fa-trash-alt"></i>
                                 </button>
-                                <a href="{% url 'master:persona_detail' c.persona.id %}#cv" class="btn-action-custom btn-cv-custom" title="Ver CV">
+                                <button type="button" class="btn btn-action btn-success" title="Ver CV"
+                                        onclick="verCv({{ c.persona.id }})">
                                     <i class="fal fa-file-user"></i>
-                                </a>
+                                </button>
                             </div>
                         </div>
                         {% empty %}
@@ -1842,41 +1848,117 @@
 
     </script>
     <script>
-        function verColaborador(nombre, apellido, edad, profesion, cargo, experiencia, tiempo) {
-            document.getElementById('modalNombre').textContent = nombre;
-            document.getElementById('modalApellido').textContent = apellido;
-            document.getElementById('modalEdad').textContent = edad;
-            document.getElementById('modalProfesion').textContent = profesion;
-            document.getElementById('modalCargo').textContent = cargo;
-            document.getElementById('modalExperiencia').textContent = experiencia;
-            document.getElementById('modalTiempo').textContent = tiempo;
-        }
-    </script>
-    <script>
-        function editarColaborador(nombre, apellido, edad, profesion, cargo, experiencia, tiempo) {
-            document.getElementById('editarNombre').value = nombre;
-            document.getElementById('editarApellido').value = apellido;
-            document.getElementById('editarEdad').value = edad;
-            document.getElementById('editarProfesion').value = profesion;
-            document.getElementById('editarCargo').value = cargo;
-            document.getElementById('editarExperiencia').value = experiencia;
-            document.getElementById('editarTiempo').value = tiempo;
+        const csrfTokenColab = '{{ csrf_token }}';
+
+        function verPersona(id) {
+            $('#verPersonaModal').modal('show');
+            $('#verPersonaModalLabel').text('Detalles del colaborador');
+            $('#verPersonaModalBody').html(
+                '<div class="text-center py-4"><div class="spinner-border text-info" role="status"></div><p class="mt-2">Cargando...</p></div>'
+            );
+            $.ajax({
+                url: '/master/personas/' + id + '/',
+                type: 'GET',
+                headers: { 'X-Requested-With': 'XMLHttpRequest', 'X-CSRFToken': csrfTokenColab },
+                success: function(data) { $('#verPersonaModalBody').html(data); },
+                error: function() {
+                    $('#verPersonaModalBody').html('<div class="alert alert-danger"><i class="fal fa-exclamation-triangle mr-2"></i>Error al cargar los detalles.</div>');
+                }
+            });
         }
 
-        function guardarCambios() {
+        function editarPersona(id) {
+            $('#actualizarPersonaBtn').hide();
+            $('#editarPersonaModal').modal('show');
+            $('#editarPersonaModalLabel').text('Editar colaborador');
+            $('#editarPersonaModalBody').html(
+                '<div class="text-center py-4"><div class="spinner-border text-warning" role="status"></div><p class="mt-2">Cargando formulario...</p></div>'
+            );
+            $.ajax({
+                url: '/master/personas/' + id + '/edit/',
+                type: 'GET',
+                headers: { 'X-Requested-With': 'XMLHttpRequest', 'X-CSRFToken': csrfTokenColab },
+                success: function(data) {
+                    $('#editarPersonaModalBody').html(data);
+                    $('#editarPersonaModalBody input, #editarPersonaModalBody select, #editarPersonaModalBody textarea').addClass('form-control');
+                    $('#actualizarPersonaBtn').show();
+                    $('#actualizarPersonaBtn').off('click').on('click', function() { actualizarPersona(id); });
+                    $('#editarPersonaForm').on('submit', function(e) { e.preventDefault(); actualizarPersona(id); });
+                },
+                error: function() {
+                    $('#editarPersonaModalBody').html('<div class="alert alert-danger"><i class="fal fa-exclamation-triangle mr-2"></i>Error al cargar el formulario.</div>');
+                }
+            });
+        }
 
-            const nombre = document.getElementById('editarNombre').value;
-            const apellido = document.getElementById('editarApellido').value;
-            const edad = document.getElementById('editarEdad').value;
-            const profesion = document.getElementById('editarProfesion').value;
-            const cargo = document.getElementById('editarCargo').value;
-            const experiencia = document.getElementById('editarExperiencia').value;
-            const tiempo = document.getElementById('editarTiempo').value;
+        function actualizarPersona(id) {
+            var formData = new FormData($('#editarPersonaForm')[0]);
+            $.ajax({
+                url: '/master/personas/' + id + '/edit/',
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                headers: { 'X-Requested-With': 'XMLHttpRequest', 'X-CSRFToken': csrfTokenColab },
+                success: function() {
+                    $('#editarPersonaModal').modal('hide');
+                    location.reload();
+                },
+                error: function(xhr) {
+                    var msg = (xhr.responseJSON && xhr.responseJSON.message) ? xhr.responseJSON.message : 'Error al actualizar.';
+                    alert(msg);
+                }
+            });
+        }
 
-            console.log('Datos actualizados:', { nombre, apellido, edad, profesion, cargo, experiencia, tiempo });
+        function verCv(personaId) {
+            $('#verCvModal').modal('show');
+            $('#verCvModalLabel').html('<i class="fal fa-file-user mr-2"></i> CV del colaborador');
+            $('#verCvModalBody').html(
+                '<div class="text-center py-5"><div class="spinner-border text-success" role="status"></div><p class="mt-2">Cargando CV...</p></div>'
+            );
+            $.ajax({
+                url: '/master/cv/' + personaId + '/',
+                type: 'GET',
+                headers: { 'X-Requested-With': 'XMLHttpRequest', 'X-CSRFToken': csrfTokenColab },
+                success: function(data) { $('#verCvModalBody').html(data); },
+                error: function() {
+                    $('#verCvModalBody').html('<div class="alert alert-danger"><i class="fal fa-exclamation-triangle mr-2"></i>Error al cargar el CV.</div>');
+                }
+            });
+        }
 
-
-            $('#editarColaboradorModal').modal('hide');
+        var cambioPuestoColaboradorId = null;
+        function abrirCambiarPuesto(colabId, nombre, cargoIdActual, cargoNombreActual) {
+            cambioPuestoColaboradorId = colabId;
+            document.getElementById('cambioPuestoNombre').textContent = nombre || '';
+            document.getElementById('cambioPuestoActual').textContent = cargoNombreActual || '';
+            var sel = document.getElementById('cambioPuestoCargoSelect');
+            if (sel) sel.value = String(cargoIdActual);
+            $('#cambiarPuestoModal').modal('show');
+        }
+        function guardarCambioPuesto() {
+            if (!cambioPuestoColaboradorId) return;
+            var cargoId = document.getElementById('cambioPuestoCargoSelect').value;
+            if (!cargoId) { alert('Seleccione un puesto.'); return; }
+            var btn = document.getElementById('cambioPuestoGuardarBtn');
+            if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner-border spinner-border-sm mr-1"></span> Guardando...'; }
+            $.ajax({
+                url: '{% url "master:actualizar_cargo_colaborador" 0 %}'.replace('/0/', '/' + cambioPuestoColaboradorId + '/'),
+                type: 'POST',
+                data: { cargo_id: cargoId, csrfmiddlewaretoken: csrfTokenColab },
+                success: function(data) {
+                    $('#cambiarPuestoModal').modal('hide');
+                    location.reload();
+                },
+                error: function(xhr) {
+                    var msg = (xhr.responseJSON && xhr.responseJSON.message) ? xhr.responseJSON.message : 'Error al actualizar el puesto.';
+                    alert(msg);
+                },
+                complete: function() {
+                    if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fal fa-check mr-1"></i> Guardar'; }
+                }
+            });
         }
     </script>
     <script>
@@ -1884,7 +1966,7 @@
 
         function eliminarColaborador(id, nombre) {
             eliminarColaboradorId = id;
-            document.getElementById('eliminarNombre').textContent = nombre;
+            document.getElementById('eliminarNombre').textContent = nombre || '';
         }
 
         function confirmarEliminacion() {
@@ -1893,7 +1975,7 @@
             fetch(`{% url 'master:eliminar_colaborador' 0 %}`.replace('/0/', `/${eliminarColaboradorId}/`), {
                 method: 'POST',
                 headers: {
-                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                    'X-CSRFToken': csrfTokenColab,
                     'X-Requested-With': 'XMLHttpRequest'
                 }
             }).then(res => res.json()).then(data => {
@@ -1911,104 +1993,115 @@
         }
     </script>
 
-    <!-- Modal para mostrar los datos del colaborador -->
-    <div class="modal fade" id="colaboradorModal" tabindex="-1" role="dialog" aria-labelledby="colaboradorModalLabel"
-        aria-hidden="true">
-        <div class="modal-dialog" role="document">
+    <!-- Modal Ver perfil (detalle de persona) -->
+    <div class="modal fade" id="verPersonaModal" tabindex="-1" role="dialog" aria-labelledby="verPersonaModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="colaboradorModalLabel">Detalles del Colaborador</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <h5 class="modal-title" id="verPersonaModalLabel"><i class="fal fa-eye mr-2"></i> Detalles del colaborador</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Cerrar">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
-                <div class="modal-body">
-                    <p><strong>Nombre:</strong> <span id="modalNombre"></span></p>
-                    <p><strong>Apellido:</strong> <span id="modalApellido"></span></p>
-                    <p><strong>Edad:</strong> <span id="modalEdad"></span></p>
-                    <p><strong>Profesión:</strong> <span id="modalProfesion"></span></p>
-                    <p><strong>Cargo:</strong> <span id="modalCargo"></span></p>
-                    <p><strong>Experiencia Laboral:</strong> <span id="modalExperiencia"></span></p>
-                    <p><strong>Tiempo en la Empresa:</strong> <span id="modalTiempo"></span></p>
-                </div>
+                <div class="modal-body" id="verPersonaModalBody"></div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal"><i class="fal fa-times mr-1"></i> Cerrar</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Modal para editar los datos del colaborador -->
-    <div class="modal fade" id="editarColaboradorModal" tabindex="-1" role="dialog"
-        aria-labelledby="editarColaboradorModalLabel" aria-hidden="true">
-        <div class="modal-dialog" role="document">
+    <!-- Modal Editar persona -->
+    <div class="modal fade" id="editarPersonaModal" tabindex="-1" role="dialog" aria-labelledby="editarPersonaModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="editarColaboradorModalLabel">Editar Colaborador</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <h5 class="modal-title" id="editarPersonaModalLabel"><i class="fal fa-edit mr-2"></i> Editar colaborador</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Cerrar">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
-                <div class="modal-body">
-                    <form id="editarColaboradorForm">
-                        <div class="form-group">
-                            <label for="editarNombre">Nombre</label>
-                            <input type="text" class="form-control" id="editarNombre" placeholder="Nombre">
-                        </div>
-                        <div class="form-group">
-                            <label for="editarApellido">Apellido</label>
-                            <input type="text" class="form-control" id="editarApellido" placeholder="Apellido">
-                        </div>
-                        <div class="form-group">
-                            <label for="editarEdad">Edad</label>
-                            <input type="number" class="form-control" id="editarEdad" placeholder="Edad">
-                        </div>
-                        <div class="form-group">
-                            <label for="editarProfesion">Profesión</label>
-                            <input type="text" class="form-control" id="editarProfesion" placeholder="Profesión">
-                        </div>
-                        <div class="form-group">
-                            <label for="editarCargo">Cargo</label>
-                            <input type="text" class="form-control" id="editarCargo" placeholder="Cargo">
-                        </div>
-                        <div class="form-group">
-                            <label for="editarExperiencia">Experiencia Laboral</label>
-                            <input type="text" class="form-control" id="editarExperiencia"
-                                placeholder="Experiencia Laboral">
-                        </div>
-                        <div class="form-group">
-                            <label for="editarTiempo">Tiempo en la Empresa</label>
-                            <input type="text" class="form-control" id="editarTiempo"
-                                placeholder="Tiempo en la Empresa">
-                        </div>
-                    </form>
-                </div>
+                <div class="modal-body" id="editarPersonaModalBody"></div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
-                    <button type="button" class="btn btn-primary" onclick="guardarCambios()">Guardar Cambios</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal"><i class="fal fa-times mr-1"></i> Cancelar</button>
+                    <button type="button" class="btn btn-primary" id="actualizarPersonaBtn" style="display: none;"><i class="fal fa-save mr-1"></i> Actualizar</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Modal de Confirmación para Eliminar -->
+    <!-- Modal Ver CV -->
+    <div class="modal fade" id="verCvModal" tabindex="-1" role="dialog" aria-labelledby="verCvModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable" role="document">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header border-bottom">
+                    <h5 class="modal-title" id="verCvModalLabel"><i class="fal fa-file-user mr-2"></i> CV del colaborador</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Cerrar">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body p-4" id="verCvModalBody" style="max-height: 75vh; overflow-y: auto;"></div>
+                <div class="modal-footer border-top">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal"><i class="fal fa-times mr-1"></i> Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Cambiar puesto del colaborador -->
+    <div class="modal fade" id="cambiarPuestoModal" tabindex="-1" role="dialog" aria-labelledby="cambiarPuestoModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header border-bottom">
+                    <h5 class="modal-title" id="cambiarPuestoModalLabel">
+                        <i class="fal fa-user-tag mr-2"></i> Cambiar puesto
+                    </h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Cerrar">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p class="mb-1"><strong>Colaborador:</strong> <span id="cambioPuestoNombre"></span></p>
+                    <p class="mb-3 text-muted small"><strong>Puesto actual:</strong> <span id="cambioPuestoActual"></span></p>
+                    <label for="cambioPuestoCargoSelect" class="font-weight-600">Nuevo puesto</label>
+                    <select id="cambioPuestoCargoSelect" class="form-control">
+                        {% for cargo in cargos %}
+                        <option value="{{ cargo.id }}">{{ cargo.nombre }} — {{ cargo.area.nombre }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="modal-footer border-top">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal"><i class="fal fa-times mr-1"></i> Cancelar</button>
+                    <button type="button" class="btn btn-primary" id="cambioPuestoGuardarBtn" onclick="guardarCambioPuesto()"><i class="fal fa-check mr-1"></i> Guardar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Confirmación para Eliminar (estética alineada con el sistema) -->
     <div class="modal fade" id="eliminarColaboradorModal" tabindex="-1" role="dialog"
         aria-labelledby="eliminarColaboradorModalLabel" aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="eliminarColaboradorModalLabel">Confirmar Eliminación</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title" id="eliminarColaboradorModalLabel">
+                        <i class="fal fa-exclamation-triangle text-danger mr-2"></i>
+                        Confirmar eliminación
+                    </h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Cerrar">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
-                <div class="modal-body">
-                    <p>¿Estás seguro de que deseas eliminar a <strong><span id="eliminarNombre"></span> <span
-                                id="eliminarApellido"></span></strong>?</p>
+                <div class="modal-body pt-2">
+                    <p class="mb-0">¿Está seguro de que desea eliminar al colaborador <strong id="eliminarNombre"></strong>? Esta acción no se puede deshacer.</p>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
-                    <button type="button" class="btn btn-danger" onclick="confirmarEliminacion()">Eliminar</button>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                        <i class="fal fa-times mr-1"></i> Cancelar
+                    </button>
+                    <button type="button" class="btn btn-danger" onclick="confirmarEliminacion()">
+                        <i class="fal fa-trash-alt mr-1"></i> Eliminar
+                    </button>
                 </div>
             </div>
         </div>

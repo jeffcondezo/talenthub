@@ -15,14 +15,16 @@
     </header>
 
     <div class="row mb-5">
-        <div class="col-md-3 mb-3">
+        <div class="col-md-3 mb-3" onclick="window.location.href='{% url 'master:aspirantes' %}'">
             <div class="card-talent-summary">
                 <div class="d-flex justify-content-between">
-                    <div>
+                    <div >
                         <p class="summary-label">Postulantes Activos</p>
                         <h2 class="summary-value">{{ postulantes_activos }}</h2>
-                        <span class="text-success small font-weight-bold"><i class="fal fa-arrow-up"></i> +8 esta
-                            semana</span>
+                        <span class="text-success small font-weight-bold">
+                            <i class="fal fa-arrow-up"></i>
+                            +{{ nuevos_postulantes_semana }} esta semana
+                        </span>
                     </div>
                     <div class="icon-box bg-teal-light text-teal">
                         <i class="fal fa-user-check"></i>
@@ -30,13 +32,13 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-3 mb-3">
+        <div class="col-md-3 mb-3" onclick="window.location.href='{% url 'master:colaboradores' %}'">
             <div class="card-talent-summary">
                 <div class="d-flex justify-content-between">
                     <div>
                         <p class="summary-label">Total Empleados</p>
                         <h2 class="summary-value">{{ total_empleados }}</h2>
-                        <span class="text-muted small">5 departamentos</span>
+                        <span class="text-muted small">{{ total_areas }} áreas</span>
                     </div>
                     <div class="icon-box bg-info-light text-info">
                         <i class="fal fa-users"></i>
@@ -44,12 +46,12 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-3 mb-3">
+        <div class="col-md-3 mb-3" onclick="window.location.href='{% url 'master:proyecto' %}'">
             <div class="card-talent-summary">
                 <div class="d-flex justify-content-between">
                     <div>
                         <p class="summary-label">Proyectos Activos</p>
-                        <h2 class="summary-value">23</h2>
+                        <h2 class="summary-value">{{ proyectos_activos_count }}</h2>
                         <span class="text-muted small">18 a tiempo</span>
                     </div>
                     <div class="icon-box bg-dark-light text-dark">
@@ -58,7 +60,7 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-3 mb-3">
+        <div class="col-md-3 mb-3" onclick="window.location.href='{% url 'master:capacitacion' %}'">
             <div class="card-talent-summary">
                 <div class="d-flex justify-content-between">
                     <div>
@@ -88,7 +90,13 @@
                     <div class="postulante-item">
                         <div class="d-flex align-items-center">
                             <div class="avatar-circle-sm mr-3">
-                                <i class="fal fa-user"></i>
+                                {% if post.persona.cv and post.persona.cv.foto_perfil %}
+                                    <img src="{{ post.persona.cv.foto_perfil.url }}" alt="Foto de {{ post.persona.nombre_completo }}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">
+                                {% else %}
+                                    <span class="small font-weight-bold text-teal">
+                                        {{ post.persona.nombre_completo|slice:":1" }}
+                                    </span>
+                                {% endif %}
                             </div>
                             <div>
                                 <h6 class="fw-800 mb-0" style="font-size: 0.95rem;">{{ post.persona.nombre_completo }}</h6>
@@ -97,7 +105,15 @@
                         </div>
                         <div class="d-flex align-items-center">
                             <div class="text-right mr-4 d-none d-md-block">
-                                <span class="badge badge-soft-teal mb-1">{{ post.get_estado_postulacion_display }}</span>
+                                <span class="badge badge-soft 
+                                    {% if post.estado_postulacion == 'POSTULADO' %}badge-soft-primary
+                                    {% elif post.estado_postulacion == 'EN_REVISION' %}badge-soft-info
+                                    {% elif post.estado_postulacion == 'ENTREVISTA' or post.estado_postulacion == 'EVALUACION' %}badge-soft-warning
+                                    {% elif post.estado_postulacion == 'APROBADO' %}badge-soft-success
+                                    {% elif post.estado_postulacion == 'RECHAZADO' %}badge-soft-danger
+                                    {% else %}badge-soft-secondary{% endif %} mb-1">
+                                    {{ post.get_estado_postulacion_display }}
+                                </span>
                                 <div class="small text-muted" style="font-size: 0.7rem;"><i class="fal fa-history"></i>
                                     2 días atrás</div>
                             </div>

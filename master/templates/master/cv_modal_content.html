@@ -1,0 +1,171 @@
+{% load static %}
+<div class="cv-modal-content">
+    <div class="d-flex align-items-center justify-content-between flex-wrap mb-4 pb-3 border-bottom">
+        <div class="d-flex align-items-center flex-wrap">
+            <div class="icon-shape-avatar bg-teal-light text-teal mr-3 mb-2" style="width: 56px; height: 56px; font-size: 1.25rem; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-weight: 800;">
+                {{ persona.nombres|slice:":1" }}{{ persona.apellido_paterno|slice:":1" }}
+            </div>
+            <div>
+                <h5 class="font-weight-800 mb-1" style="color: #0b1311;">{{ persona.nombre_completo }}</h5>
+                <div class="d-flex flex-wrap">
+                    {% if es_colaborador %}
+                        <span class="badge badge-success btn-pills px-2 py-1 mr-1 mb-1" style="font-size: 0.7rem;"><i class="fal fa-check-circle mr-1"></i> Colaborador</span>
+                    {% endif %}
+                    {% if tiene_postulaciones %}
+                        <span class="badge badge-primary btn-pills px-2 py-1 mr-1 mb-1" style="font-size: 0.7rem;">Con postulaciones</span>
+                    {% endif %}
+                    {% if not es_colaborador and not tiene_postulaciones %}
+                        <span class="badge badge-secondary btn-pills px-2 py-1 mr-1 mb-1" style="font-size: 0.7rem;">Persona</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <a href="{% url 'master:cv_detail' id=persona.id %}" target="_blank" class="btn btn-success btn-sm px-3 py-2 shadow-sm">
+            <i class="fal fa-external-link-alt mr-1"></i> Ver CV completo
+        </a>
+    </div>
+
+    {% if cv %}
+        {% if cv.resumen_profesional or cv.objetivo_profesional %}
+            <div class="mb-4">
+                <h6 class="text-uppercase font-weight-700 text-muted mb-2" style="font-size: 0.7rem;">Resumen y objetivo</h6>
+                <div class="bg-light rounded p-3">
+                    {% if cv.resumen_profesional %}
+                        <p class="mb-2 small text-dark">{{ cv.resumen_profesional|truncatewords:50 }}</p>
+                    {% endif %}
+                    {% if cv.objetivo_profesional %}
+                        <p class="mb-0 small text-muted">{{ cv.objetivo_profesional|truncatewords:30 }}</p>
+                    {% endif %}
+                </div>
+            </div>
+        {% endif %}
+        {% if cv.cv_archivo %}
+            <div class="mb-4">
+                <a href="{{ cv.cv_archivo.url }}" target="_blank" class="btn btn-outline-success btn-sm">
+                    <i class="fal fa-download mr-1"></i> Descargar archivo CV
+                </a>
+            </div>
+        {% endif %}
+    {% endif %}
+
+    <div class="row mb-3">
+        <div class="col-4">
+            <div class="card border-0 bg-primary text-white rounded-lg p-2 text-center">
+                <div class="font-weight-800" style="font-size: 1.25rem;">{{ total_formaciones }}</div>
+                <small class="opacity-90">Formaciones</small>
+            </div>
+        </div>
+        <div class="col-4">
+            <div class="card border-0 bg-success text-white rounded-lg p-2 text-center">
+                <div class="font-weight-800" style="font-size: 1.25rem;">{{ total_cursos }}</div>
+                <small class="opacity-90">Cursos</small>
+            </div>
+        </div>
+        <div class="col-4">
+            <div class="card border-0 bg-info text-white rounded-lg p-2 text-center">
+                <div class="font-weight-800" style="font-size: 1.25rem;">{{ total_experiencias }}</div>
+                <small class="opacity-90">Experiencias</small>
+            </div>
+        </div>
+    </div>
+
+    <div class="cv-modal-sections">
+        <div class="mb-4">
+            <h6 class="font-weight-700 text-primary mb-2"><i class="fal fa-graduation-cap mr-1"></i> Formación académica</h6>
+            <div class="table-responsive">
+                <table class="table table-sm table-bordered table-hover mb-0">
+                    <thead class="thead-light">
+                        <tr>
+                            <th>Grado</th>
+                            <th>Especialidad</th>
+                            <th>Centro</th>
+                            <th>Expedición</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for f in formaciones_academicas %}
+                        <tr>
+                            <td>{{ f.get_grado_display }}</td>
+                            <td>{{ f.especialidad|default:"-" }}</td>
+                            <td>{{ f.centro_estudio|truncatewords:4 }}</td>
+                            <td>{{ f.fecha_expedicion|date:"d/m/Y" }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="4" class="text-center text-muted small">Sin formaciones registradas</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="mb-4">
+            <h6 class="font-weight-700 text-primary mb-2"><i class="fal fa-certificate mr-1"></i> Cursos y especialización</h6>
+            <div class="table-responsive">
+                <table class="table table-sm table-bordered table-hover mb-0">
+                    <thead class="thead-light">
+                        <tr>
+                            <th>Tipo</th>
+                            <th>Descripción</th>
+                            <th>Institución</th>
+                            <th>Fin</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for c in cursos_especializacion %}
+                        <tr>
+                            <td>{{ c.get_tipo_estudio_display }}</td>
+                            <td>{{ c.descripcion|truncatewords:5 }}</td>
+                            <td>{{ c.institucion|truncatewords:3 }}</td>
+                            <td>{{ c.fecha_fin|date:"d/m/Y" }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="4" class="text-center text-muted small">Sin cursos registrados</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="mb-2">
+            <h6 class="font-weight-700 text-primary mb-2"><i class="fal fa-briefcase mr-1"></i> Experiencia laboral</h6>
+            <div class="table-responsive">
+                <table class="table table-sm table-bordered table-hover mb-0">
+                    <thead class="thead-light">
+                        <tr>
+                            <th>Entidad</th>
+                            <th>Cargo</th>
+                            <th>Inicio</th>
+                            <th>Fin</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for e in experiencias_laborales %}
+                        <tr>
+                            <td>{{ e.nombre_entidad|truncatewords:4 }}</td>
+                            <td>{{ e.cargo|truncatewords:3 }}</td>
+                            <td>{{ e.fecha_inicio|date:"d/m/Y" }}</td>
+                            <td>{% if e.fecha_fin %}{{ e.fecha_fin|date:"d/m/Y" }}{% else %}<span class="badge badge-success">Actual</span>{% endif %}</td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="4" class="text-center text-muted small">Sin experiencias registradas</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-4 pt-3 border-top text-right">
+        <a href="{% url 'master:cv_detail' id=persona.id %}" target="_blank" class="btn btn-teal">
+            <i class="fal fa-file-alt mr-1"></i> Abrir CV completo en nueva pestaña
+        </a>
+    </div>
+</div>
+<style>
+    .cv-modal-content { font-size: 0.9rem; }
+    .cv-modal-content .text-teal { color: #15b79a !important; }
+    .cv-modal-content .bg-teal-light { background-color: #f0fdfa; }
+    .cv-modal-content .btn-teal { background: #15b79a; color: #fff; border: none; }
+    .cv-modal-content .btn-teal:hover { background: #0e967e; color: #fff; }
+    .cv-modal-content .rounded-lg { border-radius: 10px; }
+</style>

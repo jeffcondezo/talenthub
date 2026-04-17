@@ -23,6 +23,9 @@ urlpatterns = [
     
     # Páginas del sistema
     path('proyecto/', views.proyecto_view, name='proyecto'),
+    path('proyecto/<int:id>/', views.proyecto_detail, name='proyecto_detail'),
+    path('proyecto/<int:id>/editar/', views.ProyectoUpdateView.as_view(), name='proyecto_edit'),
+    path('proyecto/<int:id>/modal/', views.proyecto_detalle_modal, name='proyecto_detalle_modal'),
     path('perfiles/', views.perfiles_view, name='perfiles'),
     path('analitica/', views.analitica_view, name='analitica'),
     path('capacitacion/', views.capacitacion_view, name='capacitacion'),
@@ -46,6 +49,7 @@ urlpatterns = [
     path('personas/<int:id>/', views.PersonaDetailView.as_view(), name='persona_detail'),
     path('personas/<int:id>/edit/', views.PersonaUpdateView.as_view(), name='persona_edit'),
     path('personas/<int:id>/delete/', views.PersonaDeleteView.as_view(), name='persona_delete'),
+    path('aspirantes/', views.AspirantesListView.as_view(), name='aspirantes'),
     path('convocatorias/<int:convocatoria_id>/postulantes/', views.PostulantesListView.as_view(), name='postulantes'),
     path('convocatorias/', views.ConvocatoriasListView.as_view(), name='convocatorias'),
     path('convocatorias/create/', views.ConvocatoriaCreateView.as_view(), name='convocatoria_create'),
@@ -54,6 +58,7 @@ urlpatterns = [
     path('convocatorias/<int:id>/delete/', views.ConvocatoriaDeleteView.as_view(), name='convocatoria_delete'),
     path('colaboradores/', views.colaboradores_view, name='colaboradores'),
     path('colaboradores/<int:id>/delete/', views.eliminar_colaborador, name='eliminar_colaborador'),
+    path('colaboradores/<int:id>/cargo/', views.actualizar_cargo_colaborador, name='actualizar_cargo_colaborador'),
     
     # URLs AJAX para filtrado en cascada de ubicaciones
     path('ajax/get-provincias/', views.get_provincias, name='get_provincias'),

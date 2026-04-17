@@ -7,16 +7,31 @@ from django.db.models import Q
 from django.utils import timezone
 from django.db.models import Count
 from .models import PasoInduccion
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
+from django.template.loader import render_to_string
 from .forms import CustomLoginForm, FormacionAcademicaForm, CursoEspecializacionForm, ExperienciaLaboralForm, PostulacionForm, ColaboradorForm
-from .models import Persona, Cargo, Area, Convocatoria, Postulacion, FormacionAcademica, CursoEspecializacion, ExperienciaLaboral, CV, Colaborador, Departamento, Provincia, Distrito
+from .models import Persona, Cargo, Area, Convocatoria, Postulacion, FormacionAcademica, CursoEspecializacion, ExperienciaLaboral, CV, Colaborador, Departamento, Provincia, Distrito, Especialidad, Proyecto
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required # <--- 1. Importa esto
 
 @login_required # 
 def inicio_view(request):
     """Dashboard principal siguiendo el diseño de TalentHub"""
-    recientes = Postulacion.objects.select_related('persona', 'convocatoria__cargo').order_by('-fecha_postulacion')[:3]
+    recientes = Postulacion.objects.select_related('persona', 'persona__cv', 'convocatoria__cargo').order_by('-fecha_postulacion')[:3]
+
+    # Rango de la semana actual (lunes - domingo)
+    hoy = timezone.now().date()
+    lunes = hoy - timezone.timedelta(days=hoy.weekday())
+    domingo = lunes + timezone.timedelta(days=6)
+
+    # Nuevos postulantes de la semana (personas únicas con postulaciones en el rango)
+    nuevos_postulantes_semana = (
+        Persona.objects.filter(
+            postulaciones__fecha_postulacion__date__range=(lunes, domingo)
+        )
+        .distinct()
+        .count()
+    )
     
     try:
         nombre_display = request.user.perfil.nombres
@@ -26,8 +41,9 @@ def inicio_view(request):
     context = {
         'postulantes_activos': Postulacion.objects.filter(estado_postulacion='POSTULADO').count(),
         'total_empleados': Colaborador.objects.filter(estado_laboral='ACTIVO').count(),
-        'total_departamentos': Departamento.objects.count(),
-        'proyectos_activos_count': 10, 
+        'total_areas': Area.objects.count(),
+        'proyectos_activos_count': Proyecto.objects.filter(estado='ACTIVO').count(),
+        'nuevos_postulantes_semana': nuevos_postulantes_semana,
         
         'postulaciones_recientes': recientes,
         'nombre_usuario': nombre_display
@@ -45,8 +61,88 @@ def onboarding_view(request):
     return render(request, 'master/induccion.html', {'cursos': pasos})
 
 def proyecto_view(request):
-    """View para la página de proyectos"""
-    return render(request, 'master/proyecto.html')
+    """View para la página de proyectos. Lista desde master_proyecto; filtros desde master_area y master_especialidad."""
+    import json
+    areas = Area.objects.filter(activo=True).order_by('nombre')
+    # Incluir todas las especialidades por área (no solo ACTIVO) para que el filtro muestre las que tienen proyectos
+    especialidades = Especialidad.objects.select_related('area').order_by('area', 'nombre')
+    especialidades_by_area = {}
+    for esp in especialidades:
+        aid = str(esp.area_id)
+        if aid not in especialidades_by_area:
+            especialidades_by_area[aid] = []
+        especialidades_by_area[aid].append({'id': esp.id, 'nombre': esp.nombre})
+    proyectos = Proyecto.objects.select_related('especialidad', 'especialidad__area').prefetch_related(
+        'colaboradores', 'colaboradores__persona'
+    ).order_by('-fecha_creacion')
+    context = {
+        'areas': areas,
+        'especialidades': especialidades,
+        'especialidades_by_area_json': json.dumps(especialidades_by_area),
+        'proyectos': proyectos,
+    }
+    return render(request, 'master/proyecto.html', context)
+
+
+def proyecto_detail(request, id):
+    """Página de gestión del proyecto: ver información y listado de integrantes."""
+    proyecto = get_object_or_404(
+        Proyecto.objects.select_related('especialidad', 'especialidad__area').prefetch_related(
+            'colaboradores', 'colaboradores__persona', 'colaboradores__cargo'
+        ),
+        pk=id
+    )
+    context = {'proyecto': proyecto}
+    return render(request, 'master/proyecto_detail.html', context)
+
+
+def proyecto_detalle_modal(request, id):
+    """Devuelve el HTML del contenido del modal de detalle (solo lectura) para AJAX."""
+    proyecto = get_object_or_404(
+        Proyecto.objects.select_related('especialidad', 'especialidad__area').prefetch_related(
+            'colaboradores', 'colaboradores__persona', 'colaboradores__cargo'
+        ),
+        pk=id
+    )
+    html = render_to_string('master/proyecto_modal_content.html', {'proyecto': proyecto}, request=request)
+    return HttpResponse(html)
+
+
+class ProyectoUpdateView(UpdateView):
+    """Vista para editar un proyecto (incluye gestión de colaboradores M2M)."""
+    model = Proyecto
+    template_name = 'master/proyecto_edit.html'
+    context_object_name = 'proyecto'
+    pk_url_kwarg = 'id'
+    fields = [
+        'nombre', 'descripcion', 'slug', 'fecha_inicio', 'fecha_fin',
+        'estado', 'especialidad', 'colaboradores'
+    ]
+
+    def get_form_class(self):
+        from django import forms
+        from .models import Proyecto
+        class ProyectoEditForm(forms.ModelForm):
+            class Meta:
+                model = Proyecto
+                fields = [
+                    'nombre', 'descripcion', 'slug', 'fecha_inicio', 'fecha_fin',
+                    'estado', 'especialidad', 'colaboradores'
+                ]
+                widgets = {
+                    'colaboradores': forms.CheckboxSelectMultiple,
+                    'descripcion': forms.Textarea(attrs={'rows': 4}),
+                }
+        return ProyectoEditForm
+
+    def get_success_url(self):
+        return reverse('master:proyecto_detail', kwargs={'id': self.object.pk})
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['areas'] = Area.objects.filter(activo=True).order_by('nombre')
+        context['especialidades'] = Especialidad.objects.select_related('area').order_by('area', 'nombre')
+        return context
 
 def perfiles_view(request):
     """View para la página de perfiles"""
@@ -170,12 +266,54 @@ class CVDetailView(DetailView):
     context_object_name = 'persona'
     model = Persona
     
+    def get(self, request, *args, **kwargs):
+        """Si es petición AJAX, devolver solo el contenido para el modal."""
+        self.object = self.get_object()
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            from django.template.loader import render_to_string
+            from django.http import HttpResponse
+            context = self.get_context_data()
+            html = render_to_string('master/cv_modal_content.html', context, request=request)
+            return HttpResponse(html)
+        return super().get(request, *args, **kwargs)
+    
     def get_object(self):
         """
         Obtiene la persona basada en el ID de la URL
         """
         id = self.kwargs.get('id')
         return Persona.objects.get(id=id)
+
+    def post(self, request, *args, **kwargs):
+        """
+        Permite subir o actualizar el archivo CV y la foto de perfil asociados al registro CV de la persona.
+        """
+        self.object = self.get_object()
+        persona = self.object
+
+        # Asegurar que exista un registro CV para esta persona
+        cv, _ = CV.objects.get_or_create(persona=persona)
+
+        archivo_cv = request.FILES.get('cv_archivo')
+        foto = request.FILES.get('foto_perfil')
+
+        if not archivo_cv and not foto:
+            messages.warning(request, 'No se ha seleccionado ningún archivo para actualizar.')
+        else:
+            if archivo_cv:
+                cv.cv_archivo = archivo_cv
+            if foto:
+                cv.foto_perfil = foto
+            cv.save()
+            if archivo_cv and foto:
+                messages.success(request, 'El archivo de CV y la foto de perfil se han actualizado correctamente.')
+            elif archivo_cv:
+                messages.success(request, 'El archivo de CV se ha actualizado correctamente.')
+            elif foto:
+                messages.success(request, 'La foto de perfil se ha actualizado correctamente.')
+
+        from django.shortcuts import redirect
+        return redirect('master:cv_detail', id=persona.id)
     
     def get_context_data(self, **kwargs):
         """
@@ -217,7 +355,7 @@ def cv_view(request):
     Vista de redirección para mantener compatibilidad
     Redirige a la lista de aspirantes para seleccionar un CV
     """
-    return redirect('master:aspirantes')
+    return redirect('master:personas')
 
 class AspirantesListView(ListView):
     """
@@ -398,10 +536,10 @@ class PersonaCreateView(CreateView):
         """
         Procesar formulario inválido
         """
-        # Si es petición AJAX, devolver errores en JSON
+        # Si es petición AJAX, devolver errores en JSON con código 400 para que el frontend los capture
         if self.request.headers.get('X-Requested-With') == 'XMLHttpRequest':
             from django.http import JsonResponse
-            return JsonResponse({'success': False, 'errors': form.errors})
+            return JsonResponse({'success': False, 'errors': form.errors}, status=400)
 
         # Para peticiones normales, usar el comportamiento por defecto
         return super().form_invalid(form)
@@ -515,10 +653,10 @@ class PersonaUpdateView(UpdateView):
         """
         Procesar formulario inválido
         """
-        # Si es petición AJAX, devolver errores en JSON
+        # Si es petición AJAX, devolver errores en JSON con código 400 para que el frontend los capture
         if self.request.headers.get('X-Requested-With') == 'XMLHttpRequest':
             from django.http import JsonResponse
-            return JsonResponse({'success': False, 'errors': form.errors})
+            return JsonResponse({'success': False, 'errors': form.errors}, status=400)
 
         # Para peticiones normales, usar el comportamiento por defecto
         return super().form_invalid(form)
@@ -687,14 +825,44 @@ class ConvocatoriasListView(ListView):
 
 def colaboradores_view(request):
     """View para la página de colaboradores"""
-    # Obtener colaboradores activos con relaciones para mostrar en la plantilla
-    colaboradores_qs = Colaborador.objects.select_related('persona', 'cargo', 'cargo__area').all()
+    # Obtener colaboradores con persona, cargo, área y CV (foto_perfil en master_cv)
+    colaboradores_qs = Colaborador.objects.select_related(
+        'persona', 'persona__cv', 'cargo', 'cargo__area'
+    ).all()
+    cargos = Cargo.objects.filter(activo=True).select_related('area').order_by('area__nombre', 'nombre')
     context = {
         'colaboradores': colaboradores_qs,
         'total_colaboradores': colaboradores_qs.count(),
         'colaboradores_activos': Colaborador.objects.filter(estado_laboral='ACTIVO').count(),
+        'cargos': cargos,
     }
     return render(request, 'master/colaboradores.html', context)
+
+
+def actualizar_cargo_colaborador(request, id):
+    """Actualiza el cargo (puesto) de un colaborador. POST con cargo_id. Responde JSON."""
+    from django.views.decorators.http import require_POST
+    from django.http import JsonResponse
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'message': 'Método no permitido'}, status=405)
+    cargo_id = request.POST.get('cargo_id')
+    if not cargo_id:
+        return JsonResponse({'success': False, 'message': 'Falta cargo_id'}, status=400)
+    try:
+        colaborador = Colaborador.objects.get(id=id)
+        cargo = Cargo.objects.get(id=cargo_id, activo=True)
+        colaborador.cargo = cargo
+        colaborador.save()
+        return JsonResponse({
+            'success': True,
+            'message': f'Puesto actualizado a {cargo.nombre}',
+            'cargo_nombre': cargo.nombre,
+            'area_nombre': cargo.area.nombre,
+        })
+    except Colaborador.DoesNotExist:
+        return JsonResponse({'success': False, 'message': 'Colaborador no encontrado'}, status=404)
+    except Cargo.DoesNotExist:
+        return JsonResponse({'success': False, 'message': 'Cargo no válido o inactivo'}, status=400)
 
 
 def eliminar_colaborador(request, id):

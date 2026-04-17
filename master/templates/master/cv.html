@@ -1269,7 +1269,7 @@ License: You must have a valid license purchased only from wrapbootstrap.com (li
             <h4 class="text-primary mb-3">
                 <i class="fal fa-chart-bar mr-2"></i>Resumen del CV
             </h4>
-            <div class="row text-center">
+            <div class="row text-center mb-3">
                 <div class="col-4">
                     <div class="card bg-primary text-white">
                         <div class="card-body p-2">
@@ -1295,9 +1295,141 @@ License: You must have a valid license purchased only from wrapbootstrap.com (li
                     </div>
                 </div>
             </div>
+
+            <!-- Foto de perfil y Archivo CV -->
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title mb-2">
+                        <i class="fal fa-id-badge mr-2 text-teal"></i>Foto de perfil
+                    </h5>
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="mr-3">
+                            {% if cv and cv.foto_perfil %}
+                                <img src="{{ cv.foto_perfil.url }}" alt="Foto de perfil" class="rounded-circle" style="width:72px;height:72px;object-fit:cover;border:2px solid #e2e8f0;">
+                            {% else %}
+                                <div class="rounded-circle d-flex align-items-center justify-content-center bg-light text-muted" style="width:72px;height:72px;border:2px dashed #e2e8f0;">
+                                    <i class="fal fa-user" style="font-size:1.5rem;"></i>
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="small text-muted">
+                            <p class="mb-1"><strong>Recomendaciones para una buena foto:</strong></p>
+                            <ul class="mb-1 pl-3">
+                                <li>Fondo liso y claro (pared blanca o neutra).</li>
+                                <li>Buena iluminación frontal, sin sombras fuertes.</li>
+                                <li>Rostro visible de frente o 3/4, sin gafas oscuras ni gorros.</li>
+                                <li>Formato JPG o PNG, mínimo recomendado 400x400 px.</li>
+                            </ul>
+                            <p class="mb-0">Peso máximo recomendado: 2&nbsp;MB.</p>
+                        </div>
+                    </div>
+
+                    <h5 class="card-title mb-2 mt-3">
+                        <i class="fal fa-file-pdf mr-2 text-danger"></i>Archivo CV
+                    </h5>
+                    {% if cv and cv.cv_archivo %}
+                        <p class="mb-2">
+                            <small class="text-muted d-block">Archivo actual:</small>
+                            <a href="{{ cv.cv_archivo.url }}" target="_blank" rel="noopener" class="btn btn-sm btn-outline-success mt-1">
+                                <i class="fal fa-download mr-1"></i>Ver / Descargar CV
+                            </a>
+                        </p>
+                    {% else %}
+                        <p class="text-muted mb-2">
+                            <i class="fal fa-info-circle mr-1"></i>No se ha cargado un archivo de CV.
+                        </p>
+                    {% endif %}
+
+                    <form method="post" enctype="multipart/form-data" class="mt-2">
+                        {% csrf_token %}
+                        <div class="form-group">
+                            <label class="small font-weight-600" for="id_foto_perfil">Actualizar foto de perfil</label>
+                            <input type="file"
+                                   class="form-control-file"
+                                   id="id_foto_perfil"
+                                   name="foto_perfil"
+                                   accept="image/*">
+                        </div>
+                        <div class="custom-file mb-2">
+                            <input type="file"
+                                   class="custom-file-input"
+                                   id="id_cv_archivo"
+                                   name="cv_archivo"
+                                   accept=".pdf,.doc,.docx">
+                            <label class="custom-file-label" for="id_cv_archivo">Seleccionar archivo de CV...</label>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-sm btn-block">
+                            <i class="fal fa-upload mr-1"></i>Subir / Actualizar archivos
+                        </button>
+                        <small class="form-text text-muted mt-1">
+                            CV en PDF o Word; foto en JPG o PNG. Para mejores resultados, use una imagen nítida y bien iluminada.
+                        </small>
+                    </form>
+                </div>
+            </div>
         </div>
     </div>
 </div>
+
+{% if cv %}
+<!-- Sección de Perfil Profesional -->
+<div class="panel-content mb-4">
+    <div class="row">
+        <div class="col-md-7">
+            <h4 class="text-primary mb-3">
+                <i class="fal fa-file-alt mr-2"></i>Perfil profesional
+            </h4>
+            <div class="bg-light rounded p-3 mb-3">
+                <h6 class="text-muted text-uppercase small font-weight-700 mb-2">Resumen profesional</h6>
+                <p class="mb-0 small text-justify">
+                    {{ cv.resumen_profesional|default:"Sin resumen profesional registrado." }}
+                </p>
+            </div>
+            <div class="bg-light rounded p-3">
+                <h6 class="text-muted text-uppercase small font-weight-700 mb-2">Objetivo profesional</h6>
+                <p class="mb-0 small text-justify">
+                    {{ cv.objetivo_profesional|default:"Sin objetivo profesional registrado." }}
+                </p>
+            </div>
+        </div>
+        <div class="col-md-5">
+            <h4 class="text-primary mb-3">
+                <i class="fal fa-address-card mr-2"></i>Contacto profesional
+            </h4>
+            <div class="panel-talent mb-3">
+                <div class="row">
+                    <div class="col-6 mb-2">
+                        <label class="label-talent">Teléfono prof.</label>
+                        <p class="value-talent small">{{ cv.telefono_profesional|default:"-" }}</p>
+                    </div>
+                    <div class="col-6 mb-2">
+                        <label class="label-talent">Email prof.</label>
+                        <p class="value-talent small text-truncate" title="{{ cv.email_profesional }}">
+                            {{ cv.email_profesional|default:"-" }}
+                        </p>
+                    </div>
+                    <div class="col-12 mt-2">
+                        <label class="label-talent mb-2">Presencia online</label>
+                        {% if cv.linkedin %}
+                            <a href="{{ cv.linkedin }}" target="_blank" class="btn btn-icon btn-outline-info rounded-circle mr-2" title="LinkedIn">
+                                <i class="fab fa-linkedin-in"></i>
+                            </a>
+                        {% endif %}
+                        {% if cv.portfolio %}
+                            <a href="{{ cv.portfolio }}" target="_blank" class="btn btn-icon btn-outline-dark rounded-circle mr-2" title="Portfolio">
+                                <i class="fal fa-globe"></i>
+                            </a>
+                        {% endif %}
+                        {% if not cv.linkedin and not cv.portfolio %}
+                            <p class="text-muted small mb-0">Sin enlaces registrados.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
 
 <!-- Primer contenedor: Datos de Formación Académica -->
 <div class="panel-content">

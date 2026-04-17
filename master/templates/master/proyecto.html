@@ -628,9 +628,9 @@
                                     <label class="form-label font-weight-bold" for="areaFilter">Área de la Empresa</label>
                                     <select class="form-control shadow-none select-custom" id="areaFilter">
                                         <option value="">Todas las Áreas</option>
-                                        <option value="diseno">Diseño Gráfico</option>
-                                        <option value="it">IT & Desarrollo</option>
-                                        <option value="mkt">Marketing Digital</option>
+                                        {% for area in areas %}
+                                        <option value="{{ area.id }}">{{ area.nombre }}</option>
+                                        {% endfor %}
                                     </select>
                                 </div>
                                 
@@ -645,9 +645,9 @@
                                     <label class="form-label font-weight-bold" for="statusFilter">Estado del Proyecto</label>
                                     <select class="form-control shadow-none select-custom" id="statusFilter">
                                         <option value="">Todos</option>
-                                        <option value="active">Activos</option>
-                                        <option value="paused">En Pausa</option>
-                                        <option value="completed">Completados</option>
+                                        <option value="Activo">Activos</option>
+                                        <option value="Pausado">En Pausa</option>
+                                        <option value="Finalizado">Finalizados</option>
                                     </select>
                                 </div>
                             </div>
@@ -673,40 +673,80 @@
                                 </tr>
                             </thead>
                             <tbody id="projectsBody">
-                                <tr data-area="it" data-sub="web">
+                                {% for proyecto in proyectos %}
+                                <tr data-area="{{ proyecto.especialidad.area_id }}" data-sub="{{ proyecto.especialidad_id }}" data-estado="{{ proyecto.estado }}">
                                     <td>
-                                        <div class="font-weight-bold text-dark">E-Commerce Global</div>
-                                        <div class="small text-muted">ID: PRJ-001</div>
+                                        <div class="font-weight-bold text-dark">{{ proyecto.nombre }}</div>
+                                        <div class="small text-muted">ID: {{ proyecto.id }}{% if proyecto.slug %} · {{ proyecto.slug }}{% endif %}</div>
                                     </td>
                                     <td>
-                                        <span class="badge badge-soft-dark">IT</span>
-                                        <div class="small mt-1">Desarrollo Web</div>
+                                        <span class="badge badge-soft-dark">{{ proyecto.especialidad.area.nombre }}</span>
+                                        <div class="small mt-1">{{ proyecto.especialidad.nombre }}</div>
                                     </td>
                                     <td>
-                                        <div class="avatar-group d-flex">
-                                            <div class="avatar avatar-xs rounded-circle bg-teal text-white" title="Juan Pérez">JP</div>
-                                            <div class="avatar avatar-xs rounded-circle bg-info text-white" title="Maria Gomez" style="margin-left: -10px;">MG</div>
-                                            <div class="avatar avatar-xs rounded-circle bg-dark text-white d-flex align-items-center justify-content-center" style="margin-left: -10px; font-size: 10px;">+3</div>
+                                        <div class="avatar-group d-flex flex-wrap">
+                                            {% for col in proyecto.colaboradores.all %}
+                                            <div class="avatar avatar-xs rounded-circle bg-teal text-white d-flex align-items-center justify-content-center" style="margin-left: {% if forloop.counter0 > 0 %}-10px{% else %}0{% endif %};" title="{% if col.persona %}{{ col.persona.nombre_completo }}{% else %}Colaborador{% endif %}">
+                                                {% if col.persona %}{{ col.persona.nombres|slice:":1" }}{{ col.persona.apellido_paterno|slice:":1" }}{% else %}?{% endif %}
+                                            </div>
+                                            {% empty %}
+                                            <span class="small text-muted">Sin asignar</span>
+                                            {% endfor %}
                                         </div>
                                     </td>
                                     <td>
-                                        <div class="progress rounded-pill" style="height: 6px; width: 100px;">
-                                            <div class="progress-bar bg-teal" style="width: 75%"></div>
-                                        </div>
-                                        <small class="text-muted">75%</small>
+                                        <span class="text-muted">—</span>
                                     </td>
                                     <td class="text-center">
+                                        {% if proyecto.estado == 'ACTIVO' %}
                                         <span class="badge badge-soft-teal">Activo</span>
+                                        {% elif proyecto.estado == 'PAUSADO' %}
+                                        <span class="badge badge-soft-warning">Pausado</span>
+                                        {% elif proyecto.estado == 'FINALIZADO' %}
+                                        <span class="badge badge-soft-secondary">Finalizado</span>
+                                        {% else %}
+                                        <span class="badge badge-soft-dark">{{ proyecto.get_estado_display }}</span>
+                                        {% endif %}
                                     </td>
                                     <td class="text-center">
-                                        <button class="btn btn-icon btn-outline-teal btn-sm rounded-circle"><i class="fal fa-eye"></i></button>
-                                        <button class="btn btn-icon btn-outline-dark btn-sm rounded-circle ml-1"><i class="fal fa-cog"></i></button>
+                                        <button type="button" class="btn btn-icon btn-outline-teal btn-sm rounded-circle js-btn-ver-proyecto" title="Ver detalle" data-proyecto-id="{{ proyecto.id }}"><i class="fal fa-eye"></i></button>
+                                        <a href="{% url 'master:proyecto_detail' proyecto.id %}" class="btn btn-icon btn-outline-dark btn-sm rounded-circle ml-1" title="Gestionar / Editar"><i class="fal fa-cog"></i></a>
                                     </td>
                                 </tr>
+                                {% empty %}
+                                <tr class="js-no-projects-row">
+                                    <td colspan="6" class="text-center py-5">
+                                        <i class="fal fa-folder-open fa-3x text-muted mb-3"></i>
+                                        <p class="text-muted mb-0">No hay proyectos registrados.</p>
+                                    </td>
+                                </tr>
+                                {% endfor %}
                             </tbody>
                         </table>
                     </div>
 
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: detalle del proyecto (solo lectura) -->
+<div class="modal fade" id="proyectoDetalleModal" tabindex="-1" role="dialog" aria-labelledby="proyectoDetalleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+        <div class="modal-content border-0 shadow-lg rounded-lg">
+            <div class="modal-header border-0 pb-0" style="background: linear-gradient(135deg, #15b79a 0%, #0d9488 100%); color: white;">
+                <h5 class="modal-title font-weight-bold" id="proyectoDetalleModalLabel">
+                    <i class="fal fa-project-diagram mr-2"></i> Detalle del proyecto
+                </h5>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Cerrar">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body p-4" id="proyectoDetalleModalBody">
+                <div class="text-center py-5">
+                    <div class="spinner-border text-teal" role="status"></div>
+                    <p class="mt-2 text-muted mb-0">Cargando...</p>
                 </div>
             </div>
         </div>
@@ -1780,39 +1820,79 @@
         document.addEventListener('DOMContentLoaded', function() {
     const areaSelect = document.getElementById('areaFilter');
     const subAreaSelect = document.getElementById('subAreaFilter');
-
-    // Mapeo de sub-áreas
-    const dataOptions = {
-        'diseno': ['Diseño Publicitario', 'Animación', 'Branding', 'Ilustración'],
-        'it': ['Desarrollo Web', 'Desarrollo Móvil', 'Ciberseguridad', 'Data Science'],
-        'mkt': ['SEO/SEM', 'Social Media', 'Content Strategy', 'Email Marketing']
-    };
+    // Especialidades por área desde la base de datos (master_area, master_especialidad)
+    const especialidadesByArea = {{ especialidades_by_area_json|default:"{}"|safe }};
 
     areaSelect.addEventListener('change', function() {
-        const areaKey = this.value;
-        
-        // Limpiar sub-área
+        const areaId = this.value;
         subAreaSelect.innerHTML = '<option value="">Todas las especialidades</option>';
-        
-        if (areaKey && dataOptions[areaKey]) {
+        if (areaId) {
             subAreaSelect.disabled = false;
-            dataOptions[areaKey].forEach(option => {
-                const el = document.createElement('option');
-                el.value = option.toLowerCase().replace(' ', '-');
-                el.textContent = option;
-                subAreaSelect.appendChild(el);
-            });
+            var list = especialidadesByArea[areaId] || especialidadesByArea[String(areaId)];
+            if (list && list.length) {
+                list.forEach(function(esp) {
+                    var el = document.createElement('option');
+                    el.value = esp.id;
+                    el.textContent = esp.nombre;
+                    subAreaSelect.appendChild(el);
+                });
+            }
         } else {
             subAreaSelect.disabled = true;
             subAreaSelect.innerHTML = '<option value="">Seleccione área primero...</option>';
         }
     });
 
-    // Lógica del botón Buscar (Simulación)
     document.getElementById('btnSearch').addEventListener('click', function() {
-        const area = areaSelect.value;
-        // Aquí conectarías con tu backend o filtrarías las filas de la tabla
-        console.log("Filtrando por Area:", area, "y Sub-area:", subAreaSelect.value);
+        const areaId = areaSelect.value;
+        const especialidadId = subAreaSelect.value;
+        const estadoId = document.getElementById('statusFilter').value;
+        const rows = document.querySelectorAll('#projectsBody tr');
+        rows.forEach(function(row) {
+            if (row.classList.contains('js-no-projects-row')) {
+                row.style.display = '';
+                return;
+            }
+            const rowArea = row.getAttribute('data-area');
+            const rowSub = row.getAttribute('data-sub');
+            const rowEstado = row.getAttribute('data-estado');
+            const matchArea = !areaId || rowArea === areaId;
+            const matchSub = !especialidadId || rowSub === especialidadId;
+            const matchEstado = !estadoId || rowEstado === estadoId;
+            row.style.display = (matchArea && matchSub && matchEstado) ? '' : 'none';
+        });
+    });
+
+    document.getElementById('btnReset').addEventListener('click', function() {
+        areaSelect.value = '';
+        subAreaSelect.innerHTML = '<option value="">Seleccione área primero...</option>';
+        subAreaSelect.disabled = true;
+        document.getElementById('statusFilter').value = '';
+        document.querySelectorAll('#projectsBody tr').forEach(function(row) {
+            row.style.display = '';
+        });
+    });
+
+    // Modal de detalle del proyecto (al hacer clic en el ojo)
+    document.querySelectorAll('.js-btn-ver-proyecto').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            var id = this.getAttribute('data-proyecto-id');
+            if (!id) return;
+            var body = document.getElementById('proyectoDetalleModalBody');
+            body.innerHTML = '<div class="text-center py-5"><div class="spinner-border text-teal"></div><p class="mt-2 text-muted mb-0">Cargando...</p></div>';
+            var modalEl = document.getElementById('proyectoDetalleModal');
+            if (typeof $ !== 'undefined') {
+                $(modalEl).modal('show');
+            }
+            fetch('/master/proyecto/' + id + '/modal/')
+                .then(function(r) { return r.text(); })
+                .then(function(html) {
+                    body.innerHTML = html;
+                })
+                .catch(function() {
+                    body.innerHTML = '<div class="alert alert-danger mb-0">No se pudo cargar el detalle del proyecto.</div>';
+                });
+        });
     });
 });
     </script>

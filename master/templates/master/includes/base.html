@@ -375,6 +375,8 @@
     .badge-soft-warning { background: #fef9c3; color: #854d0e; }
     .badge-soft-primary { background: #dbeafe; color: #1e40af; }
     .badge-soft-info { background: #e0f2fe; color: #0369a1; }
+    .badge-soft-danger { background: #fee2e2; color: #b91c1c; }
+    .badge-soft-secondary { background: #e5e7eb; color: #374151; }
 
     /* Botones de acción minimalistas */
     .btn-action { width: 32px; height: 32px; padding: 0; line-height: 32px; border-radius: 8px; transition: all 0.2s; }
@@ -441,7 +443,7 @@
 
 </head>
 
-<body>
+    <body>
 
     {% include 'master/includes/sidebar.html' %}
 
@@ -458,11 +460,24 @@
             const sidebar = document.getElementById('mySidebar');
             const mainContent = document.querySelector('.main-content');
 
-            if (toggleBtn) {
+            // Restaurar estado guardado de la barra lateral
+            if (sidebar && mainContent) {
+                const stored = localStorage.getItem('sidebar_collapsed');
+                if (stored === 'true') {
+                    sidebar.classList.add('collapsed');
+                    mainContent.classList.add('expanded');
+                }
+            }
+
+            if (toggleBtn && sidebar && mainContent) {
                 toggleBtn.addEventListener('click', function () {
                     // Alterna clases en ambos elementos
                     sidebar.classList.toggle('collapsed');
                     mainContent.classList.toggle('expanded');
+
+                    // Guardar estado en localStorage
+                    const isCollapsed = sidebar.classList.contains('collapsed');
+                    localStorage.setItem('sidebar_collapsed', isCollapsed ? 'true' : 'false');
                 });
             }
         });

@@ -2283,7 +2283,7 @@ html body a:hover {
 /* app navgation stays hidden */
 @media (min-width: 992px) {
   .nav-function-hidden:not(.nav-function-top) .page-wrapper {
-    padding-left: 0.625rem;
+    padding-left: 0;
   }
   .nav-function-hidden:not(.nav-function-top) .page-sidebar {
     left: -16.25rem;
@@ -2372,7 +2372,6 @@ html body a:hover {
     position: fixed !important;
   }
   .nav-function-fixed:not(.nav-function-top):not(.nav-function-hidden):not(.nav-function-minify) .page-content-wrapper {
-    padding-left: 16.875rem;
   }
   .nav-function-fixed.nav-function-top.header-function-fixed .page-sidebar {
     position: fixed !important;
@@ -2630,7 +2629,7 @@ html body a:hover {
     color: #fff !important;
   }
   .nav-function-minify:not(.nav-function-top).nav-function-hidden .page-wrapper {
-    padding-left: 0.625rem;
+    padding-left: 0rem;
   }
   .nav-function-minify:not(.nav-function-top).nav-function-hidden .page-sidebar {
     left: -4.0625rem;

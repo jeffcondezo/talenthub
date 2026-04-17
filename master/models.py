@@ -2,6 +2,7 @@ from django.db import models
 from django.core.validators import RegexValidator
 from django.utils import timezone
 from django.contrib.auth.models import User
+from cloudinary_storage.storage import RawMediaCloudinaryStorage
 
 
 class Departamento(models.Model):
@@ -315,6 +316,131 @@ class Area(models.Model):
     
     def __str__(self):
         return self.nombre
+
+
+class Especialidad(models.Model):
+    """
+    Modelo para especialidades dentro de un área.
+    """
+    ESTADO_CHOICES = [
+        ('ACTIVO', 'Activo'),
+        ('INACTIVO', 'Inactivo'),
+    ]
+
+    nombre = models.CharField(
+        max_length=150,
+        verbose_name='Nombre'
+    )
+    area = models.ForeignKey(
+        Area,
+        on_delete=models.CASCADE,
+        related_name='especialidades',
+        verbose_name='Área'
+    )
+    descripcion = models.TextField(
+        blank=True,
+        null=True,
+        verbose_name='Descripción'
+    )
+    slug = models.SlugField(
+        max_length=150,
+        blank=True,
+        verbose_name='Slug'
+    )
+    estado = models.CharField(
+        max_length=20,
+        choices=ESTADO_CHOICES,
+        default='ACTIVO',
+        verbose_name='Estado'
+    )
+    fecha_creacion = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name='Fecha de Creación'
+    )
+
+    class Meta:
+        verbose_name = 'Especialidad'
+        verbose_name_plural = 'Especialidades'
+        ordering = ['area', 'nombre']
+        unique_together = [['area', 'slug']]
+
+    def __str__(self):
+        return f"{self.nombre} ({self.area.nombre})"
+
+    def save(self, *args, **kwargs):
+        if not self.slug and self.nombre:
+            from django.utils.text import slugify
+            base = slugify(self.nombre)
+            self.slug = base
+            cnt = 1
+            while Especialidad.objects.filter(area=self.area, slug=self.slug).exclude(pk=self.pk).exists():
+                self.slug = f"{base}-{cnt}"
+                cnt += 1
+        super().save(*args, **kwargs)
+
+
+class Proyecto(models.Model):
+    """
+    Modelo para proyectos. La especialidad determina el área (vía especialidad.area).
+    Un proyecto tiene muchos colaboradores y un colaborador puede estar en varios proyectos.
+    """
+    ESTADO_CHOICES = [
+        ('ACTIVO', 'Activo'),
+        ('PAUSADO', 'Pausado'),
+        ('FINALIZADO', 'Finalizado'),
+    ]
+
+    nombre = models.CharField(max_length=200, verbose_name='Nombre')
+    descripcion = models.TextField(blank=True, null=True, verbose_name='Descripción')
+    slug = models.SlugField(max_length=200, blank=True, verbose_name='Slug')
+    fecha_inicio = models.DateField(blank=True, null=True, verbose_name='Fecha de inicio')
+    fecha_fin = models.DateField(blank=True, null=True, verbose_name='Fecha de fin')
+    estado = models.CharField(
+        max_length=20,
+        choices=ESTADO_CHOICES,
+        default='ACTIVO',
+        verbose_name='Estado'
+    )
+    especialidad = models.ForeignKey(
+        Especialidad,
+        on_delete=models.CASCADE,
+        related_name='proyectos',
+        verbose_name='Especialidad'
+    )
+    colaboradores = models.ManyToManyField(
+        'Colaborador',
+        related_name='proyectos',
+        blank=True,
+        verbose_name='Colaboradores'
+    )
+    fecha_creacion = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name='Fecha de Creación'
+    )
+
+    class Meta:
+        verbose_name = 'Proyecto'
+        verbose_name_plural = 'Proyectos'
+        ordering = ['-fecha_creacion']
+
+    def __str__(self):
+        return self.nombre
+
+    @property
+    def area(self):
+        """Área del proyecto a través de la especialidad."""
+        return self.especialidad.area
+
+    def save(self, *args, **kwargs):
+        if not self.slug and self.nombre:
+            from django.utils.text import slugify
+            base = slugify(self.nombre)
+            self.slug = base
+            cnt = 1
+            while Proyecto.objects.filter(slug=self.slug).exclude(pk=self.pk).exists():
+                self.slug = f"{base}-{cnt}"
+                cnt += 1
+        super().save(*args, **kwargs)
 
 
 class Cargo(models.Model):
@@ -647,6 +773,7 @@ class CV(models.Model):
         upload_to='cvs/',
         blank=True,
         null=True,
+        storage=RawMediaCloudinaryStorage(),
         verbose_name='Archivo CV'
     )
     

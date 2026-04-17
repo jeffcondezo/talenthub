@@ -406,6 +406,30 @@
                         </tbody>
                     </table>
                 </div>
+
+                <!-- Archivo CV como documento -->
+                <div class="cv-section">
+                    <h3 class="section-title">
+                        <span><i class="fal fa-file-pdf"></i> Archivo CV</span>
+                    </h3>
+                    <div class="info-card">
+                        {% if cv and cv.cv_archivo %}
+                            <div class="info-item">
+                                <div class="info-label">Archivo actual</div>
+                                <div class="info-value">
+                                    <a href="{{ cv.cv_archivo.url }}" target="_blank" rel="noopener" class="btn btn-sm btn-outline-success">
+                                        <i class="fal fa-download mr-1"></i>Ver / Descargar CV
+                                    </a>
+                                </div>
+                            </div>
+                        {% else %}
+                            <div class="empty-state">
+                                <i class="fal fa-file-pdf"></i>
+                                <p>No se ha cargado un archivo de CV para este postulante.</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
                 
                 <!-- Formación Académica -->
                 <div class="cv-section">
