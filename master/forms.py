@@ -193,6 +193,37 @@ class PersonaEditForm(forms.ModelForm):
         return persona
 
 
+class PersonaAltaForm(forms.ModelForm):
+    """Formulario para dar de alta una persona (creación / modal nuevo empleado)."""
+
+    class Meta:
+        model = Persona
+        fields = [
+            'tipo_documento', 'numero_documento', 'apellido_paterno', 'apellido_materno',
+            'nombres', 'fecha_nacimiento', 'sexo', 'estado_civil', 'celular', 'email',
+            'direccion', 'distrito', 'provincia', 'departamento',
+        ]
+        widgets = {
+            'nombres': forms.TextInput(attrs={'class': 'form-control'}),
+            'apellido_paterno': forms.TextInput(attrs={'class': 'form-control'}),
+            'apellido_materno': forms.TextInput(attrs={'class': 'form-control'}),
+            'tipo_documento': forms.Select(attrs={'class': 'custom-select form-control'}),
+            'numero_documento': forms.TextInput(attrs={'class': 'form-control'}),
+            'fecha_nacimiento': forms.DateInput(
+                format='%Y-%m-%d',
+                attrs={'class': 'form-control', 'type': 'date'},
+            ),
+            'sexo': forms.Select(attrs={'class': 'custom-select form-control'}),
+            'estado_civil': forms.Select(attrs={'class': 'custom-select form-control'}),
+            'celular': forms.TextInput(attrs={'class': 'form-control'}),
+            'email': forms.EmailInput(attrs={'class': 'form-control'}),
+            'direccion': forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
+            'departamento': forms.Select(attrs={'class': 'custom-select form-control'}),
+            'provincia': forms.Select(attrs={'class': 'custom-select form-control'}),
+            'distrito': forms.Select(attrs={'class': 'custom-select form-control'}),
+        }
+
+
 class PersonaCreateForm(forms.ModelForm):
     """Formulario para crear una nueva persona con su postulación"""
     

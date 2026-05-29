@@ -1,7 +1,7 @@
 {% extends 'master/includes/base.html' %}
 {% load static %}
 
-{% block title %}Editar Datos de Empleo{% endblock %}
+{% block title %}{% if es_nuevo %}Registrar empleado{% else %}Editar Datos de Empleo{% endif %}{% endblock %}
 
 {% block content %}
 <div class="container-fluid persona-edit-page">
@@ -25,7 +25,7 @@
             </div>
         </div>
         <div class="d-flex align-items-center">
-            <a href="{% url 'master:persona_detail' persona.id %}" class="btn btn-outline-secondary btn-pills shadow-sm px-4 py-2 font-weight-bold mr-2">
+            <a href="{% if es_nuevo %}{% url 'master:colaboradores' %}{% else %}{% url 'master:persona_detail' persona.id %}{% endif %}" class="btn btn-outline-secondary btn-pills shadow-sm px-4 py-2 font-weight-bold mr-2">
                 <i class="fal fa-times mr-2"></i> Cancelar
             </a>
             <button type="submit" form="empleoForm" class="btn btn-teal btn-pills shadow-sm px-4 py-2 font-weight-bold">

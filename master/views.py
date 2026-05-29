@@ -10,8 +10,8 @@ from .models import PasoInduccion
 from django.http import JsonResponse
 from .forms import (
     CustomLoginForm, FormacionAcademicaForm, CursoEspecializacionForm, ExperienciaLaboralForm,
-    PostulacionForm, ColaboradorForm, PersonaEditForm, CVPerfilForm, PasswordChangeSpanishForm,
-    UsuarioAccesoForm,
+    PostulacionForm, ColaboradorForm, PersonaEditForm, PersonaAltaForm, CVPerfilForm,
+    PasswordChangeSpanishForm, UsuarioAccesoForm,
 )
 from .permissions import get_login_redirect_url, get_first_allowed_url, user_is_admin, modulos_labels
 from functools import wraps
@@ -394,12 +394,8 @@ class PersonaCreateView(CreateView):
     Vista basada en clases para crear una nueva persona
     """
     model = Persona
+    form_class = PersonaAltaForm
     template_name = 'master/persona_create.html'
-    fields = [
-        'tipo_documento', 'numero_documento', 'apellido_paterno', 'apellido_materno', 
-        'nombres', 'fecha_nacimiento', 'sexo', 'estado_civil', 'celular', 'email',
-        'direccion', 'distrito', 'provincia', 'departamento'
-    ]
     success_url = reverse_lazy('master:personas')
 
     def get(self, request, *args, **kwargs):
@@ -427,7 +423,11 @@ class PersonaCreateView(CreateView):
         # Si es petición AJAX, devolver respuesta JSON
         if self.request.headers.get('X-Requested-With') == 'XMLHttpRequest':
             from django.http import JsonResponse
-            return JsonResponse({'success': True, 'message': 'Persona creada correctamente'})
+            return JsonResponse({
+                'success': True,
+                'message': 'Persona creada correctamente',
+                'persona_id': self.object.pk,
+            })
 
         # Para peticiones normales, usar el comportamiento por defecto
         return super().form_valid(form)
@@ -526,9 +526,10 @@ def cv_perfil_edit(request, id):
 
 
 def colaborador_empleo_edit(request, id):
-    """Editar datos de empleo de un colaborador."""
+    """Editar o registrar datos de empleo de un colaborador."""
     persona = get_object_or_404(Persona, id=id)
-    colaborador = get_object_or_404(Colaborador.objects.select_related('cargo'), persona=persona)
+    colaborador = Colaborador.objects.select_related('cargo').filter(persona=persona).first()
+    es_nuevo = colaborador is None
 
     if request.method == 'POST':
         form = ColaboradorForm(request.POST, instance=colaborador)
@@ -536,13 +537,28 @@ def colaborador_empleo_edit(request, id):
             colaborador_actualizado = form.save(commit=False)
             colaborador_actualizado.persona = persona
             colaborador_actualizado.save()
-            messages.success(request, 'Datos de empleo actualizados correctamente.')
+            messages.success(
+                request,
+                'Colaborador registrado correctamente.' if es_nuevo else 'Datos de empleo actualizados correctamente.',
+            )
+            if es_nuevo:
+                return redirect('master:colaboradores')
             return redirect('master:persona_detail', id=persona.id)
     else:
-        form = ColaboradorForm(instance=colaborador)
+        if colaborador:
+            form = ColaboradorForm(instance=colaborador)
+        else:
+            form = ColaboradorForm(initial={
+                'fecha_ingreso': timezone.now().date(),
+                'estado_laboral': 'ACTIVO',
+                'tipo_contrato': 'TIEMPO_COMPLETO',
+            })
 
     form.fields['cargo'].queryset = Cargo.objects.filter(activo=True).select_related('area')
-    form.fields['supervisor'].queryset = Colaborador.objects.select_related('persona').exclude(pk=colaborador.pk)
+    supervisor_qs = Colaborador.objects.select_related('persona')
+    if colaborador:
+        supervisor_qs = supervisor_qs.exclude(pk=colaborador.pk)
+    form.fields['supervisor'].queryset = supervisor_qs
     form.fields['supervisor'].required = False
     form.fields['supervisor'].empty_label = 'Sin supervisor'
 
@@ -550,6 +566,7 @@ def colaborador_empleo_edit(request, id):
         'persona': persona,
         'colaborador': colaborador,
         'form': form,
+        'es_nuevo': es_nuevo,
     })
 
 

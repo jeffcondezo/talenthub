@@ -74,32 +74,7 @@
                 <!-- BEGIN Page Header -->
                 <header class="page-header" role="banner">
 
-                    <div class="search">
-                        <form class="app-forms hidden-xs-down" role="search" action="page_search.html"
-                            autocomplete="off">
-                            <input type="text" id="search-field" placeholder="" class="form-control" tabindex="1">
-                            <a href="#" onclick="return false;" class="btn-danger btn-search-close js-waves-off d-none"
-                                data-action="toggle" data-class="mobile-search-on">
-                                <i class="fal fa-times"></i>
-                            </a>
-                        </form>
-                    </div>
                     <div class="ml-auto d-flex">
-                          activate app search icon (mobile) -->
-                        <div class="hidden-sm-up">
-                            <a href="#" class="header-icon" data-action="toggle" data-class="mobile-search-on"
-                                data-focus="search-field" title="Search">
-                                <i class="fal fa-search"></i>
-                            </a>
-                        </div>
-                          app settings -->
-                         <div class="hidden-md-down" data-toggle="tooltip" data-placement="bottom" data-original-title="Layout Settings" data-trigger="hover">
-                                <a href="#" class="header-icon" data-toggle="modal" data-target=".js-modal-settings">
-                                    <i class="fal fa-cog"></i>
-                                </a>
-                            </div>-->
-                          app darkmode -->
-                        
                         <!-- app notification -->
                         <div data-toggle="tooltip" data-placement="bottom" data-original-title="Notifications"
                             data-trigger="hover">
@@ -1846,6 +1821,98 @@
 
     </script>
     <script>
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || '';
+
+        function crearColaborador() {
+            $('#guardarNuevoEmpleadoBtn').hide();
+            $('#agregarEmpleadoModal').modal('show');
+            $('#agregarEmpleadoModalLabel').text('Nuevo empleado — datos personales');
+            $('#agregarEmpleadoModalBody').html(`
+                <div class="text-center py-4">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="sr-only">Cargando...</span>
+                    </div>
+                    <p class="mt-2 text-muted">Cargando formulario...</p>
+                </div>
+            `);
+
+            $.ajax({
+                url: '{% url "master:persona_create" %}',
+                type: 'GET',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRFToken': csrfToken,
+                },
+                success: function (data) {
+                    $('#agregarEmpleadoModalBody').html(data);
+                    const form = document.getElementById('agregarPersonaForm');
+                    if (form) {
+                        form.reset();
+                    }
+                    $('#agregarEmpleadoModalBody input, #agregarEmpleadoModalBody select, #agregarEmpleadoModalBody textarea')
+                        .addClass('form-control');
+                    $('#guardarNuevoEmpleadoBtn').show().off('click').on('click', guardarNuevoEmpleado);
+                    $('#agregarPersonaForm').off('submit').on('submit', function (e) {
+                        e.preventDefault();
+                        guardarNuevoEmpleado();
+                    });
+                },
+                error: function () {
+                    $('#agregarEmpleadoModalBody').html(`
+                        <div class="alert alert-danger mb-0">
+                            <i class="fal fa-exclamation-triangle mr-2"></i>
+                            No se pudo cargar el formulario. Intente nuevamente.
+                        </div>
+                    `);
+                },
+            });
+        }
+
+        function guardarNuevoEmpleado() {
+            const form = document.getElementById('agregarPersonaForm');
+            if (!form) {
+                return;
+            }
+            const formData = new FormData(form);
+            $('#guardarNuevoEmpleadoBtn').prop('disabled', true);
+
+            $.ajax({
+                url: '{% url "master:persona_create" %}',
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRFToken': csrfToken,
+                },
+                success: function (response) {
+                    $('#agregarEmpleadoModal').modal('hide');
+                    if (response.persona_id) {
+                        const empleoUrl = '{% url "master:persona_empleo_edit" 0 %}'.replace('/0/', `/${response.persona_id}/`);
+                        window.location.href = empleoUrl;
+                    } else {
+                        location.reload();
+                    }
+                },
+                error: function (xhr) {
+                    $('#guardarNuevoEmpleadoBtn').prop('disabled', false);
+                    if (xhr.responseJSON && xhr.responseJSON.errors) {
+                        let html = '<div class="alert alert-danger"><ul class="mb-0">';
+                        Object.keys(xhr.responseJSON.errors).forEach(function (field) {
+                            xhr.responseJSON.errors[field].forEach(function (msg) {
+                                html += `<li>${msg}</li>`;
+                            });
+                        });
+                        html += '</ul></div>';
+                        $('#agregarEmpleadoModalBody').prepend(html);
+                    } else {
+                        alert('No se pudo guardar. Revise los datos ingresados.');
+                    }
+                },
+            });
+        }
+
         function verColaborador(nombre, apellido, edad, profesion, cargo, experiencia, tiempo) {
             document.getElementById('modalNombre').textContent = nombre;
             document.getElementById('modalApellido').textContent = apellido;
@@ -1990,6 +2057,30 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
                     <button type="button" class="btn btn-primary" onclick="guardarCambios()">Guardar Cambios</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% csrf_token %}
+
+    <!-- Modal para nuevo empleado (datos personales) -->
+    <div class="modal fade" id="agregarEmpleadoModal" tabindex="-1" role="dialog"
+        aria-labelledby="agregarEmpleadoModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="agregarEmpleadoModalLabel">Nuevo empleado — datos personales</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Cerrar">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body" id="agregarEmpleadoModalBody"></div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" id="guardarNuevoEmpleadoBtn" style="display: none;">
+                        Continuar
+                    </button>
                 </div>
             </div>
         </div>
