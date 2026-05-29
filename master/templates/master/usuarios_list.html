@@ -1,0 +1,76 @@
+{% extends 'master/includes/base.html' %}
+{% load static %}
+
+{% block title %}Usuarios del sistema{% endblock %}
+
+{% block content %}
+<div class="container-fluid persona-edit-page" style="padding: 50px;">
+    <div class="d-flex align-items-center justify-content-between mb-4 pb-3 border-bottom">
+        <div>
+            <h3 class="font-weight-800 mb-1" style="color: #0b1311; letter-spacing: -0.02em;">
+                <i class="fal fa-user-shield mr-2 text-teal"></i> Usuarios del sistema
+            </h3>
+            <p class="text-muted mb-0">Gestiona cuentas de acceso y módulos permitidos.</p>
+        </div>
+        <a href="{% url 'master:usuario_create' %}" class="btn btn-teal btn-pills shadow-sm px-4 py-2 font-weight-bold text-white">
+            <i class="fal fa-plus mr-2"></i> Nuevo usuario
+        </a>
+    </div>
+
+    {% if messages %}
+    <div class="mb-4">
+        {% for message in messages %}
+        <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags|default:'info' }}{% endif %} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="close" data-dismiss="alert" aria-label="Cerrar">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="panel-talent">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>Usuario</th>
+                        <th>Nombre</th>
+                        <th>Rol</th>
+                        <th>Módulos</th>
+                        <th>Estado</th>
+                        <th class="text-right">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for fila in filas %}
+                    <tr>
+                        <td><strong>{{ fila.user.username }}</strong></td>
+                        <td>{{ fila.user.get_full_name|default:"—" }}</td>
+                        <td>{{ fila.rol }}</td>
+                        <td><small class="text-muted">{{ fila.modulos_txt }}</small></td>
+                        <td>
+                            {% if fila.activo %}
+                            <span class="badge badge-success">Activo</span>
+                            {% else %}
+                            <span class="badge badge-secondary">Inactivo</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-right">
+                            <a href="{% url 'master:usuario_edit' fila.user.id %}" class="btn btn-sm btn-outline-secondary">
+                                <i class="fal fa-edit"></i> Editar
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center text-muted py-4">No hay usuarios registrados.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

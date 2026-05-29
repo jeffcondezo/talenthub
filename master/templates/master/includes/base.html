@@ -1,0 +1,471 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="utf-8">
+    <title>TalentHub I {% block title %}{% endblock %}</title>
+    <meta name="description" content="Basic">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no, user-scalable=no, minimal-ui">
+    <meta name="apple-mobile-web-app-title" content="Basic">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="format-detection" content="date=no">
+    <meta name="format-detection" content="address=no">
+    <meta name="format-detection" content="email=no">
+    <meta name="theme-color" content="#37393e">
+    <!-- iDevice splash screens -->
+    <link href="{% static 'img/splashscreens/iphone6_splash.png' %}"
+        media="(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2)"
+        rel="apple-touch-startup-image">
+    <link href="{% static 'img/splashscreens/iphoneplus_splash.png' %}"
+        media="(device-width: 621px) and (device-height: 1104px) and (-webkit-device-pixel-ratio: 3)"
+        rel="apple-touch-startup-image">
+    <link href="{% static 'img/splashscreens/iphonex_splash.png' %}"
+        media="(device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3)"
+        rel="apple-touch-startup-image">
+    <link href="{% static 'img/splashscreens/iphonexr_splash.png' %}"
+        media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2)"
+        rel="apple-touch-startup-image">
+    <link href="{% static 'img/splashscreens/iphonexsmax_splash.png' %}"
+        media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3)"
+        rel="apple-touch-startup-image">
+    <link href="{% static 'img/splashscreens/ipad_splash.png' %}"
+        media="(device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2)"
+        rel="apple-touch-startup-image">
+    <link href="{% static 'img/splashscreens/ipadpro1_splash.png' %}"
+        media="(device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2)"
+        rel="apple-touch-startup-image">
+    <link href="{% static 'img/splashscreens/ipadpro3_splash.png' %}"
+        media="(device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2)"
+        rel="apple-touch-startup-image">
+    <link href="{% static 'img/splashscreens/ipadpro2_splash.png' %}"
+        media="(device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2)"
+        rel="apple-touch-startup-image">
+    <!-- Remove Tap Highlight on Windows Phone IE -->
+    <meta name="msapplication-tap-highlight" content="no">
+    <!-- base css -->
+    <link id="vendorsbundle" rel="stylesheet" media="screen, print" href="{% static 'css/vendors.bundle.css' %}">
+    <link id="appbundle" rel="stylesheet" media="screen, print" href="{% static 'css/app.bundle.css' %}">
+    <link id="mytheme" rel="stylesheet" media="screen, print" href="#">
+    <link id="myskin" rel="stylesheet" media="screen, print" href="{% static 'css/skins/skin-master.css' %}">
+    <!-- Place favicon.ico in the root directory -->
+    <link rel="apple-touch-icon" sizes="180x180" href="{% static 'img/favicon/apple-touch-icon.png' %}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{% static 'img/favicon/favicon-32x32.png' %}">
+    <link rel="mask-icon" href="{% static 'img/favicon/safari-pinned-tab.svg' %}" color="#5bbad5">
+
+
+    <link rel="icon" type="image/x-icon" href="{% static 'img/favicon.ico' %}">
+    <link id="vendorsbundle" rel="stylesheet" href="{% static 'css/vendors.bundle.css' %}">
+    <link id="appbundle" rel="stylesheet" href="{% static 'css/app.bundle.css' %}">
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+        :root {
+            --talent-green: #00a884;
+            --talent-bg: #f5faf8;
+            --talent-text: #2d3748;
+            --talent-muted: #718096;
+            --talent-bg-active: #f1f9f7;
+            --sidebar-width: 260px;
+            --sidebar-collapsed-width: 70px;
+        }
+
+
+        /* NAVEGACIÓN */
+
+        .nav-link {
+            color: #718096;
+            font-weight: 500;
+            position: relative;
+            padding: 20px 10px 20px 10px;
+            display: flex;
+            align-items: center;
+            transition: all 0.2s;
+
+            border-radius: 0 8px 8px 0;
+            margin: 4px 0px 4px 10px;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            font-size: 20px;
+        }
+
+        .nav-link i {
+            font-size: 1.2rem;
+            min-width: 35px;
+            display: flex;
+            justify-content: center;
+            font-weight: 800;
+        }
+
+        /* Item Activo (Igual a la imagen) */
+        .nav-link.active {
+            color: var(--talent-green) !important;
+            background: var(--talent-bg-active) !important;
+        }
+
+
+        .nav-link.active {
+            color: var(--talent-green);
+            background: #e6f6f3;
+        }
+
+        .nav-link:hover {
+            background: #f1f9f7;
+            color: var(--talent-green);
+            text-decoration: none;
+        }
+
+        /* La barra vertical verde a la derecha */
+        .nav-link.active::after {
+            content: '';
+            position: absolute;
+            right: -10px;
+            /* Alineado al borde del sidebar */
+            top: 0;
+            height: 100%;
+            width: 4px;
+            background: var(--talent-green);
+            border-radius: 4px 0 0 4px;
+            right: 0;
+            top: 15%;
+            height: 70%;
+            width: 4px;
+            background: var(--talent-green);
+            border-radius: 4px 0 0 4px;
+        }
+
+        /* Sidebar con el indicador verde a la derecha */
+        .sidebar {
+            background: #FAFAFA;
+            width: 260px;
+            height: 100vh;
+            position: fixed;
+            border-right: 1px solid #edf2f7;
+        }
+
+        .sidebar.collapsed .nav-link {
+            justify-content: center;
+            margin: 4px 0px 4px 0px;
+            /* Ajusta el padding para centrar mejor */
+        }
+
+        .sidebar.collapsed .nav-link i {
+            /* Eliminamos padding lateral para no empujar el icono */
+            justify-content: center;
+            /* Centra el icono horizontalmente */
+            margin-right: 0;
+            /* Elimina márgenes que puedan descentrar */
+            min-width: unset;
+            /* Quitamos el ancho mínimo que antes empujaba el texto */
+            margin: 0;
+            font-size: 1.2rem;
+            /* Un poco más grande para que luzca mejor solo */
+        }
+
+        /* Centrar el botón de hamburguesa y el logo */
+        .sidebar.collapsed .p-4 {
+            display: flex;
+            justify-content: center;
+        }
+
+        /* Asegurar que los títulos de sección (Navegación/Cuenta) no ocupen espacio */
+        .sidebar.collapsed .px-4.mb-2 {
+            display: none;
+        }
+
+        .sidebar.collapsed {
+            width: var(--sidebar-collapsed-width);
+        }
+
+        .sidebar.collapsed img {
+            display: none;
+        }
+
+        .sidebar.collapsed .nav-link span,
+        .sidebar.collapsed .text-uppercase,
+        .sidebar.collapsed h4 {
+            display: none;
+            /* Esconde el texto al contraer */
+        }
+
+        /* FIN NAVEGACIÓN */
+
+        /* Estado base del contenido principal */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            /* 260px */
+            transition: all 0.3s ease;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Cuando el sidebar se contrae, el contenido se ajusta */
+        .main-content.expanded {
+            margin-left: var(--sidebar-collapsed-width);
+            /* 70px */
+        }
+
+        /* OPCIONAL: Si quieres que el contenido no se pegue a los bordes 
+   en pantallas muy grandes y se vea realmente "centrado" */
+        .main-content>.container-fluid {
+            max-width: 1400px;
+            /* Evita que las cards se estiren demasiado */
+            margin: 0 auto;
+            /* Centra el bloque de contenido */
+            width: 100%;
+        }
+
+        /* Botón de toggle */
+        #toggleSidebar {
+            cursor: pointer;
+            border: none;
+            background: none;
+            color: var(--talent-green);
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--talent-bg);
+            color: var(--talent-text);
+        }
+
+        /* Tarjetas redondeadas */
+        .card-talent {
+            background: white;
+            border-radius: 16px;
+            border: 1px solid #CACACA;
+            padding: 24px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        }
+
+        .icon-circle {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+
+        .badge-review {
+            background: #fff8e1;
+            color: #f59e0b;
+            border-radius: 20px;
+            padding: 4px 12px;
+            font-weight: 600;
+            font-size: 12px;
+        }
+
+        .status-ontime {
+            background: #e6f6f3;
+            color: var(--talent-green);
+            font-size: 10px;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+
+        .page-wrapper .page-header {
+            z-index: 1;
+        }
+
+        /* Forzar que el sidebar original de la plantilla desaparezca */
+        .page-sidebar,
+        .nav-function-fixed .page-sidebar,
+        .page-logo,
+        #js-nav-menu {
+            display: none !important;
+        }
+
+        /* ASEGURAR QUE TU SIDEBAR TAPE TODO */
+        #mySidebar {
+            z-index: 1000;
+            background-color: #FFFFFF !important;
+            /* Fondo sólido para que no trasluzca */
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.05);
+        }
+
+        /* proyectos */
+        /* Badge circular "A tiempo" */
+        .status-badge-pill {
+            background: #e6f6f3;
+            color: #00a884;
+            font-size: 12px;
+            font-weight: 600;
+            padding: 4px 12px;
+            border-radius: 50px;
+            /* Hace el badge completamente ovalado */
+            border: 1px solid #c2eadd;
+        }
+
+        /* Tarjeta de proyecto interna con bordes muy redondeados */
+        .project-item-card {
+            border: 1px solid #e2e8f0;
+            border-radius: 20px;
+            /* Bordes más pronunciados como en la imagen */
+            padding: 20px;
+            background: #ffffff;
+            transition: transform 0.2s;
+        }
+
+        .project-item-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Ajuste de la barra de progreso */
+        .progress-thin {
+            height: 8px !important;
+            border-radius: 10px;
+            background-color: #edf2f7;
+        }
+
+        #page-content-wrapper {
+            /* Ancho del sidebar */
+            transition: margin-left 0.3s ease;
+            width: calc(100% - 260px);
+        }
+
+        /* Estado Expandido (Sidebar contraído) */
+        #page-content-wrapper.expanded {
+            margin-left: 70px;
+            /* Ancho del sidebar contraído */
+            width: calc(100% - 70px);
+        }
+
+        /* Ajuste para SmartAdmin: forzamos el margen para evitar que la plantilla lo sobreescriba */
+        
+
+        #page-content-wrapper.expanded {
+            margin-left: 70px !important;
+        }
+
+
+
+
+
+        .panel { box-shadow: 0 4px 20px 0 rgba(0,0,0,.05); border: none; border-radius: 15px; }
+    .panel-hdr { background: #fff; border-bottom: 1px solid #f2f2f2; padding: 1.5rem; border-radius: 15px 15px 0 0; }
+    
+    /* Filtros más limpios */
+    .card-filter { background: #f9f9fb; border: 1px solid #eee; border-radius: 12px; }
+    .form-control { border-radius: 8px; border: 1px solid #e2e8f0; }
+
+    /* Estilo de Tabla Boutique */
+    .table-modern thead th { 
+        background: #f8fafc; 
+        text-transform: uppercase; 
+        font-size: 11px; 
+        letter-spacing: 0.05em; 
+        color: #64748b; 
+        border-top: none !important;
+        padding: 15px;
+    }
+    .table-modern tbody td { vertical-align: middle; padding: 18px 15px; border-bottom: 1px solid #f1f5f9; }
+    
+    /* Badges con colores suaves (Soft Badges) */
+    .badge-soft { padding: 6px 12px; border-radius: 6px; font-weight: 600; }
+    .badge-soft-success { background: #dcfce7; color: #166534; }
+    .badge-soft-warning { background: #fef9c3; color: #854d0e; }
+    .badge-soft-primary { background: #dbeafe; color: #1e40af; }
+    .badge-soft-info { background: #e0f2fe; color: #0369a1; }
+
+    /* Botones de acción minimalistas */
+    .btn-action { width: 32px; height: 32px; padding: 0; line-height: 32px; border-radius: 8px; transition: all 0.2s; }
+    .btn-action:hover { transform: translateY(-2px); }
+
+
+ 
+    /* Contenedor principal con más aire */
+    .subheader {
+        margin-bottom: 2rem;
+        padding: 1rem 0;
+        border-bottom: 1px solid #ebecef;
+    }
+
+    /* Icono con fondo suave */
+    .subheader-icon-wrapper {
+        width: 45px;
+        height: 45px;
+        background: #dbebe8; /* Azul muy suave */
+        color: #12A58A;      /* Indigo moderno */
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 12px;
+        margin-right: 1rem;
+    }
+
+    /* Título y subtítulo */
+    .subheader-title {
+        display: flex;
+        align-items: center;
+        font-weight: 800 !important;
+        color: #12A58A;
+        letter-spacing: -0.02em;
+    }
+
+    .subheader-title small {
+        display: block;
+        font-size: 0.9rem;
+        color: #718096;
+        font-weight: 400;
+        margin-top: 2px;
+    }
+
+    /* Botón moderno con sombra suave */
+    .btn-plus-modern {
+        background: #12A58A;
+        border: none;
+        border-radius: 10px;
+        padding: 0.6rem 1.2rem;
+        font-weight: 600;
+        box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.2), 0 2px 4px -1px rgba(79, 70, 229, 0.1);
+        transition: all 0.2s;
+    }
+
+    .btn-plus-modern:hover {
+        background: #0d6757;
+        transform: translateY(-1px);
+        box-shadow: 0 10px 15px -3px rgba(58, 177, 138, 0.3);
+    }
+    </style>
+
+
+
+</head>
+
+<body>
+
+    {% include 'master/includes/sidebar.html' %}
+
+    <div class="main-content">
+        {% block content %}
+        {% endblock %}
+    </div>
+
+
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const toggleBtn = document.getElementById('toggleSidebar');
+            const sidebar = document.getElementById('mySidebar');
+            const mainContent = document.querySelector('.main-content');
+
+            if (toggleBtn) {
+                toggleBtn.addEventListener('click', function () {
+                    // Alterna clases en ambos elementos
+                    sidebar.classList.toggle('collapsed');
+                    mainContent.classList.toggle('expanded');
+                });
+            }
+        });
+    </script>
+
+</body>

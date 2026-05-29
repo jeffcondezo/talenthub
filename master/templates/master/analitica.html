@@ -1,0 +1,821 @@
+{% extends 'master/includes/base.html' %}
+{% load static %}
+
+{% block title %} Analíticas {% endblock %}
+
+{% block content %}
+
+<header class="page-header" role="banner">
+
+                    <div class="search">
+                        <form class="app-forms hidden-xs-down" role="search" action="page_search.html"
+                            autocomplete="off">
+                            <input type="text" id="search-field" placeholder="" class="form-control" tabindex="1">
+                            <a href="#" onclick="return false;" class="btn-danger btn-search-close js-waves-off d-none"
+                                data-action="toggle" data-class="mobile-search-on">
+                                <i class="fal fa-times"></i>
+                            </a>
+                        </form>
+                    </div>
+                    <div class="ml-auto d-flex">
+                        <!-- activate app search icon (mobile) -->
+                        <div class="hidden-sm-up">
+                            <a href="#" class="header-icon" data-action="toggle" data-class="mobile-search-on"
+                                data-focus="search-field" title="Search">
+                                <i class="fal fa-search"></i>
+                            </a>
+                        </div>
+                        <!-- app settings -->
+                        <!--<div class="hidden-md-down" data-toggle="tooltip" data-placement="bottom" data-original-title="Layout Settings" data-trigger="hover">
+                                <a href="#" class="header-icon" data-toggle="modal" data-target=".js-modal-settings">
+                                    <i class="fal fa-cog"></i>
+                                </a>
+                            </div>-->
+                        <!-- app darkmode -->
+
+                        <!-- app notification -->
+                        <div data-toggle="tooltip" data-placement="bottom" data-original-title="Notifications"
+                            data-trigger="hover">
+                            <!--<a href="#" class="header-icon" data-toggle="dropdown" title="You got 11 notifications">
+                                    <i class="fal fa-bell"></i>
+                                    <span class="badge badge-icon">11</span>
+                                </a>-->
+                            <div class="dropdown-menu dropdown-menu-animated dropdown-xl">
+                                <div
+                                    class="dropdown-header bg-trans-gradient d-flex justify-content-center align-items-center rounded-top mb-2">
+                                    <h4 class="m-0 text-center color-white">
+                                        11 New
+                                        <small class="mb-0 opacity-80">User Notifications</small>
+                                    </h4>
+                                </div>
+                                <ul class="nav nav-tabs nav-tabs-clean" role="tablist">
+                                    <li class="nav-item">
+                                        <a class="nav-link px-4 fs-md js-waves-on fw-500" data-toggle="tab"
+                                            href="#tab-messages" data-i18n="drpdwn.messages">Messages</a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link px-4 fs-md js-waves-on fw-500" data-toggle="tab"
+                                            href="#tab-feeds" data-i18n="drpdwn.feeds">Feeds</a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link px-4 fs-md js-waves-on fw-500" data-toggle="tab"
+                                            href="#tab-events" data-i18n="drpdwn.events">Events</a>
+                                    </li>
+                                </ul>
+                                <div class="tab-content tab-notification">
+                                    <div class="tab-pane active p-3 text-center">
+                                        <h5 class="mt-4 pt-4 fw-500">
+                                            <span class="d-block fa-3x pb-4 text-muted">
+                                                <i class="ni ni-arrow-up text-gradient opacity-70"></i>
+                                            </span> Select a tab above to activate
+                                            <small class="mt-3 fs-b fw-400 text-muted">
+                                                This blank page message helps protect your privacy, or you can show the
+                                                first message here automatically through
+                                                <a href="#">settings page</a>
+                                            </small>
+                                        </h5>
+                                    </div>
+                                    <div class="tab-pane" id="tab-messages" role="tabpanel">
+                                        <div class="custom-scroll h-100">
+                                            <ul class="notification">
+                                                <li class="unread">
+                                                    <a href="#" class="d-flex align-items-center">
+                                                        <span class="status mr-2">
+                                                            <span class="profile-image rounded-circle d-inline-block"
+                                                                style="background-image:url('img/demo/avatars/avatar-c.png')"></span>
+                                                        </span>
+                                                        <span class="d-flex flex-column flex-1 ml-1">
+                                                            <span class="name">Melissa Ayre <span
+                                                                    class="badge badge-primary fw-n position-absolute pos-top pos-right mt-1">INBOX</span></span>
+                                                            <span class="msg-a fs-sm">Re: New security codes</span>
+                                                            <span class="msg-b fs-xs">Hello again and thanks for being
+                                                                part...</span>
+                                                            <span class="fs-nano text-muted mt-1">56 seconds ago</span>
+                                                        </span>
+                                                    </a>
+                                                </li>
+                                                <li class="unread">
+                                                    <a href="#" class="d-flex align-items-center">
+                                                        <span class="status mr-2">
+                                                            <span class="profile-image rounded-circle d-inline-block"
+                                                                style="background-image:url('img/demo/avatars/avatar-a.png')"></span>
+                                                        </span>
+                                                        <span class="d-flex flex-column flex-1 ml-1">
+                                                            <span class="name">Adison Lee</span>
+                                                            <span class="msg-a fs-sm">Msed quia non numquam eius</span>
+                                                            <span class="fs-nano text-muted mt-1">2 minutes ago</span>
+                                                        </span>
+                                                    </a>
+                                                </li>
+                                                <li>
+                                                    <a href="#" class="d-flex align-items-center">
+                                                        <span class="status status-success mr-2">
+                                                            <span class="profile-image rounded-circle d-inline-block"
+                                                                style="background-image:url('img/demo/avatars/avatar-b.png')"></span>
+                                                        </span>
+                                                        <span class="d-flex flex-column flex-1 ml-1">
+                                                            <span class="name">Oliver Kopyuv</span>
+                                                            <span class="msg-a fs-sm">Msed quia non numquam eius</span>
+                                                            <span class="fs-nano text-muted mt-1">3 days ago</span>
+                                                        </span>
+                                                    </a>
+                                                </li>
+                                                <li>
+                                                    <a href="#" class="d-flex align-items-center">
+                                                        <span class="status status-warning mr-2">
+                                                            <span class="profile-image rounded-circle d-inline-block"
+                                                                style="background-image:url('img/demo/avatars/avatar-e.png')"></span>
+                                                        </span>
+                                                        <span class="d-flex flex-column flex-1 ml-1">
+                                                            <span class="name">Dr. John Cook PhD</span>
+                                                            <span class="msg-a fs-sm">Msed quia non numquam eius</span>
+                                                            <span class="fs-nano text-muted mt-1">2 weeks ago</span>
+                                                        </span>
+                                                    </a>
+                                                </li>
+                                                <li>
+                                                    <a href="#" class="d-flex align-items-center">
+                                                        <span class="status status-success mr-2">
+                                                            <!-- <img src="{% static 'img/demo/avatars/avatar-m.png' %}" data-src="{% static 'img/demo/avatars/avatar-h.png' %}" class="profile-image rounded-circle" alt="Sarah McBrook" /> -->
+                                                            <span class="profile-image rounded-circle d-inline-block"
+                                                                style="background-image:url('img/demo/avatars/avatar-h.png')"></span>
+                                                        </span>
+                                                        <span class="d-flex flex-column flex-1 ml-1">
+                                                            <span class="name">Sarah McBrook</span>
+                                                            <span class="msg-a fs-sm">Msed quia non numquam eius</span>
+                                                            <span class="fs-nano text-muted mt-1">3 weeks ago</span>
+                                                        </span>
+                                                    </a>
+                                                </li>
+                                                <li>
+                                                    <a href="#" class="d-flex align-items-center">
+                                                        <span class="status status-success mr-2">
+                                                            <span class="profile-image rounded-circle d-inline-block"
+                                                                style="background-image:url('img/demo/avatars/avatar-m.png')"></span>
+                                                        </span>
+                                                        <span class="d-flex flex-column flex-1 ml-1">
+                                                            <span class="name">Anothony Bezyeth</span>
+                                                            <span class="msg-a fs-sm">Msed quia non numquam eius</span>
+                                                            <span class="fs-nano text-muted mt-1">one month ago</span>
+                                                        </span>
+                                                    </a>
+                                                </li>
+                                                <li>
+                                                    <a href="#" class="d-flex align-items-center">
+                                                        <span class="status status-danger mr-2">
+                                                            <span class="profile-image rounded-circle d-inline-block"
+                                                                style="background-image:url('img/demo/avatars/avatar-j.png')"></span>
+                                                        </span>
+                                                        <span class="d-flex flex-column flex-1 ml-1">
+                                                            <span class="name">Lisa Hatchensen</span>
+                                                            <span class="msg-a fs-sm">Msed quia non numquam eius</span>
+                                                            <span class="fs-nano text-muted mt-1">one year ago</span>
+                                                        </span>
+                                                    </a>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                    <div class="tab-pane" id="tab-feeds" role="tabpanel">
+                                        <div class="custom-scroll h-100">
+                                            <ul class="notification">
+                                                <li class="unread">
+                                                    <div class="d-flex align-items-center show-child-on-hover">
+                                                        <span class="d-flex flex-column flex-1">
+                                                            <span class="name d-flex align-items-center">Administrator
+                                                                <span
+                                                                    class="badge badge-success fw-n ml-1">UPDATE</span></span>
+                                                            <span class="msg-a fs-sm">
+                                                                System updated to version <strong>4.6.0</strong> <a
+                                                                    href="docs_buildnotes.html">(patch notes)</a>
+                                                            </span>
+                                                            <span class="fs-nano text-muted mt-1">5 mins ago</span>
+                                                        </span>
+                                                        <div
+                                                            class="show-on-hover-parent position-absolute pos-right pos-bottom p-3">
+                                                            <a href="#" class="text-muted" title="delete"><i
+                                                                    class="fal fa-trash-alt"></i></a>
+                                                        </div>
+                                                    </div>
+                                                </li>
+                                                <li>
+                                                    <div class="d-flex align-items-center show-child-on-hover">
+                                                        <div class="d-flex flex-column flex-1">
+                                                            <span class="name">
+                                                                Adison Lee <span class="fw-300 d-inline">replied to your
+                                                                    video <a href="#" class="fw-400"> Cancer Drug</a>
+                                                                </span>
+                                                            </span>
+                                                            <span class="msg-a fs-sm mt-2">Bring to the table win-win
+                                                                survival strategies to ensure proactive domination. At
+                                                                the end of the day...</span>
+                                                            <span class="fs-nano text-muted mt-1">10 minutes ago</span>
+                                                        </div>
+                                                        <div
+                                                            class="show-on-hover-parent position-absolute pos-right pos-bottom p-3">
+                                                            <a href="#" class="text-muted" title="delete"><i
+                                                                    class="fal fa-trash-alt"></i></a>
+                                                        </div>
+                                                    </div>
+                                                </li>
+                                                <li>
+                                                    <div class="d-flex align-items-center show-child-on-hover">
+                                                        <!--<img src="{% static 'img/demo/avatars/avatar-m.png' %}" data-src="{% static 'img/demo/avatars/avatar-k.png' %}" class="profile-image rounded-circle" alt="k" />-->
+                                                        <div class="d-flex flex-column flex-1">
+                                                            <span class="name">
+                                                                Troy Norman'<span class="fw-300">s new
+                                                                    connections</span>
+                                                            </span>
+                                                            <div class="fs-sm d-flex align-items-center mt-2">
+                                                                <span
+                                                                    class="profile-image-md mr-1 rounded-circle d-inline-block"
+                                                                    style="background-image:url('img/demo/avatars/avatar-a.png'); background-size: cover;"></span>
+                                                                <span
+                                                                    class="profile-image-md mr-1 rounded-circle d-inline-block"
+                                                                    style="background-image:url('img/demo/avatars/avatar-b.png'); background-size: cover;"></span>
+                                                                <span
+                                                                    class="profile-image-md mr-1 rounded-circle d-inline-block"
+                                                                    style="background-image:url('img/demo/avatars/avatar-c.png'); background-size: cover;"></span>
+                                                                <span
+                                                                    class="profile-image-md mr-1 rounded-circle d-inline-block"
+                                                                    style="background-image:url('img/demo/avatars/avatar-e.png'); background-size: cover;"></span>
+                                                                <div data-hasmore="+3"
+                                                                    class="rounded-circle profile-image-md mr-1">
+                                                                    <span
+                                                                        class="profile-image-md mr-1 rounded-circle d-inline-block"
+                                                                        style="background-image:url('img/demo/avatars/avatar-h.png'); background-size: cover;"></span>
+                                                                </div>
+                                                            </div>
+                                                            <span class="fs-nano text-muted mt-1">55 minutes ago</span>
+                                                        </div>
+                                                        <div
+                                                            class="show-on-hover-parent position-absolute pos-right pos-bottom p-3">
+                                                            <a href="#" class="text-muted" title="delete"><i
+                                                                    class="fal fa-trash-alt"></i></a>
+                                                        </div>
+                                                    </div>
+                                                </li>
+                                                <li>
+                                                    <div class="d-flex align-items-center show-child-on-hover">
+                                                        <!--<img src="{% static 'img/demo/avatars/avatar-m.png' %}" data-src="{% static 'img/demo/avatars/avatar-e.png' %}" class="profile-image-sm rounded-circle align-self-start mt-1" alt="k" />-->
+                                                        <div class="d-flex flex-column flex-1">
+                                                            <span class="name">Dr John Cook <span class="fw-300">sent a
+                                                                    <span class="text-danger">new
+                                                                        signal</span></span></span>
+                                                            <span class="msg-a fs-sm mt-2">Nanotechnology immersion
+                                                                along the information highway will close the loop on
+                                                                focusing solely on the bottom line.</span>
+                                                            <span class="fs-nano text-muted mt-1">10 minutes ago</span>
+                                                        </div>
+                                                        <div
+                                                            class="show-on-hover-parent position-absolute pos-right pos-bottom p-3">
+                                                            <a href="#" class="text-muted" title="delete"><i
+                                                                    class="fal fa-trash-alt"></i></a>
+                                                        </div>
+                                                    </div>
+                                                </li>
+                                                <li>
+                                                    <div class="d-flex align-items-center show-child-on-hover">
+                                                        <div class="d-flex flex-column flex-1">
+                                                            <span class="name">Lab Images <span class="fw-300">were
+                                                                    updated!</span></span>
+                                                            <div class="fs-sm d-flex align-items-center mt-1">
+                                                                <a href="#" class="mr-1 mt-1" title="Cell A-0012">
+                                                                    <span class="d-block img-share"
+                                                                        style="background-image:url('img/thumbs/pic-7.png'); background-size: cover;"></span>
+                                                                </a>
+                                                                <a href="#" class="mr-1 mt-1"
+                                                                    title="Patient A-473 saliva">
+                                                                    <span class="d-block img-share"
+                                                                        style="background-image:url('img/thumbs/pic-8.png'); background-size: cover;"></span>
+                                                                </a>
+                                                                <a href="#" class="mr-1 mt-1"
+                                                                    title="Patient A-473 blood cells">
+                                                                    <span class="d-block img-share"
+                                                                        style="background-image:url('img/thumbs/pic-11.png'); background-size: cover;"></span>
+                                                                </a>
+                                                                <a href="#" class="mr-1 mt-1"
+                                                                    title="Patient A-473 Membrane O.C">
+                                                                    <span class="d-block img-share"
+                                                                        style="background-image:url('img/thumbs/pic-12.png'); background-size: cover;"></span>
+                                                                </a>
+                                                            </div>
+                                                            <span class="fs-nano text-muted mt-1">55 minutes ago</span>
+                                                        </div>
+                                                        <div
+                                                            class="show-on-hover-parent position-absolute pos-right pos-bottom p-3">
+                                                            <a href="#" class="text-muted" title="delete"><i
+                                                                    class="fal fa-trash-alt"></i></a>
+                                                        </div>
+                                                    </div>
+                                                </li>
+                                                <li>
+                                                    <div class="d-flex align-items-center show-child-on-hover">
+                                                        <!--<img src="{% static 'img/demo/avatars/avatar-m.png' %}" data-src="{% static 'img/demo/avatars/avatar-h.png' %}" class="profile-image rounded-circle align-self-start mt-1" alt="k" />-->
+                                                        <div class="d-flex flex-column flex-1">
+                                                            <div class="name mb-2">
+                                                                Lisa Lamar<span class="fw-300"> updated project</span>
+                                                            </div>
+                                                            <div class="row fs-b fw-300">
+                                                                <div class="col text-left">
+                                                                    Progress
+                                                                </div>
+                                                                <div class="col text-right fw-500">
+                                                                    45%
+                                                                </div>
+                                                            </div>
+                                                            <div class="progress progress-sm d-flex mt-1">
+                                                                <span
+                                                                    class="progress-bar bg-primary-500 progress-bar-striped"
+                                                                    role="progressbar" style="width: 45%"
+                                                                    aria-valuenow="45" aria-valuemin="0"
+                                                                    aria-valuemax="100"></span>
+                                                            </div>
+                                                            <span class="fs-nano text-muted mt-1">2 hrs ago</span>
+                                                            <div
+                                                                class="show-on-hover-parent position-absolute pos-right pos-bottom p-3">
+                                                                <a href="#" class="text-muted" title="delete"><i
+                                                                        class="fal fa-trash-alt"></i></a>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                    <div class="tab-pane" id="tab-events" role="tabpanel">
+                                        <div class="d-flex flex-column h-100">
+                                            <div class="h-auto">
+                                                <table
+                                                    class="table table-bordered table-calendar m-0 w-100 h-100 border-0">
+                                                    <tr>
+                                                        <th colspan="7" class="pt-3 pb-2 pl-3 pr-3 text-center">
+                                                            <div class="js-get-date h5 mb-2">[your date here]</div>
+                                                        </th>
+                                                    </tr>
+                                                    <tr class="text-center">
+                                                        <th>Sun</th>
+                                                        <th>Mon</th>
+                                                        <th>Tue</th>
+                                                        <th>Wed</th>
+                                                        <th>Thu</th>
+                                                        <th>Fri</th>
+                                                        <th>Sat</th>
+                                                    </tr>
+                                                    <tr>
+                                                        <td class="text-muted bg-faded">30</td>
+                                                        <td>1</td>
+                                                        <td>2</td>
+                                                        <td>3</td>
+                                                        <td>4</td>
+                                                        <td>5</td>
+                                                        <td><i
+                                                                class="fal fa-birthday-cake mt-1 ml-1 position-absolute pos-left pos-top text-primary"></i>
+                                                            6</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>7</td>
+                                                        <td>8</td>
+                                                        <td>9</td>
+                                                        <td class="bg-primary-300 pattern-0">10</td>
+                                                        <td>11</td>
+                                                        <td>12</td>
+                                                        <td>13</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>14</td>
+                                                        <td>15</td>
+                                                        <td>16</td>
+                                                        <td>17</td>
+                                                        <td>18</td>
+                                                        <td>19</td>
+                                                        <td>20</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>21</td>
+                                                        <td>22</td>
+                                                        <td>23</td>
+                                                        <td>24</td>
+                                                        <td>25</td>
+                                                        <td>26</td>
+                                                        <td>27</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>28</td>
+                                                        <td>29</td>
+                                                        <td>30</td>
+                                                        <td>31</td>
+                                                        <td class="text-muted bg-faded">1</td>
+                                                        <td class="text-muted bg-faded">2</td>
+                                                        <td class="text-muted bg-faded">3</td>
+                                                    </tr>
+                                                </table>
+                                            </div>
+                                            <div class="flex-1 custom-scroll">
+                                                <div class="p-2">
+                                                    <div class="d-flex align-items-center text-left mb-3">
+                                                        <div
+                                                            class="width-5 fw-300 text-primary l-h-n mr-1 align-self-start fs-xxl">
+                                                            15
+                                                        </div>
+                                                        <div class="flex-1">
+                                                            <div class="d-flex flex-column">
+                                                                <span class="l-h-n fs-md fw-500 opacity-70">
+                                                                    October 2020
+                                                                </span>
+                                                                <span class="l-h-n fs-nano fw-400 text-secondary">
+                                                                    Friday
+                                                                </span>
+                                                            </div>
+                                                            <div class="mt-3">
+                                                                <p>
+                                                                    <strong>2:30PM</strong> - Doctor's appointment
+                                                                </p>
+                                                                <p>
+                                                                    <strong>3:30PM</strong> - Report overview
+                                                                </p>
+                                                                <p>
+                                                                    <strong>4:30PM</strong> - Meeting with Donnah V.
+                                                                </p>
+                                                                <p>
+                                                                    <strong>5:30PM</strong> - Late Lunch
+                                                                </p>
+                                                                <p>
+                                                                    <strong>6:30PM</strong> - Report Compression
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div
+                                    class="py-2 px-3 bg-faded d-block rounded-bottom text-right border-faded border-bottom-0 border-right-0 border-left-0">
+                                    <a href="#" class="fs-xs fw-500 ml-auto">view all notifications</a>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- app user menu -->
+                        <div>
+                            <a href="#" data-toggle="dropdown" title="drlantern@gotbootstrap.com"
+                                class="header-icon d-flex align-items-center justify-content-center ml-2">
+                                <img src="{% static 'img/demo/avatars/avatar-admin.png' %}"
+                                    class="profile-image rounded-circle" alt="Dr. Codex Lantern">
+                                <!-- you can also add username next to the avatar with the codes below:
+									<span class="ml-1 mr-1 text-truncate text-truncate-header hidden-xs-down">Me</span>
+									<i class="ni ni-chevron-down hidden-xs-down"></i> -->
+                            </a>
+                            <div class="dropdown-menu dropdown-menu-animated dropdown-lg">
+                                <div class="dropdown-header bg-trans-gradient d-flex flex-row py-4 rounded-top">
+                                    <div class="d-flex flex-row align-items-center mt-1 mb-1 color-white">
+                                        <span class="mr-2">
+                                            <img src="{% static 'img/demo/avatars/avatar-admin.png' %}"
+                                                class="rounded-circle profile-image" alt="Dr. Codex Lantern">
+                                        </span>
+                                        <div class="info-card-text">
+                                            <div class="fs-lg text-truncate text-truncate-lg">Jeff Peña</div>
+                                            <span
+                                                class="text-truncate text-truncate-md opacity-80">jp.consultor@prayaga.biz</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="dropdown-divider m-0"></div>
+                                <!--<a href="#" class="dropdown-item" data-action="app-reset">
+                                        <span data-i18n="drpdwn.reset_layout">Reset Layout</span>
+                                    </a>-->
+                                <a href="#" class="dropdown-item" data-toggle="modal" data-target=".js-modal-settings">
+                                    <span data-i18n="drpdwn.settings">Configuración</span>
+                                </a>
+                                <div class="dropdown-divider m-0"></div>
+                                <!--<a href="#" class="dropdown-item" data-action="app-fullscreen">
+                                        <span data-i18n="drpdwn.fullscreen">Fullscreen</span>
+                                        <i class="float-right text-muted fw-n">F11</i>
+                                    </a>
+                                    <a href="#" class="dropdown-item" data-action="app-print">
+                                        <span data-i18n="drpdwn.print">Print</span>
+                                        <i class="float-right text-muted fw-n">Ctrl + P</i>
+                                    </a>
+                                    <div class="dropdown-multilevel dropdown-multilevel-left">
+                                        <div class="dropdown-item">
+                                            Language
+                                        </div>
+                                        <div class="dropdown-menu">
+                                            <a href="#?lang=fr" class="dropdown-item" data-action="lang" data-lang="fr">Français</a>
+                                            <a href="#?lang=en" class="dropdown-item active" data-action="lang" data-lang="en">English (US)</a>
+                                            <a href="#?lang=es" class="dropdown-item" data-action="lang" data-lang="es">Español</a>
+                                            <a href="#?lang=ru" class="dropdown-item" data-action="lang" data-lang="ru">Русский язык</a>
+                                            <a href="#?lang=jp" class="dropdown-item" data-action="lang" data-lang="jp">日本語</a>
+                                            <a href="#?lang=ch" class="dropdown-item" data-action="lang" data-lang="ch">中文</a>
+                                        </div>
+                                    </div>
+                                    <div class="dropdown-divider m-0"></div>-->
+                                <a class="dropdown-item fw-500 pt-3 pb-3" href="page_login.html">
+                                    <span data-i18n="drpdwn.page-logout">Cerrar sesión</span>
+                                    <span class="float-right fw-n">&commat;Prayaga</span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </header>
+
+<main id="js-page-content" role="main" class="page-content">
+    <div class="subheader d-flex align-items-center justify-content-between">
+                        <div class="d-flex align-items-center">
+                            <div class="subheader-icon-wrapper shadow-sm">
+                                <i class='fal fa-chart-bar fa-lg'>                              
+                                </i>
+                            </div>
+
+                            <h1 class="subheader-title mb-0">
+                                <div>
+                                    Analíticas <span class='fw-300'></span>
+
+                                    <small>
+                                        Información clave y tendencias del talento en tu organización.
+                                    </small>
+                                </div>
+                            </h1>
+                        </div>
+
+
+
+                    </div>
+
+    <div class="row mb-4">
+    {% for s in summaries %}
+    <div class="col-md-3 mb-3">
+        <div class="card p-3 h-100 border-0 shadow-sm card-summary-prayaga">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <div class="text-uppercase font-weight-bold mb-1" 
+                         style="font-size: 0.7rem; letter-spacing: 0.08em; color: #64748b;">
+                        {{ s.title }}
+                    </div>
+                    
+                    <div class="h3 font-weight-800 mb-1" style="color: #0b1311; letter-spacing: -0.02em;">
+                        {{ s.value }}
+                    </div>
+                    
+                    {% if s.delta %}
+                    <div class="d-flex align-items-center">
+                        <span class="badge-delta-success">
+                            <i class="fal fa-arrow-up mr-1"></i> {{ s.delta }}
+                        </span>
+                        <span class="small text-muted ml-2">vs mes ant.</span>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <div class="icon-shape-avatar">
+                    <i class="fal {% if 'Curso' in s.title %}fa-graduation-cap{% elif 'Horas' in s.title %}fa-clock{% elif 'Completado' in s.title %}fa-check-double{% else %}fa-chart-line{% endif %} text-teal"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<style>
+    /* Estética de la Card */
+    .card-summary-prayaga {
+        border-radius: 16px;
+        background: #ffffff;
+        border: 1px solid #eef2f2 !important;
+        transition: transform 0.2s ease;
+    }
+
+    .card-summary-prayaga:hover {
+        transform: translateY(-3px);
+    }
+
+    /* Fuente para los números */
+    .font-weight-800 { font-weight: 800; }
+
+    /* Estilo del Icono */
+    .icon-shape-avatar {
+        width: 48px;
+        height: 48px;
+        background-color: #f0fdfa; /* Verde muy pálido */
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+    }
+
+    .text-teal {
+        color: #15b79a;
+    }
+
+    /* Estilo del Delta (Crecimiento) */
+    .badge-delta-success {
+        background: #ecfdf5;
+        color: #10b981;
+        padding: 2px 8px;
+        border-radius: 6px;
+        font-size: 0.75rem;
+        font-weight: 700;
+    }
+
+    /* Ajuste para pantallas pequeñas */
+    @media (max-width: 768px) {
+        .h3 { font-size: 1.5rem; }
+    }
+</style>
+
+    <div class="row">
+    <div class="col-12">
+        <div class="card border-0 shadow-sm" style="border-radius: 1rem; background: #fcfdfd;">
+            <div class="card-body p-4">
+                
+                <ul class="nav nav-pills custom-nav-pills mb-4 bg-light rounded-lg p-1" role="tablist" style="border: 1px solid #eef2f2;">
+                    <li class="nav-item flex-fill text-center">
+                        <a class="nav-link active" data-toggle="tab" href="#tab-recruitment" role="tab">Reclutamiento</a>
+                    </li>
+                    <li class="nav-item flex-fill text-center">
+                        <a class="nav-link" data-toggle="tab" href="#tab-departments" role="tab">Departmentos</a>
+                    </li>
+                    <li class="nav-item flex-fill text-center">
+                        <a class="nav-link" data-toggle="tab" href="#tab-performance" role="tab">Performance</a>
+                    </li>
+                    <li class="nav-item flex-fill text-center">
+                        <a class="nav-link" data-toggle="tab" href="#tab-training" role="tab">Entrenamiento</a>
+                    </li>
+                </ul>
+
+                <div class="tab-content">
+                    <div class="tab-pane fade show active" id="tab-recruitment" role="tabpanel">
+                        <div class="row">
+                            <div class="col-md-7">
+                                <div class="card border-light h-100" style="border-radius: 12px;">
+                                    <div class="card-body">
+                                        <h4 class="font-weight-bold mb-1">Tendencias de Reclutamiento</h4>
+                                        <p class="text-muted small mb-4">Estadísticas mensuales de solicitantes y contrataciones</p>
+                                        <div class="chart-wrapper d-flex align-items-end" style="height: 220px; padding-bottom: 10px; border-bottom: 1px solid #eee; gap: 8px;">
+                                            {% for v in recruitment_trend.applicants %}
+                                            <div class="d-flex align-items-end gap-1 flex-grow-1" style="height: 100%;">
+                                                <div class="bg-teal rounded-sm" style="height: calc({{ v|floatformat:0 }}% * 0.6); flex: 2; min-width: 10px;"></div>
+                                                <div class="bg-dark rounded-sm" style="height: calc({{ v|floatformat:0 }}% * 0.2); flex: 1; min-width: 5px;"></div>
+                                            </div>
+                                            {% endfor %}
+                                        </div>
+                                        <div class="d-flex justify-content-between mt-2 text-muted small px-2">
+                                            <span>Jan</span><span>Feb</span><span>Mar</span><span>Apr</span><span>May</span><span>Jun</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-5">
+                                <div class="card border-light h-100" style="border-radius: 12px;">
+                                    <div class="card-body">
+                                        <h4 class="font-weight-bold mb-1">Hiring Pipeline</h4>
+                                        <p class="text-muted small mb-4">Desglose actual de etapas</p>
+                                        {% for p in pipeline %}
+                                        <div class="mb-4">
+                                            <div class="d-flex justify-content-between mb-1 small">
+                                                <span class="text-dark fw-500">{{ p.name }}</span>
+                                                <span class="fw-bold">{{ p.count }}</span>
+                                            </div>
+                                            <div class="progress rounded-pill" style="height: 6px; background: #f0f4f4;">
+                                                <div class="progress-bar bg-teal" style="width: {{ p.percent }}%"></div>
+                                            </div>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="tab-pane fade" id="tab-departments" role="tabpanel">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="card border-light h-100" style="border-radius: 12px;">
+                                    <div class="card-body">
+                                        <h4 class="font-weight-bold mb-1">Colaboradores por Departamento</h4>
+                                        <p class="text-muted small mb-4">Distribución porcentual del equipo</p>
+                                        {% for label, val in departments_data.pairs %}
+                                        <div class="mb-3">
+                                            <div class="d-flex justify-content-between mb-1 small">
+                                                <span>{{ label }}</span>
+                                                <span class="fw-bold">{{ val }}%</span>
+                                            </div>
+                                            <div class="progress rounded-pill" style="height: 6px;">
+                                                <div class="progress-bar bg-teal" style="width:{{ val }}%"></div>
+                                            </div>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card bg-dark text-white h-100" style="border-radius: 12px;">
+                                    <div class="card-body">
+                                        <h4 class="font-weight-bold text-teal mb-3">Departamentos y KPIs</h4>
+                                        <ul class="list-unstyled">
+                                            <li class="mb-3 d-flex align-items-center"><i class="fal fa-check-circle text-teal mr-3"></i> Engineering: High growth</li>
+                                            <li class="mb-3 d-flex align-items-center"><i class="fal fa-chart-pie text-teal mr-3"></i> Sales: Steady performance</li>
+                                            <li class="mb-3 d-flex align-items-center"><i class="fal fa-users text-teal mr-3"></i> HR: Stable operations</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="tab-pane fade" id="tab-performance" role="tabpanel">
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="card border-light" style="border-radius: 12px;">
+                                    <div class="card-body text-center py-5">
+                                        <h4 class="font-weight-bold text-muted small text-uppercase">Average Performance</h4>
+                                        <div class="display-2 font-weight-bold text-dark my-2">{{ performance_data.average }}</div>
+                                        <p class="text-teal font-weight-bold"><i class="fal fa-arrow-up"></i> +4.2% este trimestre</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="tab-pane fade" id="tab-training" role="tabpanel">
+                        <div class="card bg-light border-0" style="border-radius: 12px;">
+                            <div class="card-body p-4 text-center">
+                                <div class="icon-stack display-4 text-teal mb-3">
+                                    <i class="fal fa-graduation-cap"></i>
+                                </div>
+                                <h3>Training Overview</h3>
+                                <p class="text-muted">Estado actual de capacitaciones activas.</p>
+                                <div class="badge badge-teal p-3 rounded-pill px-5">72% de cursos completados</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Estilos Prayaga mejorados */
+    .custom-nav-pills .nav-link {
+        color: #6c757d !important;
+        background: transparent !important;
+        border: none !important;
+        font-weight: 500;
+        padding: 10px 20px;
+        transition: all 0.2s ease-in-out;
+    }
+
+    .custom-nav-pills .nav-link.active {
+        color: #0b1311 !important;
+        background: #ffffff !important;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        border-radius: 8px;
+    }
+
+    .bg-teal { background-color: #15b79a !important; }
+    .text-teal { color: #15b79a !important; }
+    .badge-teal { background-color: #15b79a; color: white; }
+    
+    .chart-wrapper { overflow: hidden; }
+</style>
+</main>
+
+{% endblock %}
+
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+    // Corregido para apuntar a 'custom-nav-pills'
+    const tabLinks = Array.from(document.querySelectorAll('.custom-nav-pills .nav-link'));
+    const tabPanes = Array.from(document.querySelectorAll('.tab-pane'));
+
+    function showTab(href){
+        tabLinks.forEach(a => {
+            if(a.getAttribute('href') === href){
+                a.classList.add('active');
+            } else {
+                a.classList.remove('active');
+            }
+        });
+
+        tabPanes.forEach(p => {
+            const idHash = '#'+p.id;
+            if(idHash === href){
+                p.classList.add('show','active');
+            } else {
+                p.classList.remove('show','active');
+            }
+        });
+    }
+
+    tabLinks.forEach(a => {
+        a.addEventListener('click', function(e){
+            e.preventDefault();
+            const href = this.getAttribute('href');
+            showTab(href);
+        });
+    });
+});
+</script>

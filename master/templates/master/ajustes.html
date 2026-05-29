@@ -1,0 +1,134 @@
+{% extends 'master/includes/base.html' %}
+{% load static %}
+
+{% block title %}Ajustes de cuenta{% endblock %}
+
+{% block content %}
+<div class="container-fluid persona-edit-page" style="padding: 50px;">
+    <div class="d-flex align-items-center justify-content-between mb-4 pb-3 border-bottom">
+        <div>
+            <h3 class="font-weight-800 mb-1" style="color: #0b1311; letter-spacing: -0.02em;">
+                <i class="fal fa-cog mr-2 text-teal"></i> Ajustes de cuenta
+            </h3>
+            <p class="text-muted mb-0">Usuario: <strong>{{ usuario.username }}</strong></p>
+        </div>
+        <a href="{% url 'master:inicio' %}" class="btn btn-outline-secondary btn-pills shadow-sm px-4 py-2 font-weight-bold">
+            <i class="fal fa-arrow-left mr-2"></i> Volver al inicio
+        </a>
+    </div>
+
+    {% if messages %}
+    <div class="mb-4">
+        {% for message in messages %}
+        <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags|default:'info' }}{% endif %} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="close" data-dismiss="alert" aria-label="Cerrar">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="panel-talent">
+                <h6 class="section-title-talent mb-3">
+                    <i class="fal fa-lock-alt mr-2 text-teal"></i> Cambiar contraseña
+                </h6>
+                <p class="text-muted small mb-4">
+                    Por seguridad, ingresa tu contraseña actual y elige una nueva. Debes cerrar sesión en otros
+                    dispositivos si compartiste tu cuenta anteriormente.
+                </p>
+
+                <form method="post" id="passwordChangeForm" novalidate>
+                    {% csrf_token %}
+
+                    {% if form.non_field_errors %}
+                    <div class="alert alert-danger">
+                        {% for error in form.non_field_errors %}
+                        <div>{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
+                    <div class="form-group">
+                        <label for="{{ form.old_password.id_for_label }}" class="form-label font-weight-bold">
+                            {{ form.old_password.label }}
+                        </label>
+                        {{ form.old_password }}
+                        {% if form.old_password.errors %}
+                        <div class="text-danger mt-1">
+                            {% for error in form.old_password.errors %}<small>{{ error }}</small>{% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="form-group">
+                        <label for="{{ form.new_password1.id_for_label }}" class="form-label font-weight-bold">
+                            {{ form.new_password1.label }}
+                        </label>
+                        {{ form.new_password1 }}
+                        {% if form.new_password1.help_text %}
+                        <small class="form-text text-muted">{{ form.new_password1.help_text|safe }}</small>
+                        {% endif %}
+                        {% if form.new_password1.errors %}
+                        <div class="text-danger mt-1">
+                            {% for error in form.new_password1.errors %}<small>{{ error }}</small>{% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="form-group">
+                        <label for="{{ form.new_password2.id_for_label }}" class="form-label font-weight-bold">
+                            {{ form.new_password2.label }}
+                        </label>
+                        {{ form.new_password2 }}
+                        {% if form.new_password2.errors %}
+                        <div class="text-danger mt-1">
+                            {% for error in form.new_password2.errors %}<small>{{ error }}</small>{% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="d-flex justify-content-end mt-4 pt-3 border-top">
+                        <button type="submit" class="btn btn-teal btn-pills shadow-sm px-4 py-2 font-weight-bold">
+                            <i class="fal fa-save mr-2"></i> Guardar nueva contraseña
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% include 'master/includes/persona_edit_styles.html' %}
+<style>
+    .btn-teal {
+        background: #15b79a;
+        color: #fff;
+        border: none;
+    }
+    .btn-teal:hover {
+        background: #0e967e;
+        color: #fff;
+    }
+    .text-teal { color: #15b79a !important; }
+    .panel-talent {
+        background: #fff;
+        padding: 28px;
+        border-radius: 16px;
+        border: 1px solid #eef2f2;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02);
+    }
+    .section-title-talent {
+        font-size: 0.75rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: #64748b;
+        border-bottom: 1px solid #f1f5f9;
+        padding-bottom: 12px;
+    }
+</style>
+{% endblock %}

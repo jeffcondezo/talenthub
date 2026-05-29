@@ -1,0 +1,102 @@
+{% load static %}
+
+<form method="post" id="formacionForm" enctype="multipart/form-data">
+    {% csrf_token %}
+    
+    <div class="row">
+        <div class="col-md-6">
+            <div class="form-group">
+                <label for="grado">Grado</label>
+                <select name="grado" id="grado" class="form-control" required>
+                    <option value="">Seleccionar...</option>
+                    <option value="BACHILLER" {% if formacion and formacion.grado == 'BACHILLER' %}selected{% endif %}>Bachiller</option>
+                    <option value="TECNICO" {% if formacion and formacion.grado == 'TECNICO' %}selected{% endif %}>Técnico</option>
+                    <option value="TECNICO_SUPERIOR" {% if formacion and formacion.grado == 'TECNICO_SUPERIOR' %}selected{% endif %}>Técnico Superior</option>
+                    <option value="LICENCIADO" {% if formacion and formacion.grado == 'LICENCIADO' %}selected{% endif %}>Licenciado</option>
+                    <option value="INGENIERO" {% if formacion and formacion.grado == 'INGENIERO' %}selected{% endif %}>Ingeniero</option>
+                    <option value="MAESTRO" {% if formacion and formacion.grado == 'MAESTRO' %}selected{% endif %}>Maestro</option>
+                    <option value="DOCTOR" {% if formacion and formacion.grado == 'DOCTOR' %}selected{% endif %}>Doctor</option>
+                    <option value="POSTGRADO" {% if formacion and formacion.grado == 'POSTGRADO' %}selected{% endif %}>Postgrado</option>
+                    <option value="DIPLOMADO" {% if formacion and formacion.grado == 'DIPLOMADO' %}selected{% endif %}>Diplomado</option>
+                    <option value="CERTIFICACION" {% if formacion and formacion.grado == 'CERTIFICACION' %}selected{% endif %}>Certificación</option>
+                </select>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="form-group">
+                <label for="especialidad">Especialidad</label>
+                <input type="text" name="especialidad" id="especialidad" class="form-control" placeholder="Ej: Ingeniería de Sistemas" value="{% if formacion %}{{ formacion.especialidad }}{% endif %}" required>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-6">
+            <div class="form-group">
+                <label for="centro_estudio">Centro de Estudio</label>
+                <input type="text" name="centro_estudio" id="centro_estudio" class="form-control" value="{% if formacion %}{{ formacion.centro_estudio }}{% endif %}" required>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="form-group">
+                <label for="ciudad">Ciudad</label>
+                <input type="text" name="ciudad" id="ciudad" class="form-control" value="{% if formacion %}{{ formacion.ciudad }}{% endif %}" required>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="form-group">
+                <label for="pais">País</label>
+                <input type="text" name="pais" id="pais" class="form-control" value="{% if formacion %}{{ formacion.pais }}{% endif %}" required>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-4">
+            <div class="form-group">
+                <label for="fecha_expedicion">Fecha de Expedición</label>
+                <input type="date" name="fecha_expedicion" id="fecha_expedicion" class="form-control" value="{% if formacion and formacion.fecha_expedicion %}{{ formacion.fecha_expedicion|date:'Y-m-d' }}{% endif %}" required>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="form-group">
+                <label for="fecha_inicio">Fecha de Inicio</label>
+                <input type="date" name="fecha_inicio" id="fecha_inicio" class="form-control" value="{% if formacion and formacion.fecha_inicio %}{{ formacion.fecha_inicio|date:'Y-m-d' }}{% endif %}" required>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="form-group">
+                <label for="fecha_fin">Fecha de Fin</label>
+                <input type="date" name="fecha_fin" id="fecha_fin" class="form-control" value="{% if formacion and formacion.fecha_fin %}{{ formacion.fecha_fin|date:'Y-m-d' }}{% endif %}" required>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-6">
+            <div class="form-group">
+                <label for="promedio">Promedio</label>
+                <input type="number" name="promedio" id="promedio" class="form-control" step="0.01" min="0" max="20" placeholder="Ej: 15.5" value="{% if formacion and formacion.promedio %}{{ formacion.promedio }}{% endif %}">
+            </div>
+        </div>
+    </div>
+    
+    <div class="form-group">
+        <label for="observaciones">Observaciones</label>
+        <textarea name="observaciones" id="observaciones" class="form-control" rows="3" placeholder="Observaciones adicionales...">{% if formacion and formacion.observaciones %}{{ formacion.observaciones }}{% endif %}</textarea>
+    </div>
+    
+    <div class="form-group text-right">
+        <button type="button" class="btn btn-secondary mr-2" data-dismiss="modal">
+            <i class="fal fa-times mr-1"></i>Cancelar
+        </button>
+        <button type="submit" class="btn btn-primary">
+            <i class="fal fa-save mr-1"></i>
+            {% if es_edicion %}
+                Actualizar
+            {% else %}
+                Guardar
+            {% endif %}
+        </button>
+    </div>
+</form>

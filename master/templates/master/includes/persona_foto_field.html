@@ -1,0 +1,47 @@
+<div class="{% if talent_style %}panel-talent mb-4{% else %}card mb-4{% endif %}">
+    {% if talent_style %}
+    <h6 class="section-title-talent mb-3">
+        <i class="fal fa-camera mr-2 text-teal"></i> Foto de Perfil
+    </h6>
+    {% else %}
+    <div class="card-header bg-light">
+        <h5 class="mb-0 text-custom-primary">
+            <i class="fal fa-camera icon-custom-primary"></i> Foto de Perfil
+        </h5>
+    </div>
+    <div class="card-body">
+    {% endif %}
+    <div class="row align-items-center">
+        <div class="col-md-3 text-center mb-3 mb-md-0">
+            {% if cv and cv.foto_perfil %}
+            <img src="{{ cv.foto_url }}" alt="Foto de {{ persona.nombres }}"
+                 class="rounded-circle shadow-sm"
+                 style="width: 120px; height: 120px; object-fit: cover; border: 3px solid #e8f8f5;">
+            {% else %}
+            <div class="icon-shape-avatar bg-teal-light text-teal mx-auto"
+                 style="width: 120px; height: 120px; font-size: 2rem; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800;">
+                {{ persona.nombres|slice:":1" }}{{ persona.apellido_paterno|slice:":1" }}
+            </div>
+            {% endif %}
+        </div>
+        <div class="col-md-9">
+            <div class="form-group mb-0">
+                <label for="{{ form.foto_perfil.id_for_label }}" class="form-label">{{ form.foto_perfil.label }}</label>
+                {{ form.foto_perfil }}
+                <small class="form-text text-muted d-block mt-2">
+                    Formatos: JPG, PNG, WebP o GIF. Se mostrará en el perfil del colaborador.
+                </small>
+                {% if form.foto_perfil.errors %}
+                <div class="text-danger mt-1">
+                    {% for error in form.foto_perfil.errors %}
+                    <small>{{ error }}</small>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% if not talent_style %}
+    </div>
+    {% endif %}
+</div>

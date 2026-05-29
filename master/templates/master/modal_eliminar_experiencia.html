@@ -1,0 +1,38 @@
+<div class="text-center">
+    {% csrf_token %}
+    
+    <div class="mb-4">
+        <i class="fal fa-exclamation-triangle text-warning" style="font-size: 3rem;"></i>
+    </div>
+    
+    <h5 class="mb-3">¿Está seguro de eliminar esta experiencia laboral?</h5>
+    
+    <div class="alert alert-info text-left">
+        <strong>Experiencia a eliminar:</strong><br>
+        <strong>Cargo:</strong> {{ experiencia.cargo }}<br>
+        <strong>Entidad:</strong> {{ experiencia.nombre_entidad }}<br>
+        <strong>Tipo:</strong> {{ experiencia.get_tipo_experiencia_display }}<br>
+        <strong>Período:</strong> 
+        {% if experiencia.fecha_inicio and experiencia.fecha_fin %}
+            {{ experiencia.fecha_inicio|date:"M Y" }} - {{ experiencia.fecha_fin|date:"M Y" }}
+        {% elif experiencia.fecha_inicio %}
+            Desde {{ experiencia.fecha_inicio|date:"M Y" }}
+        {% else %}
+            No especificado
+        {% endif %}
+    </div>
+    
+    <p class="text-muted">
+        <i class="fal fa-info-circle mr-1"></i>
+        Esta acción no se puede deshacer.
+    </p>
+    
+    <div class="mt-4">
+        <button type="button" class="btn btn-secondary mr-2" data-dismiss="modal">
+            <i class="fal fa-times mr-1"></i>Cancelar
+        </button>
+        <button type="button" class="btn btn-danger" onclick="confirmarEliminarExperiencia({{ experiencia.id }})">
+            <i class="fal fa-trash mr-1"></i>Eliminar
+        </button>
+    </div>
+</div>

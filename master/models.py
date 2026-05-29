@@ -1,0 +1,1593 @@
+from django.db import models
+from django.core.validators import RegexValidator
+from django.utils import timezone
+from django.contrib.auth.models import User
+
+
+class Departamento(models.Model):
+    """
+    Modelo para los departamentos del Perú
+    """
+    nombre = models.CharField(
+        max_length=100,
+        unique=True,
+        verbose_name='Nombre del Departamento'
+    )
+    codigo = models.CharField(
+        max_length=2,
+        unique=True,
+        verbose_name='Código del Departamento'
+    )
+    
+    class Meta:
+        verbose_name = 'Departamento'
+        verbose_name_plural = 'Departamentos'
+        ordering = ['nombre']
+    
+    def __str__(self):
+        return self.nombre
+
+
+class Provincia(models.Model):
+    """
+    Modelo para las provincias del Perú
+    """
+    nombre = models.CharField(
+        max_length=100,
+        verbose_name='Nombre de la Provincia'
+    )
+    codigo = models.CharField(
+        max_length=4,
+        verbose_name='Código de la Provincia'
+    )
+    departamento = models.ForeignKey(
+        Departamento,
+        on_delete=models.CASCADE,
+        related_name='provincias',
+        verbose_name='Departamento'
+    )
+    
+    class Meta:
+        verbose_name = 'Provincia'
+        verbose_name_plural = 'Provincias'
+        ordering = ['nombre']
+        unique_together = ['codigo', 'departamento']
+    
+    def __str__(self):
+        return f"{self.nombre} - {self.departamento.nombre}"
+
+
+class Distrito(models.Model):
+    """
+    Modelo para los distritos del Perú
+    """
+    nombre = models.CharField(
+        max_length=100,
+        verbose_name='Nombre del Distrito'
+    )
+    codigo = models.CharField(
+        max_length=6,
+        verbose_name='Código del Distrito'
+    )
+    provincia = models.ForeignKey(
+        Provincia,
+        on_delete=models.CASCADE,
+        related_name='distritos',
+        verbose_name='Provincia'
+    )
+    
+    class Meta:
+        verbose_name = 'Distrito'
+        verbose_name_plural = 'Distritos'
+        ordering = ['nombre']
+        unique_together = ['codigo', 'provincia']
+    
+    def __str__(self):
+        return f"{self.nombre} - {self.provincia.nombre}"
+
+
+class Persona(models.Model):
+    """
+    Modelo para el registro de personas
+    Contiene todos los datos básicos de cualquier persona en el sistema
+    """
+    
+    # Opciones para campos de selección
+    TIPO_DOCUMENTO_CHOICES = [
+        ('DNI', 'DNI'),
+        ('CE', 'Carnet de Extranjería'),
+        ('PASAPORTE', 'Pasaporte'),
+        ('RUC', 'RUC'),
+    ]
+    
+    ESTADO_CIVIL_CHOICES = [
+        ('SOLTERO', 'Soltero(a)'),
+        ('CASADO', 'Casado(a)'),
+        ('DIVORCIADO', 'Divorciado(a)'),
+        ('VIUDO', 'Viudo(a)'),
+        ('CONVIVIENTE', 'Conviviente'),
+    ]
+    
+    SEXO_CHOICES = [
+        ('M', 'Masculino'),
+        ('F', 'Femenino'),
+    ]
+
+    user = models.OneToOneField(
+        User, 
+        on_delete=models.CASCADE, 
+        related_name='perfil',
+        null=True,  
+        blank=True,
+        verbose_name='Usuario de Acceso'
+    )
+    
+    # Campos principales
+    tipo_documento = models.CharField(
+        max_length=20,
+        choices=TIPO_DOCUMENTO_CHOICES,
+        default='DNI',
+        verbose_name='Tipo de Documento'
+    )
+    
+    numero_documento = models.CharField(
+        max_length=20,
+        unique=True,
+        validators=[
+            RegexValidator(
+                regex=r'^[0-9]{8,11}$',
+                message='El número de documento debe contener entre 8 y 11 dígitos'
+            )
+        ],
+        verbose_name='Número de Documento'
+    )
+    
+    # Nombres
+    apellido_paterno = models.CharField(
+        max_length=100,
+        verbose_name='Apellido Paterno'
+    )
+    
+    apellido_materno = models.CharField(
+        max_length=100,
+        verbose_name='Apellido Materno'
+    )
+    
+    nombres = models.CharField(
+        max_length=150,
+        verbose_name='Nombres'
+    )
+    
+    # Datos personales
+    fecha_nacimiento = models.DateField(
+        verbose_name='Fecha de Nacimiento'
+    )
+    
+    sexo = models.CharField(
+        max_length=1,
+        choices=SEXO_CHOICES,
+        verbose_name='Sexo'
+    )
+    
+    estado_civil = models.CharField(
+        max_length=20,
+        choices=ESTADO_CIVIL_CHOICES,
+        verbose_name='Estado Civil'
+    )
+    
+    # Información de contacto
+    celular = models.CharField(
+        max_length=15,
+        blank=True,
+        null=True,
+        validators=[
+            RegexValidator(
+                regex=r'^[0-9+\-\s()]{7,15}$',
+                message='Formato de celular inválido'
+            )
+        ],
+        verbose_name='Celular'
+    )
+    
+    email = models.EmailField(
+        max_length=254,
+        blank=True,
+        null=True,
+        verbose_name='Correo Electrónico'
+    )
+    
+    # Dirección
+    direccion = models.TextField(
+        blank=True,
+        null=True,
+        verbose_name='Dirección'
+    )
+    
+    departamento = models.ForeignKey(
+        Departamento,
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        verbose_name='Departamento'
+    )
+    
+    provincia = models.ForeignKey(
+        Provincia,
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        verbose_name='Provincia'
+    )
+    
+    distrito = models.ForeignKey(
+        Distrito,
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        verbose_name='Distrito'
+    )
+    
+    # Campos de auditoría
+    fecha_creacion = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name='Fecha de Creación'
+    )
+    
+    fecha_actualizacion = models.DateTimeField(
+        auto_now=True,
+        verbose_name='Fecha de Actualización'
+    )
+    
+    class Meta:
+        verbose_name = 'Persona'
+        verbose_name_plural = 'Personas'
+        ordering = ['apellido_paterno', 'apellido_materno', 'nombres']
+        indexes = [
+            models.Index(fields=['numero_documento']),
+            models.Index(fields=['email']),
+            models.Index(fields=['fecha_creacion']),
+        ]
+    
+    def __str__(self):
+        return f"{self.apellido_paterno} {self.apellido_materno}, {self.nombres}"
+    
+    @property
+    def nombre_completo(self):
+        """Retorna el nombre completo de la persona"""
+        return f"{self.nombres} {self.apellido_paterno} {self.apellido_materno}"
+    
+    @property
+    def edad(self):
+        """Calcula la edad basada en la fecha de nacimiento"""
+        if self.fecha_nacimiento:
+            today = timezone.now().date()
+            return today.year - self.fecha_nacimiento.year - (
+                (today.month, today.day) < (self.fecha_nacimiento.month, self.fecha_nacimiento.day)
+            )
+        return None
+    
+    def clean(self):
+        """Validaciones personalizadas del modelo"""
+        from django.core.exceptions import ValidationError
+        
+        # Validar que la fecha de nacimiento no sea futura
+        if self.fecha_nacimiento and self.fecha_nacimiento > timezone.now().date():
+            raise ValidationError({
+                'fecha_nacimiento': 'La fecha de nacimiento no puede ser futura.'
+            })
+    
+    def save(self, *args, **kwargs):
+        """Sobrescribir el método save para aplicar validaciones"""
+        self.clean()
+        super().save(*args, **kwargs)
+
+
+class Area(models.Model):
+    """
+    Modelo para las áreas o departamentos de la empresa
+    """
+    nombre = models.CharField(
+        max_length=100,
+        unique=True,
+        verbose_name='Nombre del Área'
+    )
+    
+    descripcion = models.TextField(
+        blank=True,
+        null=True,
+        verbose_name='Descripción'
+    )
+    
+    activo = models.BooleanField(
+        default=True,
+        verbose_name='Activo'
+    )
+    
+    fecha_creacion = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name='Fecha de Creación'
+    )
+    
+    class Meta:
+        verbose_name = 'Área'
+        verbose_name_plural = 'Áreas'
+        ordering = ['nombre']
+    
+    def __str__(self):
+        return self.nombre
+
+
+class Cargo(models.Model):
+    """
+    Modelo para los cargos o puestos de trabajo
+    """
+    area = models.ForeignKey(
+        Area,
+        on_delete=models.CASCADE,
+        related_name='cargos',
+        verbose_name='Área'
+    )
+    
+    nombre = models.CharField(
+        max_length=100,
+        verbose_name='Nombre del Cargo'
+    )
+    
+    descripcion = models.TextField(
+        blank=True,
+        null=True,
+        verbose_name='Descripción'
+    )
+    
+    nivel = models.CharField(
+        max_length=50,
+        blank=True,
+        null=True,
+        verbose_name='Nivel'
+    )
+    
+    salario_minimo = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        blank=True,
+        null=True,
+        verbose_name='Salario Mínimo'
+    )
+    
+    salario_maximo = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        blank=True,
+        null=True,
+        verbose_name='Salario Máximo'
+    )
+    
+    activo = models.BooleanField(
+        default=True,
+        verbose_name='Activo'
+    )
+    
+    fecha_creacion = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name='Fecha de Creación'
+    )
+    
+    class Meta:
+        verbose_name = 'Cargo'
+        verbose_name_plural = 'Cargos'
+        ordering = ['area', 'nombre']
+        unique_together = ['area', 'nombre']
+    
+    def __str__(self):
+        return f"{self.nombre} - {self.area.nombre}"
+
+
+class Convocatoria(models.Model):
+    """
+    Modelo para las convocatorias o procesos de selección
+    """
+    
+    ESTADO_CONVOCATORIA_CHOICES = [
+        ('BORRADOR', 'Borrador'),
+        ('PUBLICADA', 'Publicada'),
+        ('EN_PROCESO', 'En Proceso'),
+        ('FINALIZADA', 'Finalizada'),
+        ('CANCELADA', 'Cancelada'),
+    ]
+    
+    TIPO_CONVOCATORIA_CHOICES = [
+        ('INTERNA', 'Interna'),
+        ('EXTERNA', 'Externa'),
+        ('MIXTA', 'Mixta'),
+    ]
+    
+    # Información básica
+    titulo = models.CharField(
+        max_length=200,
+        verbose_name='Título de la Convocatoria'
+    )
+    
+    descripcion = models.TextField(
+        verbose_name='Descripción del Puesto'
+    )
+    
+    cargo = models.ForeignKey(
+        Cargo,
+        on_delete=models.CASCADE,
+        related_name='convocatorias',
+        verbose_name='Cargo'
+    )
+    
+    # Fechas importantes
+    fecha_apertura = models.DateTimeField(
+        verbose_name='Fecha de Apertura'
+    )
+    
+    fecha_cierre = models.DateTimeField(
+        verbose_name='Fecha de Cierre'
+    )
+    
+    fecha_inicio_trabajo = models.DateField(
+        blank=True,
+        null=True,
+        verbose_name='Fecha de Inicio de Trabajo'
+    )
+    
+    # Estado y tipo
+    estado = models.CharField(
+        max_length=20,
+        choices=ESTADO_CONVOCATORIA_CHOICES,
+        default='BORRADOR',
+        verbose_name='Estado'
+    )
+    
+    tipo = models.CharField(
+        max_length=10,
+        choices=TIPO_CONVOCATORIA_CHOICES,
+        default='EXTERNA',
+        verbose_name='Tipo de Convocatoria'
+    )
+    
+    nombre_empresa_externa = models.CharField(
+        max_length=200,
+        blank=True,
+        null=True,
+        verbose_name='Nombre de la Empresa Externa',
+        help_text='Nombre de la empresa externa para convocatorias de tipo Externa o Mixta'
+    )
+    
+    # Requisitos
+    requisitos_minimos = models.TextField(
+        blank=True,
+        null=True,
+        verbose_name='Requisitos Mínimos'
+    )
+    
+    requisitos_deseables = models.TextField(
+        blank=True,
+        null=True,
+        verbose_name='Requisitos Deseables'
+    )
+    
+    experiencia_minima = models.PositiveIntegerField(
+        default=0,
+        verbose_name='Experiencia Mínima (años)'
+    )
+    
+    # Información adicional
+    numero_vacantes = models.PositiveIntegerField(
+        default=1,
+        verbose_name='Número de Vacantes'
+    )
+    
+    salario_ofrecido = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        blank=True,
+        null=True,
+        verbose_name='Salario Ofrecido'
+    )
+    
+    modalidad_trabajo = models.CharField(
+        max_length=50,
+        blank=True,
+        null=True,
+        verbose_name='Modalidad de Trabajo'
+    )
+    
+    ubicacion = models.CharField(
+        max_length=200,
+        blank=True,
+        null=True,
+        verbose_name='Ubicación'
+    )
+    
+    # Responsable del proceso
+    responsable_rrhh = models.CharField(
+        max_length=100,
+        blank=True,
+        null=True,
+        verbose_name='Responsable de RRHH'
+    )
+    
+    # Metadatos
+    activo = models.BooleanField(
+        default=True,
+        verbose_name='Activo'
+    )
+    
+    fecha_creacion = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name='Fecha de Creación'
+    )
+    
+    fecha_actualizacion = models.DateTimeField(
+        auto_now=True,
+        verbose_name='Fecha de Actualización'
+    )
+    
+    class Meta:
+        verbose_name = 'Convocatoria'
+        verbose_name_plural = 'Convocatorias'
+        ordering = ['-fecha_creacion']
+        indexes = [
+            models.Index(fields=['estado']),
+            models.Index(fields=['cargo']),
+            models.Index(fields=['fecha_apertura', 'fecha_cierre']),
+        ]
+    
+    def __str__(self):
+        return f"{self.titulo} - {self.cargo.nombre}"
+    
+    @property
+    def esta_abierta(self):
+        """Verifica si la convocatoria está abierta para postulaciones"""
+        from django.utils import timezone
+        now = timezone.now()
+        return (
+            self.estado == 'PUBLICADA' and
+            self.fecha_apertura <= now <= self.fecha_cierre
+        )
+    
+    @property
+    def dias_restantes(self):
+        """Calcula los días restantes para el cierre"""
+        from django.utils import timezone
+        if self.estado == 'PUBLICADA':
+            now = timezone.now()
+            if now < self.fecha_cierre:
+                delta = self.fecha_cierre - now
+                return delta.days
+        return 0
+    
+    def clean(self):
+        """Validaciones del modelo"""
+        from django.core.exceptions import ValidationError
+        from django.utils import timezone
+        
+        if self.fecha_cierre <= self.fecha_apertura:
+            raise ValidationError({
+                'fecha_cierre': 'La fecha de cierre debe ser posterior a la fecha de apertura.'
+            })
+        
+        if self.fecha_inicio_trabajo and self.fecha_inicio_trabajo < timezone.now().date():
+            raise ValidationError({
+                'fecha_inicio_trabajo': 'La fecha de inicio de trabajo no puede ser anterior a hoy.'
+            })
+    
+    def save(self, *args, **kwargs):
+        self.clean()
+        super().save(*args, **kwargs)
+
+
+class CV(models.Model):
+    """
+    Modelo para el currículum vitae de una persona
+    Cada persona tiene un CV actual que contiene su información profesional
+    """
+    
+    # Relación con Persona
+    persona = models.OneToOneField(
+        Persona,
+        on_delete=models.CASCADE,
+        related_name='cv',
+        verbose_name='Persona',
+        null=True,
+        blank=True
+    )
+    
+    # Información profesional general
+    resumen_profesional = models.TextField(
+        blank=True,
+        null=True,
+        verbose_name='Resumen Profesional'
+    )
+    
+    objetivo_profesional = models.TextField(
+        blank=True,
+        null=True,
+        verbose_name='Objetivo Profesional'
+    )
+    
+    # Información de contacto profesional
+    telefono_profesional = models.CharField(
+        max_length=15,
+        blank=True,
+        null=True,
+        validators=[
+            RegexValidator(
+                regex=r'^[0-9+\-\s()]{7,15}$',
+                message='Formato de teléfono inválido'
+            )
+        ],
+        verbose_name='Teléfono Profesional'
+    )
+    
+    email_profesional = models.EmailField(
+        max_length=254,
+        blank=True,
+        null=True,
+        verbose_name='Email Profesional'
+    )
+    
+    linkedin = models.URLField(
+        blank=True,
+        null=True,
+        verbose_name='LinkedIn'
+    )
+    
+    portfolio = models.URLField(
+        blank=True,
+        null=True,
+        verbose_name='Portfolio/Website'
+    )
+    
+    # Archivos
+    cv_archivo = models.FileField(
+        upload_to='cvs/',
+        blank=True,
+        null=True,
+        verbose_name='Archivo CV'
+    )
+    
+    foto_perfil = models.ImageField(
+        upload_to='fotos_perfil/',
+        blank=True,
+        null=True,
+        verbose_name='Foto de Perfil'
+    )
+    
+    # Metadatos
+    fecha_creacion = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name='Fecha de Creación'
+    )
+    
+    fecha_actualizacion = models.DateTimeField(
+        auto_now=True,
+        verbose_name='Fecha de Actualización'
+    )
+    
+    class Meta:
+        verbose_name = 'CV'
+        verbose_name_plural = 'CVs'
+        ordering = ['-fecha_actualizacion']
+        indexes = [
+            models.Index(fields=['persona']),
+            models.Index(fields=['fecha_actualizacion']),
+        ]
+    
+    def __str__(self):
+        return f"CV de {self.persona.nombre_completo}"
+
+    @staticmethod
+    def normalizar_ruta_archivo(nombre):
+        """Elimina prefijos 'media/' duplicados en rutas guardadas incorrectamente."""
+        if not nombre:
+            return nombre
+        nombre = str(nombre).replace('\\', '/')
+        while nombre.startswith('media/'):
+            nombre = nombre[6:]
+        return nombre
+
+    @property
+    def archivo_url(self):
+        """URL pública correcta del archivo CV."""
+        if not self.cv_archivo:
+            return ''
+        from django.conf import settings
+        nombre = self.normalizar_ruta_archivo(self.cv_archivo.name)
+        return f"{settings.MEDIA_URL.rstrip('/')}/{nombre}"
+
+    @property
+    def archivo_existe(self):
+        """Indica si el archivo físico está disponible en el almacenamiento."""
+        if not self.cv_archivo:
+            return False
+        nombre = self.normalizar_ruta_archivo(self.cv_archivo.name)
+        try:
+            return self.cv_archivo.storage.exists(nombre)
+        except Exception:
+            return False
+
+    @property
+    def foto_url(self):
+        """URL pública correcta de la foto de perfil."""
+        if not self.foto_perfil:
+            return ''
+        from django.conf import settings
+        nombre = self.normalizar_ruta_archivo(self.foto_perfil.name)
+        return f"{settings.MEDIA_URL.rstrip('/')}/{nombre}"
+
+    def save(self, *args, **kwargs):
+        if self.cv_archivo and self.cv_archivo.name:
+            nombre_normalizado = self.normalizar_ruta_archivo(self.cv_archivo.name)
+            if nombre_normalizado != self.cv_archivo.name:
+                self.cv_archivo.name = nombre_normalizado
+        if self.foto_perfil and self.foto_perfil.name:
+            nombre_normalizado = self.normalizar_ruta_archivo(self.foto_perfil.name)
+            if nombre_normalizado != self.foto_perfil.name:
+                self.foto_perfil.name = nombre_normalizado
+        super().save(*args, **kwargs)
+    
+    @property
+    def tiene_formacion_academica(self):
+        """Verifica si tiene formación académica registrada"""
+        return self.formaciones_academicas.exists()
+    
+    @property
+    def tiene_cursos_especializacion(self):
+        """Verifica si tiene cursos de especialización registrados"""
+        return self.cursos_especializacion.exists()
+    
+    @property
+    def tiene_experiencia_laboral(self):
+        """Verifica si tiene experiencia laboral registrada"""
+        return self.experiencias_laborales.exists()
+    
+    @property
+    def nivel_educacion_mas_alto(self):
+        """Obtiene el nivel de educación más alto"""
+        formaciones = self.formaciones_academicas.all()
+        if formaciones:
+            # Ordenar por importancia del grado
+            orden_grados = {
+                'DOCTOR': 10,
+                'MAESTRO': 9,
+                'POSTGRADO': 8,
+                'DIPLOMADO': 7,
+                'INGENIERO': 6,
+                'LICENCIADO': 5,
+                'TECNICO_SUPERIOR': 4,
+                'TECNICO': 3,
+                'CERTIFICACION': 2,
+                'BACHILLER': 1,
+            }
+            return max(formaciones, key=lambda x: orden_grados.get(x.grado, 0))
+        return None
+
+
+class Postulacion(models.Model):
+    """
+    Modelo intermedio para manejar la relación entre Persona y Convocatoria
+    Permite que una persona postule a múltiples convocatorias
+    """
+    
+    ESTADO_POSTULACION_CHOICES = [
+        ('POSTULADO', 'Postulado'),
+        ('EN_REVISION', 'En Revisión'),
+        ('ENTREVISTA', 'En Entrevista'),
+        ('EVALUACION', 'En Evaluación'),
+        ('APROBADO', 'Aprobado'),
+        ('RECHAZADO', 'Rechazado'),
+        ('RETIRADO', 'Retirado'),
+    ]
+    
+    # Relaciones principales
+    persona = models.ForeignKey(
+        Persona,
+        on_delete=models.CASCADE,
+        related_name='postulaciones',
+        verbose_name='Persona',
+        null=True,
+        blank=True
+    )
+    
+    convocatoria = models.ForeignKey(
+        Convocatoria,
+        on_delete=models.CASCADE,
+        related_name='postulaciones',
+        verbose_name='Convocatoria'
+    )
+    
+    # Información de la postulación
+    fecha_postulacion = models.DateTimeField(
+        default=timezone.now,
+        verbose_name='Fecha de Postulación'
+    )
+    
+    estado_postulacion = models.CharField(
+        max_length=20,
+        choices=ESTADO_POSTULACION_CHOICES,
+        default='POSTULADO',
+        verbose_name='Estado de Postulación'
+    )
+    
+    # Información adicional
+    experiencia_anios = models.PositiveIntegerField(
+        default=0,
+        verbose_name='Años de Experiencia'
+    )
+    
+    nivel_educacion = models.CharField(
+        max_length=50,
+        blank=True,
+        null=True,
+        verbose_name='Nivel de Educación'
+    )
+    
+    institucion_educacion = models.CharField(
+        max_length=200,
+        blank=True,
+        null=True,
+        verbose_name='Institución de Educación'
+    )
+    
+    observaciones = models.TextField(
+        blank=True,
+        null=True,
+        verbose_name='Observaciones'
+    )
+    
+    # Metadatos
+    fecha_creacion = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name='Fecha de Creación'
+    )
+    
+    fecha_actualizacion = models.DateTimeField(
+        auto_now=True,
+        verbose_name='Fecha de Actualización'
+    )
+    
+    class Meta:
+        verbose_name = 'Postulación'
+        verbose_name_plural = 'Postulaciones'
+        ordering = ['-fecha_postulacion']
+        unique_together = ['persona', 'convocatoria']  # Una persona no puede postular dos veces a la misma convocatoria
+        indexes = [
+            models.Index(fields=['estado_postulacion']),
+            models.Index(fields=['fecha_postulacion']),
+            models.Index(fields=['persona', 'convocatoria']),
+        ]
+    
+    def __str__(self):
+        return f"{self.persona.nombre_completo} - {self.convocatoria.titulo}"
+    
+    @property
+    def cargo_postulado(self):
+        """Acceso al cargo a través de la convocatoria"""
+        return self.convocatoria.cargo
+    
+    @property
+    def cv_persona(self):
+        """Acceso al CV de la persona"""
+        return self.persona.cv
+
+    @property
+    def cv_archivo(self):
+        """Archivo CV de la persona (compatibilidad con plantillas)."""
+        try:
+            archivo = self.persona.cv.cv_archivo
+            return archivo if archivo else None
+        except (AttributeError, CV.DoesNotExist):
+            return None
+
+    @property
+    def cv_archivo_url(self):
+        """URL corregida del archivo CV de la persona."""
+        try:
+            return self.persona.cv.archivo_url
+        except (AttributeError, CV.DoesNotExist):
+            return ''
+
+    @property
+    def cv_archivo_disponible(self):
+        """Indica si el archivo CV existe en el servidor."""
+        try:
+            return self.persona.cv.archivo_existe
+        except (AttributeError, CV.DoesNotExist):
+            return False
+    
+    def clean(self):
+        """Validaciones del modelo"""
+        from django.core.exceptions import ValidationError
+        
+        # Verificar que la persona no haya postulado antes a la misma convocatoria
+        if self.pk is None:  # Solo para nuevas postulaciones
+            existing = Postulacion.objects.filter(
+                persona=self.persona,
+                convocatoria=self.convocatoria
+            ).exists()
+            if existing:
+                raise ValidationError({
+                    'convocatoria': 'Esta persona ya ha postulado a esta convocatoria.'
+                })
+    
+    def save(self, *args, **kwargs):
+        self.clean()
+        super().save(*args, **kwargs)
+
+
+class Colaborador(models.Model):
+    """
+    Modelo para personas que trabajan en la empresa
+    Se relaciona con Persona a través de una relación OneToOne
+    """
+    
+    ESTADO_LABORAL_CHOICES = [
+        ('ACTIVO', 'Activo'),
+        ('INACTIVO', 'Inactivo'),
+        ('SUSPENDIDO', 'Suspendido'),
+        ('VACACIONES', 'En Vacaciones'),
+        ('LICENCIA', 'En Licencia'),
+        ('RENUNCIADO', 'Renunciado'),
+        ('DESPEDIDO', 'Despedido'),
+    ]
+    
+    TIPO_CONTRATO_CHOICES = [
+        ('TIEMPO_COMPLETO', 'Tiempo Completo'),
+        ('MEDIO_TIEMPO', 'Medio Tiempo'),
+        ('POR_HORAS', 'Por Horas'),
+        ('PRACTICANTE', 'Practicante'),
+        ('CONSULTOR', 'Consultor'),
+    ]
+    
+    # Relación con Persona
+    persona = models.OneToOneField(
+        Persona,
+        on_delete=models.CASCADE,
+        related_name='colaborador',
+        verbose_name='Persona',
+        null=True,
+        blank=True
+    )
+    
+    # Información laboral específica
+    cargo = models.ForeignKey(
+        Cargo,
+        on_delete=models.CASCADE,
+        related_name='colaboradores',
+        verbose_name='Cargo'
+    )
+    
+    fecha_ingreso = models.DateField(
+        default=timezone.now,
+        verbose_name='Fecha de Ingreso'
+    )
+    
+    fecha_salida = models.DateField(
+        blank=True,
+        null=True,
+        verbose_name='Fecha de Salida'
+    )
+    
+    estado_laboral = models.CharField(
+        max_length=20,
+        choices=ESTADO_LABORAL_CHOICES,
+        default='ACTIVO',
+        verbose_name='Estado Laboral'
+    )
+    
+    tipo_contrato = models.CharField(
+        max_length=20,
+        choices=TIPO_CONTRATO_CHOICES,
+        default='TIEMPO_COMPLETO',
+        verbose_name='Tipo de Contrato'
+    )
+    
+    salario = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        blank=True,
+        null=True,
+        verbose_name='Salario'
+    )
+    
+    numero_empleado = models.CharField(
+        max_length=20,
+        unique=True,
+        blank=True,
+        null=True,
+        verbose_name='Número de Empleado'
+    )
+    
+    supervisor = models.ForeignKey(
+        'self',
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        related_name='subordinados',
+        verbose_name='Supervisor'
+    )
+    
+    # Información adicional
+    fecha_ultima_evaluacion = models.DateField(
+        blank=True,
+        null=True,
+        verbose_name='Fecha de Última Evaluación'
+    )
+    
+    notas_laborales = models.TextField(
+        blank=True,
+        null=True,
+        verbose_name='Notas Laborales'
+    )
+    
+    # Metadatos
+    fecha_creacion = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name='Fecha de Creación'
+    )
+    
+    fecha_actualizacion = models.DateTimeField(
+        auto_now=True,
+        verbose_name='Fecha de Actualización'
+    )
+    
+    class Meta:
+        verbose_name = 'Colaborador'
+        verbose_name_plural = 'Colaboradores'
+        ordering = ['-fecha_ingreso']
+        indexes = [
+            models.Index(fields=['estado_laboral']),
+            models.Index(fields=['fecha_ingreso']),
+            models.Index(fields=['cargo']),
+            models.Index(fields=['numero_empleado']),
+        ]
+    
+    def __str__(self):
+        return f"{self.persona.nombre_completo} - {self.cargo.nombre}"
+    
+    @property
+    def nombre_completo(self):
+        """Acceso al nombre completo a través de la persona"""
+        return self.persona.nombre_completo
+    
+    @property
+    def antiguedad_anios(self):
+        """Calcula la antigüedad en años"""
+        if self.fecha_ingreso:
+            today = timezone.now().date()
+            return today.year - self.fecha_ingreso.year - (
+                (today.month, today.day) < (self.fecha_ingreso.month, self.fecha_ingreso.day)
+            )
+        return None
+    
+    def clean(self):
+        """Validaciones personalizadas del modelo"""
+        from django.core.exceptions import ValidationError
+        
+        # Validar que la fecha de ingreso no sea futura
+        if self.fecha_ingreso and self.fecha_ingreso > timezone.now().date():
+            raise ValidationError({
+                'fecha_ingreso': 'La fecha de ingreso no puede ser futura.'
+            })
+        
+        # Validar que la fecha de salida sea posterior a la fecha de ingreso
+        if self.fecha_salida and self.fecha_ingreso and self.fecha_salida <= self.fecha_ingreso:
+            raise ValidationError({
+                'fecha_salida': 'La fecha de salida debe ser posterior a la fecha de ingreso.'
+            })
+        
+        # Validar que no sea su propio supervisor
+        if self.supervisor and self.supervisor.id == self.id:
+            raise ValidationError({
+                'supervisor': 'Una persona no puede ser su propio supervisor.'
+            })
+    
+    def save(self, *args, **kwargs):
+        self.clean()
+        super().save(*args, **kwargs)
+
+
+# =============================================================================
+# MODELOS PARA CURRICULUM VITAE (CV)
+# =============================================================================
+
+class FormacionAcademica(models.Model):
+    """
+    Modelo para la formación académica del CV de una persona
+    """
+    
+    GRADO_CHOICES = [
+        ('BACHILLER', 'Bachiller'),
+        ('TECNICO', 'Técnico'),
+        ('TECNICO_SUPERIOR', 'Técnico Superior'),
+        ('LICENCIADO', 'Licenciado'),
+        ('INGENIERO', 'Ingeniero'),
+        ('MAESTRO', 'Maestro'),
+        ('DOCTOR', 'Doctor'),
+        ('POSTGRADO', 'Postgrado'),
+        ('DIPLOMADO', 'Diplomado'),
+        ('CERTIFICACION', 'Certificación'),
+    ]
+    
+    # Relación con CV
+    cv = models.ForeignKey(
+        CV,
+        on_delete=models.CASCADE,
+        related_name='formaciones_academicas',
+        verbose_name='CV',
+        null=True,
+        blank=True
+    )
+    
+    # Información académica
+    grado = models.CharField(
+        max_length=30,
+        choices=GRADO_CHOICES,
+        verbose_name='Grado'
+    )
+    
+    especialidad = models.CharField(
+        max_length=200,
+        verbose_name='Especialidad'
+    )
+    
+    centro_estudio = models.CharField(
+        max_length=200,
+        verbose_name='Centro de Estudio'
+    )
+    
+    ciudad = models.CharField(
+        max_length=100,
+        verbose_name='Ciudad'
+    )
+    
+    pais = models.CharField(
+        max_length=100,
+        verbose_name='País'
+    )
+    
+    # Fechas
+    fecha_expedicion = models.DateField(
+        verbose_name='Fecha de Expedición'
+    )
+    
+    fecha_inicio = models.DateField(
+        verbose_name='Fecha de Inicio'
+    )
+    
+    fecha_fin = models.DateField(
+        verbose_name='Fecha de Fin'
+    )
+    
+    # Información adicional
+    promedio = models.DecimalField(
+        max_digits=4,
+        decimal_places=2,
+        blank=True,
+        null=True,
+        verbose_name='Promedio'
+    )
+    
+    observaciones = models.TextField(
+        blank=True,
+        null=True,
+        verbose_name='Observaciones'
+    )
+    
+    # Metadatos
+    fecha_creacion = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name='Fecha de Creación'
+    )
+    
+    fecha_actualizacion = models.DateTimeField(
+        auto_now=True,
+        verbose_name='Fecha de Actualización'
+    )
+    
+    class Meta:
+        verbose_name = 'Formación Académica'
+        verbose_name_plural = 'Formaciones Académicas'
+        ordering = ['-fecha_expedicion']
+        indexes = [
+            models.Index(fields=['cv']),
+            models.Index(fields=['grado']),
+        ]
+    
+    def __str__(self):
+        return f"{self.cv.persona.nombre_completo} - {self.grado} en {self.especialidad}"
+    
+    def clean(self):
+        """Validaciones del modelo"""
+        from django.core.exceptions import ValidationError
+        
+        # Validar fechas
+        if self.fecha_fin <= self.fecha_inicio:
+            raise ValidationError({
+                'fecha_fin': 'La fecha de fin debe ser posterior a la fecha de inicio.'
+            })
+        
+        if self.fecha_expedicion < self.fecha_fin:
+            raise ValidationError({
+                'fecha_expedicion': 'La fecha de expedición no puede ser anterior a la fecha de fin.'
+            })
+    
+    def save(self, *args, **kwargs):
+        self.clean()
+        super().save(*args, **kwargs)
+
+
+class CursoEspecializacion(models.Model):
+    """
+    Modelo para cursos y programas de especialización del CV de una persona
+    """
+    
+    TIPO_ESTUDIO_CHOICES = [
+        ('CURSO', 'Curso'),
+        ('DIPLOMADO', 'Diplomado'),
+        ('CERTIFICACION', 'Certificación'),
+        ('ESPECIALIZACION', 'Especialización'),
+        ('MAESTRIA', 'Maestría'),
+        ('DOCTORADO', 'Doctorado'),
+        ('TALLER', 'Taller'),
+        ('SEMINARIO', 'Seminario'),
+        ('CONGRESO', 'Congreso'),
+        ('CONFERENCIA', 'Conferencia'),
+    ]
+    
+    NIVEL_CHOICES = [
+        ('BASICO', 'Básico'),
+        ('INTERMEDIO', 'Intermedio'),
+        ('AVANZADO', 'Avanzado'),
+        ('EXPERTO', 'Experto'),
+    ]
+    
+    # Relación con CV
+    cv = models.ForeignKey(
+        CV,
+        on_delete=models.CASCADE,
+        related_name='cursos_especializacion',
+        verbose_name='CV',
+        null=True,
+        blank=True
+    )
+    
+    # Información del curso
+    tipo_estudio = models.CharField(
+        max_length=20,
+        choices=TIPO_ESTUDIO_CHOICES,
+        verbose_name='Tipo de Estudio'
+    )
+    
+    descripcion = models.CharField(
+        max_length=300,
+        verbose_name='Descripción'
+    )
+    
+    institucion = models.CharField(
+        max_length=200,
+        verbose_name='Institución'
+    )
+    
+    pais = models.CharField(
+        max_length=100,
+        verbose_name='País'
+    )
+    
+    ciudad = models.CharField(
+        max_length=100,
+        verbose_name='Ciudad'
+    )
+    
+    # Fechas
+    fecha_inicio = models.DateField(
+        verbose_name='Fecha de Inicio'
+    )
+    
+    fecha_fin = models.DateField(
+        verbose_name='Fecha de Fin'
+    )
+    
+    # Información adicional
+    horas_lectivas = models.PositiveIntegerField(
+        blank=True,
+        null=True,
+        verbose_name='Horas Lectivas'
+    )
+    
+    nivel = models.CharField(
+        max_length=15,
+        choices=NIVEL_CHOICES,
+        blank=True,
+        null=True,
+        verbose_name='Nivel'
+    )
+    
+    certificado = models.FileField(
+        upload_to='certificados/',
+        blank=True,
+        null=True,
+        verbose_name='Certificado'
+    )
+    
+    observaciones = models.TextField(
+        blank=True,
+        null=True,
+        verbose_name='Observaciones'
+    )
+    
+    # Metadatos
+    fecha_creacion = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name='Fecha de Creación'
+    )
+    
+    fecha_actualizacion = models.DateTimeField(
+        auto_now=True,
+        verbose_name='Fecha de Actualización'
+    )
+    
+    class Meta:
+        verbose_name = 'Curso de Especialización'
+        verbose_name_plural = 'Cursos de Especialización'
+        ordering = ['-fecha_fin']
+        indexes = [
+            models.Index(fields=['cv']),
+            models.Index(fields=['tipo_estudio']),
+        ]
+    
+    def __str__(self):
+        return f"{self.cv.persona.nombre_completo} - {self.tipo_estudio}: {self.descripcion}"
+    
+    def clean(self):
+        """Validaciones del modelo"""
+        from django.core.exceptions import ValidationError
+        
+        # Validar fechas
+        if self.fecha_fin <= self.fecha_inicio:
+            raise ValidationError({
+                'fecha_fin': 'La fecha de fin debe ser posterior a la fecha de inicio.'
+            })
+    
+    def save(self, *args, **kwargs):
+        self.clean()
+        super().save(*args, **kwargs)
+
+
+class PasoInduccion(models.Model):
+    ESTADOS = [
+        ('pendiente', 'Pendiente'),
+        ('progreso', 'En Desarrollo'),
+        ('completo', 'Completado'),
+    ]
+
+    nombre = models.CharField(max_length=200, verbose_name="Nombre de la Tarea")
+    descripcion = models.TextField(verbose_name="¿Qué debe hacer?")
+    encargado = models.CharField(max_length=100, verbose_name="Persona de apoyo")
+    progreso = models.PositiveIntegerField(default=0, help_text="Número de 0 a 100")
+    estado = models.CharField(max_length=20, choices=ESTADOS, default='pendiente')
+    tiempo_estatuto = models.CharField(max_length=50, help_text="Ej: 2 días restantes", null=True, blank=True)    
+    orden = models.PositiveIntegerField(default=0, verbose_name="Orden en la ruta")
+
+    class Meta:
+        ordering = ['orden']
+        verbose_name = "Paso de Inducción"
+        verbose_name_plural = "Pasos de Inducción"
+
+    def __str__(self):
+        return f"{self.orden}. {self.nombre}"
+
+class ExperienciaLaboral(models.Model):
+    """
+    Modelo para la experiencia laboral del CV de una persona
+    """
+    
+    TIPO_EXPERIENCIA_CHOICES = [
+        ('GENERAL', 'General'),
+        ('ESPECIFICA', 'Específica'),
+        ('LIDERAZGO', 'Liderazgo'),
+        ('TECNICA', 'Técnica'),
+        ('ADMINISTRATIVA', 'Administrativa'),
+        ('VENTAS', 'Ventas'),
+        ('ATENCION_CLIENTE', 'Atención al Cliente'),
+        ('INVESTIGACION', 'Investigación'),
+        ('DOCENCIA', 'Docencia'),
+    ]
+    
+    TIPO_ENTIDAD_CHOICES = [
+        ('PUBLICO', 'Público'),
+        ('PRIVADO', 'Privado'),
+        ('ONG', 'ONG'),
+        ('INTERNACIONAL', 'Internacional'),
+        ('MIXTO', 'Mixto'),
+    ]
+    
+    MOTIVO_SALIDA_CHOICES = [
+        ('RENUNCIA', 'Renuncia'),
+        ('DESPIDO', 'Despido'),
+        ('CONTRATO_VENCIDO', 'Contrato Vencido'),
+        ('TERMINO_PROYECTO', 'Término de Proyecto'),
+        ('OTRO', 'Otro'),
+    ]
+    
+    # Relación con CV
+    cv = models.ForeignKey(
+        CV,
+        on_delete=models.CASCADE,
+        related_name='experiencias_laborales',
+        verbose_name='CV',
+        null=True,
+        blank=True
+    )
+    
+    # Información laboral
+    tipo_experiencia = models.CharField(
+        max_length=20,
+        choices=TIPO_EXPERIENCIA_CHOICES,
+        verbose_name='Tipo de Experiencia'
+    )
+    
+    tipo_entidad = models.CharField(
+        max_length=15,
+        choices=TIPO_ENTIDAD_CHOICES,
+        verbose_name='Tipo de Entidad'
+    )
+    
+    nombre_entidad = models.CharField(
+        max_length=200,
+        verbose_name='Nombre de la Entidad'
+    )
+    
+    cargo = models.CharField(
+        max_length=150,
+        verbose_name='Cargo'
+    )
+    
+    # Fechas
+    fecha_inicio = models.DateField(
+        verbose_name='Fecha de Inicio'
+    )
+    
+    fecha_fin = models.DateField(
+        blank=True,
+        null=True,
+        verbose_name='Fecha de Fin'
+    )
+    
+    # Información adicional
+    salario = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        blank=True,
+        null=True,
+        verbose_name='Salario'
+    )
+    
+    motivo_salida = models.CharField(
+        max_length=20,
+        choices=MOTIVO_SALIDA_CHOICES,
+        blank=True,
+        null=True,
+        verbose_name='Motivo de Salida'
+    )
+    
+    logros = models.TextField(
+        blank=True,
+        null=True,
+        verbose_name='Logros Principales'
+    )
+    
+    responsabilidades = models.TextField(
+        blank=True,
+        null=True,
+        verbose_name='Responsabilidades'
+    )
+    
+    supervisor = models.CharField(
+        max_length=150,
+        blank=True,
+        null=True,
+        verbose_name='Supervisor'
+    )
+    
+    telefono_referencia = models.CharField(
+        max_length=15,
+        blank=True,
+        null=True,
+        verbose_name='Teléfono de Referencia'
+    )
+    
+    observaciones = models.TextField(
+        blank=True,
+        null=True,
+        verbose_name='Observaciones'
+    )
+    
+    # Metadatos
+    fecha_creacion = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name='Fecha de Creación'
+    )
+    
+    fecha_actualizacion = models.DateTimeField(
+        auto_now=True,
+        verbose_name='Fecha de Actualización'
+    )
+    
+    class Meta:
+        verbose_name = 'Experiencia Laboral'
+        verbose_name_plural = 'Experiencias Laborales'
+        ordering = ['-fecha_inicio']
+        indexes = [
+            models.Index(fields=['cv']),
+            models.Index(fields=['tipo_experiencia']),
+            models.Index(fields=['fecha_inicio']),
+        ]
+    
+    def __str__(self):
+        return f"{self.cv.persona.nombre_completo} - {self.cargo} en {self.nombre_entidad}"
+    
+    @property
+    def duracion_meses(self):
+        """Calcula la duración en meses"""
+        if self.fecha_fin:
+            delta = self.fecha_fin - self.fecha_inicio
+            return delta.days // 30
+        else:
+            from django.utils import timezone
+            delta = timezone.now().date() - self.fecha_inicio
+            return delta.days // 30
+    
+    @property
+    def esta_activa(self):
+        """Verifica si la experiencia está activa (sin fecha de fin)"""
+        return self.fecha_fin is None
+    
+    def clean(self):
+        """Validaciones del modelo"""
+        from django.core.exceptions import ValidationError
+        
+        # Validar fechas
+        if self.fecha_fin and self.fecha_fin <= self.fecha_inicio:
+            raise ValidationError({
+                'fecha_fin': 'La fecha de fin debe ser posterior a la fecha de inicio.'
+            })
+    
+    def save(self, *args, **kwargs):
+        self.clean()
+        super().save(*args, **kwargs)
+
+
+class PerfilAcceso(models.Model):
+    """
+    Permisos de acceso al sistema por módulo de menú (independiente de Persona).
+    """
+
+    user = models.OneToOneField(
+        User,
+        on_delete=models.CASCADE,
+        related_name='perfil_acceso',
+        verbose_name='Usuario',
+    )
+    es_administrador = models.BooleanField(
+        default=False,
+        verbose_name='Administrador',
+    )
+    modulos = models.JSONField(
+        default=list,
+        blank=True,
+        verbose_name='Módulos permitidos',
+        help_text='Lista de claves de módulo (ej. inicio, colaboradores).',
+    )
+
+    class Meta:
+        verbose_name = 'Perfil de acceso'
+        verbose_name_plural = 'Perfiles de acceso'
+
+    def __str__(self):
+        rol = 'Administrador' if self.es_administrador else 'Usuario'
+        return f'{self.user.username} ({rol})'

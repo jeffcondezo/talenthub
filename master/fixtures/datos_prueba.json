@@ -1,0 +1,547 @@
+[
+  {
+    "model": "master.persona",
+    "pk": 1,
+    "fields": {
+      "nombres": "Juan Carlos",
+      "apellido_paterno": "García",
+      "apellido_materno": "López",
+      "tipo_documento": "DNI",
+      "numero_documento": "12345678",
+      "fecha_nacimiento": "1990-05-15",
+      "sexo": "M",
+      "estado_civil": "S",
+      "email": "juan.garcia@email.com",
+      "celular": "987654321",
+      "direccion": "Av. Principal 123",
+      "distrito": "Miraflores",
+      "provincia": "Lima",
+      "departamento": "Lima",
+    }
+  },
+  {
+    "model": "master.persona",
+    "pk": 2,
+    "fields": {
+      "nombres": "María Elena",
+      "apellido_paterno": "Rodríguez",
+      "apellido_materno": "Silva",
+      "tipo_documento": "DNI",
+      "numero_documento": "87654321",
+      "fecha_nacimiento": "1988-12-03",
+      "sexo": "F",
+      "estado_civil": "C",
+      "email": "maria.rodriguez@email.com",
+      "celular": "912345678",
+      "direccion": "Jr. Los Olivos 456",
+      "distrito": "San Isidro",
+      "provincia": "Lima",
+      "departamento": "Lima",
+      "fecha_creacion": "2024-01-16T14:20:00Z",
+      "fecha_actualizacion": "2024-01-16T14:20:00Z"
+    }
+  },
+  {
+    "model": "master.persona",
+    "pk": 3,
+    "fields": {
+      "nombres": "Carlos Alberto",
+      "apellido_paterno": "Mendoza",
+      "apellido_materno": "Vega",
+      "tipo_documento": "DNI",
+      "numero_documento": "11223344",
+      "fecha_nacimiento": "1992-08-22",
+      "sexo": "M",
+      "estado_civil": "S",
+      "email": "carlos.mendoza@email.com",
+      "celular": "955667788",
+      "direccion": "Av. Universitaria 789",
+      "distrito": "La Molina",
+      "provincia": "Lima",
+      "departamento": "Lima",
+      "fecha_creacion": "2024-01-17T09:15:00Z",
+      "fecha_actualizacion": "2024-01-17T09:15:00Z"
+    }
+  },
+  {
+    "model": "master.persona",
+    "pk": 4,
+    "fields": {
+      "nombres": "Ana Patricia",
+      "apellido_paterno": "Torres",
+      "apellido_materno": "Herrera",
+      "tipo_documento": "DNI",
+      "numero_documento": "55667788",
+      "fecha_nacimiento": "1985-03-10",
+      "sexo": "F",
+      "estado_civil": "D",
+      "email": "ana.torres@email.com",
+      "celular": "933445566",
+      "direccion": "Calle Las Flores 321",
+      "distrito": "Surco",
+      "provincia": "Lima",
+      "departamento": "Lima",
+      "fecha_creacion": "2024-01-18T16:45:00Z",
+      "fecha_actualizacion": "2024-01-18T16:45:00Z"
+    }
+  },
+  {
+    "model": "master.persona",
+    "pk": 5,
+    "fields": {
+      "nombres": "Roberto",
+      "apellido_paterno": "Jiménez",
+      "apellido_materno": "Castro",
+      "tipo_documento": "DNI",
+      "numero_documento": "99887766",
+      "fecha_nacimiento": "1991-11-28",
+      "sexo": "M",
+      "estado_civil": "S",
+      "email": "roberto.jimenez@email.com",
+      "celular": "977889900",
+      "direccion": "Av. Brasil 654",
+      "distrito": "Magdalena",
+      "provincia": "Lima",
+      "departamento": "Lima",
+      "fecha_creacion": "2024-01-19T11:30:00Z",
+      "fecha_actualizacion": "2024-01-19T11:30:00Z"
+    }
+  },
+  {
+    "model": "master.cv",
+    "pk": 1,
+    "fields": {
+      "persona": 1,
+      "resumen_profesional": "Ingeniero de Sistemas con 5 años de experiencia en desarrollo web y aplicaciones móviles. Especializado en Python, Django, React y Node.js. Experiencia en liderazgo de equipos y gestión de proyectos tecnológicos.",
+      "objetivo_profesional": "Busco una posición como Senior Developer donde pueda aplicar mis conocimientos técnicos y liderar equipos de desarrollo para crear soluciones innovadoras.",
+      "telefono_profesional": "987654321",
+      "email_profesional": "juan.garcia@email.com",
+      "linkedin": "https://linkedin.com/in/juan-garcia-dev",
+      "portfolio": "https://juangarcia.dev",
+      "cv_archivo": "",
+      "foto_perfil": "",
+      "fecha_creacion": "2024-01-15T10:35:00Z",
+      "fecha_actualizacion": "2024-01-15T10:35:00Z"
+    }
+  },
+  {
+    "model": "master.cv",
+    "pk": 2,
+    "fields": {
+      "persona": 2,
+      "resumen_profesional": "Marketing Digital con 7 años de experiencia en estrategias de contenido, SEO, SEM y redes sociales. Experiencia en e-commerce y análisis de datos. Certificada en Google Analytics y Facebook Ads.",
+      "objetivo_profesional": "Desarrollar estrategias de marketing digital innovadoras que impulsen el crecimiento de la empresa y mejoren la experiencia del cliente.",
+      "telefono_profesional": "912345678",
+      "email_profesional": "maria.rodriguez@email.com",
+      "linkedin": "https://linkedin.com/in/maria-rodriguez-marketing",
+      "portfolio": "https://mariarodriguez-marketing.com",
+      "cv_archivo": "",
+      "foto_perfil": "",
+      "fecha_creacion": "2024-01-16T14:25:00Z",
+      "fecha_actualizacion": "2024-01-16T14:25:00Z"
+    }
+  },
+  {
+    "model": "master.cv",
+    "pk": 3,
+    "fields": {
+      "persona": 3,
+      "resumen_profesional": "Contador Público con 4 años de experiencia en auditoría, contabilidad general y análisis financiero. Conocimientos en SAP, Excel avanzado y normativas contables peruanas e internacionales.",
+      "objetivo_profesional": "Contribuir al crecimiento financiero de la empresa mediante análisis precisos y estrategias contables eficientes.",
+      "telefono_profesional": "955667788",
+      "email_profesional": "carlos.mendoza@email.com",
+      "linkedin": "https://linkedin.com/in/carlos-mendoza-contador",
+      "portfolio": "",
+      "cv_archivo": "",
+      "foto_perfil": "",
+      "fecha_creacion": "2024-01-17T09:20:00Z",
+      "fecha_actualizacion": "2024-01-17T09:20:00Z"
+    }
+  },
+  {
+    "model": "master.cv",
+    "pk": 4,
+    "fields": {
+      "persona": 4,
+      "resumen_profesional": "Diseñadora Gráfica con 6 años de experiencia en branding, diseño web y marketing visual. Especializada en Adobe Creative Suite, Figma y diseño UX/UI. Experiencia en agencias y empresas corporativas.",
+      "objetivo_profesional": "Crear diseños impactantes que comuniquen efectivamente la identidad de marca y mejoren la experiencia del usuario.",
+      "telefono_profesional": "933445566",
+      "email_profesional": "ana.torres@email.com",
+      "linkedin": "https://linkedin.com/in/ana-torres-diseno",
+      "portfolio": "https://anatorres-design.com",
+      "cv_archivo": "",
+      "foto_perfil": "",
+      "fecha_creacion": "2024-01-18T16:50:00Z",
+      "fecha_actualizacion": "2024-01-18T16:50:00Z"
+    }
+  },
+  {
+    "model": "master.cv",
+    "pk": 5,
+    "fields": {
+      "persona": 5,
+      "resumen_profesional": "Analista de Recursos Humanos con 3 años de experiencia en reclutamiento, selección y desarrollo de talento. Conocimientos en psicología organizacional, evaluación de competencias y sistemas de gestión de RRHH.",
+      "objetivo_profesional": "Contribuir al desarrollo del capital humano de la organización mediante estrategias efectivas de gestión de talento.",
+      "telefono_profesional": "977889900",
+      "email_profesional": "roberto.jimenez@email.com",
+      "linkedin": "https://linkedin.com/in/roberto-jimenez-rrhh",
+      "portfolio": "",
+      "cv_archivo": "",
+      "foto_perfil": "",
+      "fecha_creacion": "2024-01-19T11:35:00Z",
+      "fecha_actualizacion": "2024-01-19T11:35:00Z"
+    }
+  },
+  {
+    "model": "master.area",
+    "pk": 1,
+    "fields": {
+      "nombre": "Tecnología",
+      "descripcion": "Área de tecnología e informática",
+      "activo": true,
+      "fecha_creacion": "2024-01-20T09:00:00Z"
+    }
+  },
+  {
+    "model": "master.area",
+    "pk": 2,
+    "fields": {
+      "nombre": "Marketing",
+      "descripcion": "Área de marketing y comunicaciones",
+      "activo": true,
+      "fecha_creacion": "2024-01-20T09:00:00Z"
+    }
+  },
+  {
+    "model": "master.area",
+    "pk": 3,
+    "fields": {
+      "nombre": "Finanzas",
+      "descripcion": "Área de finanzas y contabilidad",
+      "activo": true,
+      "fecha_creacion": "2024-01-20T09:00:00Z"
+    }
+  },
+  {
+    "model": "master.cargo",
+    "pk": 1,
+    "fields": {
+      "area": 1,
+      "nombre": "Desarrollador Full Stack Senior",
+      "descripcion": "Desarrollador con experiencia en frontend y backend",
+      "nivel": "Senior",
+      "activo": true,
+      "fecha_creacion": "2024-01-20T09:00:00Z"
+    }
+  },
+  {
+    "model": "master.cargo",
+    "pk": 2,
+    "fields": {
+      "area": 2,
+      "nombre": "Especialista en Marketing Digital",
+      "descripcion": "Especialista en estrategias de marketing digital",
+      "nivel": "Especialista",
+      "activo": true,
+      "fecha_creacion": "2024-01-20T09:00:00Z"
+    }
+  },
+  {
+    "model": "master.cargo",
+    "pk": 3,
+    "fields": {
+      "area": 3,
+      "nombre": "Contador Senior",
+      "descripcion": "Contador con experiencia en contabilidad general",
+      "nivel": "Senior",
+      "activo": true,
+      "fecha_creacion": "2024-01-20T09:00:00Z"
+    }
+  },
+  {
+    "model": "master.convocatoria",
+    "pk": 1,
+    "fields": {
+      "titulo": "Desarrollador Full Stack Senior",
+      "descripcion": "Buscamos un desarrollador full stack con experiencia en Python, Django, React y bases de datos. Responsable de desarrollar y mantener aplicaciones web escalables.",
+      "cargo": 1,
+      "fecha_apertura": "2024-02-01T00:00:00Z",
+      "fecha_cierre": "2024-02-28T23:59:59Z",
+      "fecha_inicio_trabajo": "2024-03-01",
+      "estado": "PUBLICADA",
+      "tipo": "EXTERNA",
+      "requisitos_minimos": "Ingeniería de Sistemas o afín, 5+ años de experiencia, conocimientos en Python, Django, React, PostgreSQL, Git",
+      "requisitos_deseables": "Experiencia en liderazgo de equipos, conocimientos en Docker, AWS, metodologías ágiles",
+      "experiencia_minima": 5,
+      "numero_vacantes": 1,
+      "salario_ofrecido": 6500.00,
+      "modalidad_trabajo": "Presencial",
+      "ubicacion": "Lima, Perú"
+    }
+  },
+  {
+    "model": "master.convocatoria",
+    "pk": 2,
+    "fields": {
+      "titulo": "Especialista en Marketing Digital",
+      "descripcion": "Necesitamos un especialista en marketing digital para liderar nuestras estrategias online y mejorar nuestra presencia digital.",
+      "cargo": 2,
+      "fecha_apertura": "2024-02-15T00:00:00Z",
+      "fecha_cierre": "2024-03-15T23:59:59Z",
+      "fecha_inicio_trabajo": "2024-04-01",
+      "estado": "PUBLICADA",
+      "tipo": "EXTERNA",
+      "requisitos_minimos": "Marketing, Comunicaciones o afín, 3+ años de experiencia, conocimientos en Google Analytics, Facebook Ads, SEO, SEM",
+      "requisitos_deseables": "Certificaciones en Google Analytics, Facebook Blueprint, experiencia en e-commerce",
+      "experiencia_minima": 3,
+      "numero_vacantes": 1,
+      "salario_ofrecido": 4500.00,
+      "modalidad_trabajo": "Híbrido",
+      "ubicacion": "Lima, Perú"
+    }
+  },
+  {
+    "model": "master.convocatoria",
+    "pk": 3,
+    "fields": {
+      "titulo": "Contador Senior",
+      "descripcion": "Buscamos un contador senior para manejar la contabilidad general de la empresa y supervisar el equipo contable.",
+      "cargo": 3,
+      "fecha_apertura": "2024-03-01T00:00:00Z",
+      "fecha_cierre": "2024-03-31T23:59:59Z",
+      "fecha_inicio_trabajo": "2024-04-15",
+      "estado": "PUBLICADA",
+      "tipo": "EXTERNA",
+      "requisitos_minimos": "Contabilidad o afín, 4+ años de experiencia, conocimientos en SAP, Excel avanzado, normativas contables",
+      "requisitos_deseables": "Certificación CPA, experiencia en auditoría, conocimientos en IFRS",
+      "experiencia_minima": 4,
+      "numero_vacantes": 1,
+      "salario_ofrecido": 5000.00,
+      "modalidad_trabajo": "Presencial",
+      "ubicacion": "Lima, Perú"
+    }
+  },
+  {
+    "model": "master.postulacion",
+    "pk": 1,
+    "fields": {
+      "persona": 1,
+      "convocatoria": 1,
+      "fecha_postulacion": "2024-01-25T10:00:00Z",
+      "estado": "P",
+      "observaciones": "Candidato con excelente perfil técnico y experiencia relevante",
+      "fecha_creacion": "2024-01-25T10:00:00Z",
+      "fecha_actualizacion": "2024-01-25T10:00:00Z"
+    }
+  },
+  {
+    "model": "master.postulacion",
+    "pk": 2,
+    "fields": {
+      "persona": 1,
+      "convocatoria": 2,
+      "fecha_postulacion": "2024-01-26T14:30:00Z",
+      "estado": "E",
+      "observaciones": "Interesado en transición a marketing digital",
+      "fecha_creacion": "2024-01-26T14:30:00Z",
+      "fecha_actualizacion": "2024-01-26T14:30:00Z"
+    }
+  },
+  {
+    "model": "master.postulacion",
+    "pk": 3,
+    "fields": {
+      "persona": 2,
+      "convocatoria": 2,
+      "fecha_postulacion": "2024-01-27T09:15:00Z",
+      "estado": "A",
+      "observaciones": "Perfil ideal para la posición, experiencia sólida en marketing digital",
+      "fecha_creacion": "2024-01-27T09:15:00Z",
+      "fecha_actualizacion": "2024-01-27T09:15:00Z"
+    }
+  },
+  {
+    "model": "master.postulacion",
+    "pk": 4,
+    "fields": {
+      "persona": 3,
+      "convocatoria": 3,
+      "fecha_postulacion": "2024-01-28T11:45:00Z",
+      "estado": "P",
+      "observaciones": "Contador con experiencia sólida y conocimientos actualizados",
+      "fecha_creacion": "2024-01-28T11:45:00Z",
+      "fecha_actualizacion": "2024-01-28T11:45:00Z"
+    }
+  },
+  {
+    "model": "master.postulacion",
+    "pk": 5,
+    "fields": {
+      "persona": 4,
+      "convocatoria": 1,
+      "fecha_postulacion": "2024-01-29T16:20:00Z",
+      "estado": "E",
+      "observaciones": "Diseñadora interesada en desarrollo frontend",
+      "fecha_creacion": "2024-01-29T16:20:00Z",
+      "fecha_actualizacion": "2024-01-29T16:20:00Z"
+    }
+  },
+  {
+    "model": "master.postulacion",
+    "pk": 6,
+    "fields": {
+      "persona": 5,
+      "convocatoria": 2,
+      "fecha_postulacion": "2024-01-30T13:10:00Z",
+      "estado": "P",
+      "observaciones": "Analista de RRHH con interés en marketing digital",
+      "fecha_creacion": "2024-01-30T13:10:00Z",
+      "fecha_actualizacion": "2024-01-30T13:10:00Z"
+    }
+  },
+  {
+    "model": "master.formacionacademica",
+    "pk": 1,
+    "fields": {
+      "cv": 1,
+      "institucion": "Universidad Nacional de Ingeniería",
+      "titulo": "Ingeniero de Sistemas",
+      "fecha_inicio": "2008-03-01",
+      "fecha_fin": "2013-12-15",
+      "estado": "C",
+      "descripcion": "Carrera de Ingeniería de Sistemas con especialización en desarrollo de software",
+      "fecha_creacion": "2024-01-15T10:40:00Z",
+      "fecha_actualizacion": "2024-01-15T10:40:00Z"
+    }
+  },
+  {
+    "model": "master.formacionacademica",
+    "pk": 2,
+    "fields": {
+      "cv": 2,
+      "institucion": "Universidad de Lima",
+      "titulo": "Licenciada en Marketing",
+      "fecha_inicio": "2006-03-01",
+      "fecha_fin": "2011-12-15",
+      "estado": "C",
+      "descripcion": "Carrera de Marketing con enfoque en marketing digital y análisis de mercado",
+      "fecha_creacion": "2024-01-16T14:30:00Z",
+      "fecha_actualizacion": "2024-01-16T14:30:00Z"
+    }
+  },
+  {
+    "model": "master.formacionacademica",
+    "pk": 3,
+    "fields": {
+      "cv": 3,
+      "institucion": "Universidad del Pacífico",
+      "titulo": "Contador Público",
+      "fecha_inicio": "2009-03-01",
+      "fecha_fin": "2014-12-15",
+      "estado": "C",
+      "descripcion": "Carrera de Contabilidad con especialización en auditoría y finanzas",
+      "fecha_creacion": "2024-01-17T09:25:00Z",
+      "fecha_actualizacion": "2024-01-17T09:25:00Z"
+    }
+  },
+  {
+    "model": "master.formacionacademica",
+    "pk": 4,
+    "fields": {
+      "cv": 4,
+      "institucion": "Instituto Superior Tecnológico Toulouse Lautrec",
+      "titulo": "Diseñadora Gráfica",
+      "fecha_inicio": "2007-03-01",
+      "fecha_fin": "2010-12-15",
+      "estado": "C",
+      "descripcion": "Carrera de Diseño Gráfico con especialización en branding y diseño web",
+      "fecha_creacion": "2024-01-18T16:55:00Z",
+      "fecha_actualizacion": "2024-01-18T16:55:00Z"
+    }
+  },
+  {
+    "model": "master.formacionacademica",
+    "pk": 5,
+    "fields": {
+      "cv": 5,
+      "institucion": "Universidad San Martín de Porres",
+      "titulo": "Psicólogo Organizacional",
+      "fecha_inicio": "2008-03-01",
+      "fecha_fin": "2013-12-15",
+      "estado": "C",
+      "descripcion": "Carrera de Psicología con especialización en psicología organizacional y recursos humanos",
+      "fecha_creacion": "2024-01-19T11:40:00Z",
+      "fecha_actualizacion": "2024-01-19T11:40:00Z"
+    }
+  },
+  {
+    "model": "master.experiencialaboral",
+    "pk": 1,
+    "fields": {
+      "cv": 1,
+      "empresa": "TechCorp Solutions",
+      "cargo": "Desarrollador Full Stack",
+      "fecha_inicio": "2019-01-15",
+      "fecha_fin": "2024-01-10",
+      "descripcion": "Desarrollo de aplicaciones web usando Python, Django, React y PostgreSQL. Liderazgo de equipo de 3 desarrolladores.",
+      "fecha_creacion": "2024-01-15T10:45:00Z",
+      "fecha_actualizacion": "2024-01-15T10:45:00Z"
+    }
+  },
+  {
+    "model": "master.experiencialaboral",
+    "pk": 2,
+    "fields": {
+      "cv": 2,
+      "empresa": "Digital Marketing Agency",
+      "cargo": "Especialista en Marketing Digital",
+      "fecha_inicio": "2017-06-01",
+      "fecha_fin": "2024-01-05",
+      "descripcion": "Desarrollo de estrategias de marketing digital, gestión de campañas publicitarias y análisis de métricas para clientes B2B y B2C.",
+      "fecha_creacion": "2024-01-16T14:35:00Z",
+      "fecha_actualizacion": "2024-01-16T14:35:00Z"
+    }
+  },
+  {
+    "model": "master.experiencialaboral",
+    "pk": 3,
+    "fields": {
+      "cv": 3,
+      "empresa": "Auditores Asociados",
+      "cargo": "Contador Senior",
+      "fecha_inicio": "2020-03-01",
+      "fecha_fin": "2024-01-12",
+      "descripcion": "Supervisión de procesos contables, preparación de estados financieros y coordinación con equipos de auditoría.",
+      "fecha_creacion": "2024-01-17T09:30:00Z",
+      "fecha_actualizacion": "2024-01-17T09:30:00Z"
+    }
+  },
+  {
+    "model": "master.experiencialaboral",
+    "pk": 4,
+    "fields": {
+      "cv": 4,
+      "empresa": "Creative Studio",
+      "cargo": "Diseñadora Gráfica Senior",
+      "fecha_inicio": "2018-08-01",
+      "fecha_fin": "2024-01-08",
+      "descripcion": "Desarrollo de identidades corporativas, diseño web y materiales de marketing para empresas de diversos sectores.",
+      "fecha_creacion": "2024-01-18T17:00:00Z",
+      "fecha_actualizacion": "2024-01-18T17:00:00Z"
+    }
+  },
+  {
+    "model": "master.experiencialaboral",
+    "pk": 5,
+    "fields": {
+      "cv": 5,
+      "empresa": "Recursos Humanos Plus",
+      "cargo": "Analista de RRHH",
+      "fecha_inicio": "2021-02-01",
+      "fecha_fin": "2024-01-15",
+      "descripcion": "Reclutamiento y selección de personal, evaluación de competencias y desarrollo de programas de capacitación.",
+      "fecha_creacion": "2024-01-19T11:45:00Z",
+      "fecha_actualizacion": "2024-01-19T11:45:00Z"
+    }
+  }
+]

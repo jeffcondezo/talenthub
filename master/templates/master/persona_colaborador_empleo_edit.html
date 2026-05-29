@@ -1,0 +1,98 @@
+{% extends 'master/includes/base.html' %}
+{% load static %}
+
+{% block title %}Editar Datos de Empleo{% endblock %}
+
+{% block content %}
+<div class="container-fluid persona-edit-page">
+    <div class="d-flex align-items-center justify-content-between mb-4 pb-3 border-bottom">
+        <div class="d-flex align-items-center">
+            <div class="icon-shape-avatar bg-teal-light text-teal mr-3">
+                {{ persona.nombres|slice:":1" }}{{ persona.apellido_paterno|slice:":1" }}
+            </div>
+            <div>
+                <h3 class="font-weight-800 mb-0 persona-edit-title">
+                    {{ persona.nombres }} {{ persona.apellido_paterno }} {{ persona.apellido_materno }}
+                </h3>
+                <div class="d-flex align-items-center mt-1 flex-wrap">
+                    <span class="badge-soft-dark mr-2">
+                        <i class="fal fa-user-tie mr-1"></i> Datos de Empleo
+                    </span>
+                    <span class="badge-soft-teal">
+                        <i class="fal fa-edit mr-1"></i> Modo edición
+                    </span>
+                </div>
+            </div>
+        </div>
+        <div class="d-flex align-items-center">
+            <a href="{% url 'master:persona_detail' persona.id %}" class="btn btn-outline-secondary btn-pills shadow-sm px-4 py-2 font-weight-bold mr-2">
+                <i class="fal fa-times mr-2"></i> Cancelar
+            </a>
+            <button type="submit" form="empleoForm" class="btn btn-teal btn-pills shadow-sm px-4 py-2 font-weight-bold">
+                <i class="fal fa-save mr-2"></i> Guardar cambios
+            </button>
+        </div>
+    </div>
+
+    <form method="post" id="empleoForm">
+        {% csrf_token %}
+        <div class="panel-talent mb-4" style="background: linear-gradient(135deg, #f0fdfa 0%, #e6fffa 100%); border: 1px solid #b2f5ea;">
+            <h6 class="section-title-talent text-teal mb-3">
+                <i class="fal fa-briefcase mr-2"></i> Información Laboral
+            </h6>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="{{ form.cargo.id_for_label }}" class="form-label">{{ form.cargo.label }}</label>
+                        {{ form.cargo }}
+                        {% if form.cargo.errors %}
+                        <div class="text-danger">{% for e in form.cargo.errors %}<small>{{ e }}</small>{% endfor %}</div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="{{ form.fecha_ingreso.id_for_label }}" class="form-label">{{ form.fecha_ingreso.label }}</label>
+                        {{ form.fecha_ingreso }}
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label for="{{ form.estado_laboral.id_for_label }}" class="form-label">{{ form.estado_laboral.label }}</label>
+                        {{ form.estado_laboral }}
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label for="{{ form.tipo_contrato.id_for_label }}" class="form-label">{{ form.tipo_contrato.label }}</label>
+                        {{ form.tipo_contrato }}
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label for="{{ form.salario.id_for_label }}" class="form-label">{{ form.salario.label }}</label>
+                        {{ form.salario }}
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="{{ form.numero_empleado.id_for_label }}" class="form-label">{{ form.numero_empleado.label }}</label>
+                        {{ form.numero_empleado }}
+                        {% if form.numero_empleado.errors %}
+                        <div class="text-danger">{% for e in form.numero_empleado.errors %}<small>{{ e }}</small>{% endfor %}</div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="{{ form.supervisor.id_for_label }}" class="form-label">{{ form.supervisor.label }}</label>
+                        {{ form.supervisor }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+{% include 'master/includes/persona_edit_styles.html' %}
+{% endblock %}

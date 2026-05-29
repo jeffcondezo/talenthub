@@ -1,0 +1,224 @@
+<form method="post" id="createConvocatoriaForm">
+    {% csrf_token %}
+    
+    <!-- Información Principal -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h5 class="text-custom-primary mb-3">
+                <i class="fal fa-info-circle icon-custom-primary"></i>
+                Información Principal
+            </h5>
+        </div>
+        <div class="col-md-8">
+            <div class="form-group">
+                <label for="{{ form.titulo.id_for_label }}" class="form-label font-weight-bold">Título de la Convocatoria *</label>
+                {{ form.titulo }}
+                {% if form.titulo.errors %}
+                    <div class="text-danger">{{ form.titulo.errors.0 }}</div>
+                {% endif %}
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="form-group">
+                <label for="{{ form.cargo.id_for_label }}" class="form-label font-weight-bold">Cargo *</label>
+                {{ form.cargo }}
+                {% if form.cargo.errors %}
+                    <div class="text-danger">{{ form.cargo.errors.0 }}</div>
+                {% endif %}
+            </div>
+        </div>
+        <div class="col-12">
+            <div class="form-group">
+                <label for="{{ form.descripcion.id_for_label }}" class="form-label font-weight-bold">Descripción del Puesto *</label>
+                {{ form.descripcion }}
+                {% if form.descripcion.errors %}
+                    <div class="text-danger">{{ form.descripcion.errors.0 }}</div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Fechas y Estado -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h5 class="text-custom-primary mb-3">
+                <i class="fal fa-calendar icon-custom-primary"></i>
+                Fechas y Estado
+            </h5>
+        </div>
+        <div class="col-md-4">
+            <div class="form-group">
+                <label for="{{ form.fecha_apertura.id_for_label }}" class="form-label font-weight-bold">Fecha de Apertura *</label>
+                {{ form.fecha_apertura }}
+                {% if form.fecha_apertura.errors %}
+                    <div class="text-danger">{{ form.fecha_apertura.errors.0 }}</div>
+                {% endif %}
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="form-group">
+                <label for="{{ form.fecha_cierre.id_for_label }}" class="form-label font-weight-bold">Fecha de Cierre *</label>
+                {{ form.fecha_cierre }}
+                {% if form.fecha_cierre.errors %}
+                    <div class="text-danger">{{ form.fecha_cierre.errors.0 }}</div>
+                {% endif %}
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="form-group">
+                <label for="{{ form.fecha_inicio_trabajo.id_for_label }}" class="form-label font-weight-bold">Fecha de Inicio de Trabajo</label>
+                {{ form.fecha_inicio_trabajo }}
+                {% if form.fecha_inicio_trabajo.errors %}
+                    <div class="text-danger">{{ form.fecha_inicio_trabajo.errors.0 }}</div>
+                {% endif %}
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="form-group">
+                <label for="{{ form.estado.id_for_label }}" class="form-label font-weight-bold">Estado *</label>
+                {{ form.estado }}
+                {% if form.estado.errors %}
+                    <div class="text-danger">{{ form.estado.errors.0 }}</div>
+                {% endif %}
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="form-group">
+                <label for="{{ form.tipo.id_for_label }}" class="form-label font-weight-bold">Tipo de Convocatoria *</label>
+                {{ form.tipo }}
+                {% if form.tipo.errors %}
+                    <div class="text-danger">{{ form.tipo.errors.0 }}</div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Campo condicional para empresa externa -->
+    <div class="row mb-4" id="empresa-externa-row" style="display: none;">
+        <div class="col-md-6">
+            <div class="form-group">
+                <label for="{{ form.nombre_empresa_externa.id_for_label }}" class="form-label font-weight-bold">Nombre de la Empresa Externa</label>
+                {{ form.nombre_empresa_externa }}
+                <small class="form-text text-muted">Solo para convocatorias de tipo Externa o Mixta</small>
+                {% if form.nombre_empresa_externa.errors %}
+                    <div class="text-danger">{{ form.nombre_empresa_externa.errors.0 }}</div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Detalles del Puesto -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h5 class="text-custom-primary mb-3">
+                <i class="fal fa-briefcase icon-custom-primary"></i>
+                Detalles del Puesto
+            </h5>
+        </div>
+        <div class="col-md-6">
+            <div class="form-group">
+                <label for="{{ form.numero_vacantes.id_for_label }}" class="form-label font-weight-bold">Número de Vacantes *</label>
+                {{ form.numero_vacantes }}
+                {% if form.numero_vacantes.errors %}
+                    <div class="text-danger">{{ form.numero_vacantes.errors.0 }}</div>
+                {% endif %}
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="form-group">
+                <label for="{{ form.salario_ofrecido.id_for_label }}" class="form-label font-weight-bold">Salario Ofrecido</label>
+                {{ form.salario_ofrecido }}
+                {% if form.salario_ofrecido.errors %}
+                    <div class="text-danger">{{ form.salario_ofrecido.errors.0 }}</div>
+                {% endif %}
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="form-group">
+                <label for="{{ form.modalidad_trabajo.id_for_label }}" class="form-label font-weight-bold">Modalidad de Trabajo</label>
+                {{ form.modalidad_trabajo }}
+                {% if form.modalidad_trabajo.errors %}
+                    <div class="text-danger">{{ form.modalidad_trabajo.errors.0 }}</div>
+                {% endif %}
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="form-group">
+                <label for="{{ form.ubicacion.id_for_label }}" class="form-label font-weight-bold">Ubicación</label>
+                {{ form.ubicacion }}
+                {% if form.ubicacion.errors %}
+                    <div class="text-danger">{{ form.ubicacion.errors.0 }}</div>
+                {% endif %}
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="form-group">
+                <label for="{{ form.experiencia_minima.id_for_label }}" class="form-label font-weight-bold">Experiencia Mínima (años)</label>
+                {{ form.experiencia_minima }}
+                {% if form.experiencia_minima.errors %}
+                    <div class="text-danger">{{ form.experiencia_minima.errors.0 }}</div>
+                {% endif %}
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="form-group">
+                <label for="{{ form.responsable_rrhh.id_for_label }}" class="form-label font-weight-bold">Responsable RRHH</label>
+                {{ form.responsable_rrhh }}
+                {% if form.responsable_rrhh.errors %}
+                    <div class="text-danger">{{ form.responsable_rrhh.errors.0 }}</div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Requisitos -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h5 class="text-custom-primary mb-3">
+                <i class="fal fa-list-check icon-custom-primary"></i>
+                Requisitos
+            </h5>
+        </div>
+        <div class="col-12">
+            <div class="form-group">
+                <label for="{{ form.requisitos_minimos.id_for_label }}" class="form-label font-weight-bold">Requisitos Mínimos</label>
+                {{ form.requisitos_minimos }}
+                {% if form.requisitos_minimos.errors %}
+                    <div class="text-danger">{{ form.requisitos_minimos.errors.0 }}</div>
+                {% endif %}
+            </div>
+        </div>
+        <div class="col-12">
+            <div class="form-group">
+                <label for="{{ form.requisitos_deseables.id_for_label }}" class="form-label font-weight-bold">Requisitos Deseables</label>
+                {{ form.requisitos_deseables }}
+                {% if form.requisitos_deseables.errors %}
+                    <div class="text-danger">{{ form.requisitos_deseables.errors.0 }}</div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Configuración -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h5 class="text-custom-primary mb-3">
+                <i class="fal fa-cog icon-custom-primary"></i>
+                Configuración
+            </h5>
+        </div>
+        <div class="col-md-6">
+            <div class="form-group">
+                <div class="form-check">
+                    {{ form.activo }}
+                    <label class="form-check-label" for="{{ form.activo.id_for_label }}">
+                        Convocatoria Activa
+                    </label>
+                </div>
+                {% if form.activo.errors %}
+                    <div class="text-danger">{{ form.activo.errors.0 }}</div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</form>

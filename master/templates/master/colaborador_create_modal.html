@@ -1,0 +1,229 @@
+{% load static %}
+<div class="modal fade" id="registrarColaboradorModal" tabindex="-1" role="dialog" aria-labelledby="registrarColaboradorModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="registrarColaboradorModalLabel">
+                    <i class="fal fa-user-plus text-success"></i>
+                    Registrar Colaborador
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <form method="post" id="registrarColaboradorForm" action="{% url 'master:registrar_colaborador' postulacion_id=postulacion.id %}">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <!-- Información del Postulante -->
+                    <div class="row mb-3">
+                        <div class="col-12">
+                            <div class="alert alert-success">
+                                <i class="fal fa-user mr-2"></i>
+                                <strong>Postulante:</strong> {{ persona.nombre_completo }}
+                                <br>
+                                <i class="fal fa-bullhorn mr-2"></i>
+                                <strong>Convocatoria:</strong> {{ convocatoria.titulo }}
+                                <br>
+                                <i class="fal fa-briefcase mr-2"></i>
+                                <strong>Cargo:</strong> {{ convocatoria.cargo.nombre }}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Información Laboral -->
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="{{ form.cargo.id_for_label }}" class="form-label">Cargo *</label>
+                                {{ form.cargo }}
+                                {% if form.cargo.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.cargo.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="{{ form.fecha_ingreso.id_for_label }}" class="form-label">Fecha de Ingreso *</label>
+                                {{ form.fecha_ingreso }}
+                                {% if form.fecha_ingreso.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.fecha_ingreso.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="{{ form.estado_laboral.id_for_label }}" class="form-label">Estado Laboral *</label>
+                                {{ form.estado_laboral }}
+                                {% if form.estado_laboral.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.estado_laboral.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="{{ form.tipo_contrato.id_for_label }}" class="form-label">Tipo de Contrato *</label>
+                                {{ form.tipo_contrato }}
+                                {% if form.tipo_contrato.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.tipo_contrato.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="{{ form.salario.id_for_label }}" class="form-label">Salario</label>
+                                {{ form.salario }}
+                                {% if form.salario.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.salario.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="{{ form.numero_empleado.id_for_label }}" class="form-label">Número de Empleado</label>
+                                {{ form.numero_empleado }}
+                                <small class="form-text text-muted">Si se deja vacío, se generará automáticamente</small>
+                                {% if form.numero_empleado.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.numero_empleado.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="form-group">
+                                <label for="{{ form.supervisor.id_for_label }}" class="form-label">Supervisor</label>
+                                {{ form.supervisor }}
+                                {% if form.supervisor.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.supervisor.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                        <i class="fal fa-times"></i> Cancelar
+                    </button>
+                    <button type="submit" class="btn btn-success">
+                        <i class="fal fa-user-plus"></i> Registrar Colaborador
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Estilos específicos para el modal */
+.modal-header {
+    background: #27AE60;
+    color: white;
+    border-bottom: none;
+}
+
+.modal-header .close {
+    color: white;
+    opacity: 0.8;
+}
+
+.modal-header .close:hover {
+    opacity: 1;
+}
+
+.form-label {
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 0.5rem;
+}
+
+.form-control {
+    border: 1px solid #ced4da;
+    border-radius: 0.375rem;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.form-control:focus {
+    border-color: #27AE60;
+    outline: 0;
+    box-shadow: 0 0 0 0.2rem rgba(39, 174, 96, 0.25);
+}
+
+.text-danger {
+    color: #dc3545 !important;
+}
+
+.btn {
+    border-radius: 0.375rem;
+    font-weight: 500;
+    padding: 0.5rem 1rem;
+    transition: all 0.15s ease-in-out;
+}
+
+.btn-success {
+    background-color: #27AE60;
+    border-color: #27AE60;
+}
+
+.btn-success:hover {
+    background-color: #229954;
+    border-color: #1e8449;
+}
+
+.btn-secondary {
+    background-color: #6c757d;
+    border-color: #6c757d;
+}
+
+.btn-secondary:hover {
+    background-color: #545b62;
+    border-color: #4e555b;
+}
+
+.alert-success {
+    background-color: #d4edda;
+    border-color: #c3e6cb;
+    color: #155724;
+}
+
+.form-text {
+    font-size: 0.75rem;
+    color: #6c757d;
+}
+</style>

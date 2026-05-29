@@ -1,0 +1,1345 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="Detalle del Postulante - TalentHub">
+    <meta name="author" content="TalentHub">
+    <title>{{ persona.nombres }} {{ persona.apellidos }} - TalentHub</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="{% static 'img/favicon/favicon.ico' %}">
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="{% static 'css/vendors.bundle.css' %}">
+    <link rel="stylesheet" href="{% static 'css/app.bundle.css' %}">
+    <link rel="stylesheet" href="{% static 'css/skins/skin-master.css' %}">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="{% static 'css/fa-solid.css' %}">
+    <link rel="stylesheet" href="{% static 'css/fa-regular.css' %}">
+    <link rel="stylesheet" href="{% static 'css/fa-light.css' %}">
+    <link rel="stylesheet" href="{% static 'css/fa-brands.css' %}">
+    <link rel="stylesheet" href="{% static 'css/fa-duotone.css' %}">
+    
+    <!-- Estilos personalizados -->
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .main-container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            margin: 20px auto;
+            max-width: 1200px;
+            overflow: hidden;
+        }
+        
+        .header-section {
+            background: linear-gradient(135deg, #12A58A 0%, #0d8a73 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header-section h1 {
+            margin: 0;
+            font-size: 2.5rem;
+            font-weight: 300;
+        }
+        
+        .header-section p {
+            margin: 10px 0 0 0;
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+        
+        .content-section {
+            padding: 40px;
+        }
+        
+        .section-title {
+            color: #12A58A;
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 25px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e9ecef;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .section-title i {
+            margin-right: 10px;
+            font-size: 1.3rem;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #12A58A 0%, #0d8a73 100%);
+            border: none;
+            border-radius: 8px;
+            padding: 10px 20px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(18, 165, 138, 0.4);
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            border: none;
+            border-radius: 8px;
+            padding: 8px 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-secondary:hover {
+            background: #5a6268;
+            transform: translateY(-1px);
+        }
+        
+        .info-card {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-left: 4px solid #12A58A;
+        }
+        
+        .info-item {
+            display: flex;
+            margin-bottom: 10px;
+        }
+        
+        .info-label {
+            font-weight: 600;
+            color: #495057;
+            min-width: 150px;
+        }
+        
+        .info-value {
+            color: #6c757d;
+        }
+        
+        .cv-section {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid #e9ecef;
+        }
+        
+        .cv-item {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-left: 3px solid #12A58A;
+        }
+        
+        .cv-item h6 {
+            color: #12A58A;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #6c757d;
+        }
+        
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            color: #dee2e6;
+        }
+        
+        .text-muted {
+            color: #6c757d !important;
+            font-style: italic;
+        }
+        
+        .datos-container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .datos-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .datos-table tr {
+            border-bottom: 1px solid #e9ecef;
+            transition: background-color 0.2s ease;
+        }
+        
+        .datos-table tr:last-child {
+            border-bottom: none;
+        }
+        
+        .datos-table tr:hover {
+            background-color: #f8f9fa;
+        }
+        
+        .datos-table td {
+            padding: 15px 20px;
+            vertical-align: top;
+        }
+        
+        .dato-label {
+            font-weight: 700;
+            color: #495057;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            width: 200px;
+            min-width: 200px;
+        }
+        
+        .dato-value {
+            color: #212529;
+            font-size: 1.1rem;
+            font-weight: 500;
+            line-height: 1.4;
+        }
+        
+        .dato-value .text-muted {
+            color: #6c757d !important;
+            font-style: italic;
+            font-weight: 400;
+        }
+        
+        /* Estilos específicos para tablas de CV */
+        .cv-section {
+            overflow-x: auto;
+            margin-bottom: 30px;
+        }
+        
+        .datos-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        /* Ancho mínimo específico para cada tipo de tabla */
+        .cv-section:first-of-type .datos-table { min-width: 800px; } /* Formación Académica */
+        .cv-section:nth-of-type(2) .datos-table { min-width: 900px; } /* Cursos de Especialización */
+        .cv-section:nth-of-type(3) .datos-table { min-width: 850px; } /* Experiencia Laboral */
+        
+        .datos-table th {
+            background-color: #f8f9fa;
+            font-weight: 700;
+            color: #495057;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 10px 8px;
+            border-bottom: 2px solid #dee2e6;
+            text-align: left;
+            white-space: nowrap;
+        }
+        
+        .datos-table td {
+            padding: 10px 8px;
+            vertical-align: middle;
+            border-bottom: 1px solid #e9ecef;
+            font-size: 0.9rem;
+        }
+        
+        .datos-table tbody tr:hover {
+            background-color: #f8f9fa;
+        }
+        
+        .datos-table .btn-sm {
+            padding: 3px 6px;
+            font-size: 0.75rem;
+            margin: 0 1px;
+        }
+        
+        /* Columnas específicas con ancho fijo para Formación Académica */
+        .cv-section:first-of-type .datos-table th:nth-child(1), .cv-section:first-of-type .datos-table td:nth-child(1) { width: 120px; } /* Grado */
+        .cv-section:first-of-type .datos-table th:nth-child(2), .cv-section:first-of-type .datos-table td:nth-child(2) { width: 180px; } /* Especialidad */
+        .cv-section:first-of-type .datos-table th:nth-child(3), .cv-section:first-of-type .datos-table td:nth-child(3) { width: 150px; } /* Centro */
+        .cv-section:first-of-type .datos-table th:nth-child(4), .cv-section:first-of-type .datos-table td:nth-child(4) { width: 120px; } /* Ubicación */
+        .cv-section:first-of-type .datos-table th:nth-child(5), .cv-section:first-of-type .datos-table td:nth-child(5) { width: 100px; } /* Período */
+        .cv-section:first-of-type .datos-table th:nth-child(6), .cv-section:first-of-type .datos-table td:nth-child(6) { width: 80px; }  /* Promedio */
+        .cv-section:first-of-type .datos-table th:nth-child(7), .cv-section:first-of-type .datos-table td:nth-child(7) { width: 100px; } /* Acciones */
+        
+        /* Columnas específicas con ancho fijo para Cursos de Especialización */
+        .cv-section:nth-of-type(2) .datos-table th:nth-child(1), .cv-section:nth-of-type(2) .datos-table td:nth-child(1) { width: 100px; } /* Tipo */
+        .cv-section:nth-of-type(2) .datos-table th:nth-child(2), .cv-section:nth-of-type(2) .datos-table td:nth-child(2) { width: 180px; } /* Descripción */
+        .cv-section:nth-of-type(2) .datos-table th:nth-child(3), .cv-section:nth-of-type(2) .datos-table td:nth-child(3) { width: 150px; } /* Institución */
+        .cv-section:nth-of-type(2) .datos-table th:nth-child(4), .cv-section:nth-of-type(2) .datos-table td:nth-child(4) { width: 120px; } /* Ubicación */
+        .cv-section:nth-of-type(2) .datos-table th:nth-child(5), .cv-section:nth-of-type(2) .datos-table td:nth-child(5) { width: 100px; } /* Período */
+        .cv-section:nth-of-type(2) .datos-table th:nth-child(6), .cv-section:nth-of-type(2) .datos-table td:nth-child(6) { width: 80px; }  /* Nivel */
+        .cv-section:nth-of-type(2) .datos-table th:nth-child(7), .cv-section:nth-of-type(2) .datos-table td:nth-child(7) { width: 100px; } /* Certificado */
+        .cv-section:nth-of-type(2) .datos-table th:nth-child(8), .cv-section:nth-of-type(2) .datos-table td:nth-child(8) { width: 100px; } /* Acciones */
+        
+        /* Columnas específicas con ancho fijo para Experiencia Laboral */
+        .cv-section:nth-of-type(3) .datos-table th:nth-child(1), .cv-section:nth-of-type(3) .datos-table td:nth-child(1) { width: 150px; } /* Cargo */
+        .cv-section:nth-of-type(3) .datos-table th:nth-child(2), .cv-section:nth-of-type(3) .datos-table td:nth-child(2) { width: 150px; } /* Entidad */
+        .cv-section:nth-of-type(3) .datos-table th:nth-child(3), .cv-section:nth-of-type(3) .datos-table td:nth-child(3) { width: 100px; } /* Tipo */
+        .cv-section:nth-of-type(3) .datos-table th:nth-child(4), .cv-section:nth-of-type(3) .datos-table td:nth-child(4) { width: 120px; } /* Período */
+        .cv-section:nth-of-type(3) .datos-table th:nth-child(5), .cv-section:nth-of-type(3) .datos-table td:nth-child(5) { width: 100px; } /* Salario */
+        .cv-section:nth-of-type(3) .datos-table th:nth-child(6), .cv-section:nth-of-type(3) .datos-table td:nth-child(6) { width: 120px; } /* Motivo Salida */
+        .cv-section:nth-of-type(3) .datos-table th:nth-child(7), .cv-section:nth-of-type(3) .datos-table td:nth-child(7) { width: 100px; } /* Acciones */
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="main-container">
+            <!-- Header -->
+            <div class="header-section">
+                <h1><i class="fal fa-user"></i> {{ persona.nombres }} {{ persona.apellido_paterno }} {{ persona.apellido_materno }}</h1>
+                <p>Perfil del Postulante</p>
+            </div>
+            
+            <!-- Content Section -->
+            <div class="content-section">
+                {% csrf_token %}
+                
+                <!-- Datos Personales -->
+                <div class="datos-container">
+                    <h3 class="section-title">
+                        <span><i class="fal fa-user"></i> Datos Personales</span>
+                    </h3>
+                    
+                    <table class="datos-table">
+                        <tbody>
+                            <tr>
+                                <td class="dato-label">Documento</td>
+                                <td class="dato-value">
+                                    {% if persona.tipo_documento and persona.numero_documento %}
+                                        {{ persona.get_tipo_documento_display }} {{ persona.numero_documento }}
+                                    {% else %}
+                                        <span class="text-muted">No especificado</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            
+                            <tr>
+                                <td class="dato-label">Fecha de Nacimiento</td>
+                                <td class="dato-value">
+                                    {% if persona.fecha_nacimiento %}
+                                        {{ persona.fecha_nacimiento|date:"d/m/Y" }}
+                                    {% else %}
+                                        <span class="text-muted">No especificada</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            
+                            <tr>
+                                <td class="dato-label">Sexo</td>
+                                <td class="dato-value">
+                                    {% if persona.sexo %}
+                                        {{ persona.get_sexo_display }}
+                                    {% else %}
+                                        <span class="text-muted">No especificado</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            
+                            <tr>
+                                <td class="dato-label">Teléfono</td>
+                                <td class="dato-value">
+                                    {% if persona.celular %}
+                                        {{ persona.celular }}
+                                    {% else %}
+                                        <span class="text-muted">No especificado</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            
+                            <tr>
+                                <td class="dato-label">Email</td>
+                                <td class="dato-value">
+                                    {% if persona.email %}
+                                        {{ persona.email }}
+                                    {% else %}
+                                        <span class="text-muted">No especificado</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            
+                            <tr>
+                                <td class="dato-label">Ubicación</td>
+                                <td class="dato-value">
+                                    {% if persona.departamento and persona.provincia and persona.distrito %}
+                                        {{ persona.departamento.nombre }}, {{ persona.provincia.nombre }}, {{ persona.distrito.nombre }}
+                                    {% else %}
+                                        <span class="text-muted">No especificada</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            
+                            {% if persona.direccion %}
+                            <tr>
+                                <td class="dato-label">Dirección</td>
+                                <td class="dato-value">{{ persona.direccion }}</td>
+                            </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Formación Académica -->
+                <div class="cv-section">
+                    <h3 class="section-title">
+                        <span><i class="fal fa-graduation-cap"></i> Formación Académica</span>
+                        <button type="button" class="btn btn-primary" onclick="abrirModalFormacion()">
+                            <i class="fal fa-plus"></i> Agregar Formación
+                        </button>
+                    </h3>
+                    
+                    <div id="formaciones-container">
+                        {% if formaciones %}
+                            <table class="datos-table">
+                                <thead>
+                                    <tr>
+                                        <th class="dato-label">Grado</th>
+                                        <th class="dato-label">Especialidad</th>
+                                        <th class="dato-label">Centro de Estudio</th>
+                                        <th class="dato-label">Ubicación</th>
+                                        <th class="dato-label">Período</th>
+                                        <th class="dato-label">Promedio</th>
+                                        <th class="dato-label">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for formacion in formaciones %}
+                                        <tr>
+                                            <td class="dato-value">{{ formacion.get_grado_display }}</td>
+                                            <td class="dato-value">{{ formacion.especialidad }}</td>
+                                            <td class="dato-value">{{ formacion.centro_estudio }}</td>
+                                            <td class="dato-value">{{ formacion.ciudad }}, {{ formacion.pais }}</td>
+                                            <td class="dato-value">
+                                                {% if formacion.fecha_inicio or formacion.fecha_fin %}
+                                                    {% if formacion.fecha_inicio %}{{ formacion.fecha_inicio|date:"Y" }}{% endif %}
+                                                    {% if formacion.fecha_inicio and formacion.fecha_fin %} - {% endif %}
+                                                    {% if formacion.fecha_fin %}{{ formacion.fecha_fin|date:"Y" }}{% endif %}
+                                                {% else %}
+                                                    <span class="text-muted">No especificado</span>
+                                                {% endif %}
+                                            </td>
+                                            <td class="dato-value">
+                                                {% if formacion.promedio %}
+                                                    {{ formacion.promedio }}
+                                                {% else %}
+                                                    <span class="text-muted">-</span>
+                                                {% endif %}
+                                            </td>
+                                            <td class="dato-value">
+                                                <button class="btn btn-sm btn-outline-primary" onclick="editarFormacion({{ formacion.id }})" title="Editar">
+                                                    <i class="fal fa-edit"></i>
+                                                </button>
+                                                <button class="btn btn-sm btn-outline-danger" onclick="eliminarFormacion({{ formacion.id }}, '{{ formacion.especialidad }}')" title="Eliminar">
+                                                    <i class="fal fa-trash"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        {% else %}
+                            <div class="empty-state">
+                                <i class="fal fa-graduation-cap"></i>
+                                <p>No hay formaciones académicas registradas</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <!-- Cursos de Especialización -->
+                <div class="cv-section">
+                    <h3 class="section-title">
+                        <span><i class="fal fa-certificate"></i> Cursos de Especialización</span>
+                        <button type="button" class="btn btn-primary" onclick="abrirModalCurso()">
+                            <i class="fal fa-plus"></i> Agregar Curso
+                        </button>
+                    </h3>
+                    
+                    <div id="cursos-container">
+                        {% if cursos %}
+                            <table class="datos-table">
+                                <thead>
+                                    <tr>
+                                        <th class="dato-label">Tipo</th>
+                                        <th class="dato-label">Descripción</th>
+                                        <th class="dato-label">Institución</th>
+                                        <th class="dato-label">Ubicación</th>
+                                        <th class="dato-label">Período</th>
+                                        <th class="dato-label">Nivel</th>
+                                        <th class="dato-label">Certificado</th>
+                                        <th class="dato-label">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for curso in cursos %}
+                                        <tr>
+                                            <td class="dato-value">{{ curso.get_tipo_estudio_display }}</td>
+                                            <td class="dato-value">{{ curso.descripcion }}</td>
+                                            <td class="dato-value">{{ curso.institucion }}</td>
+                                            <td class="dato-value">{{ curso.ciudad }}, {{ curso.pais }}</td>
+                                            <td class="dato-value">
+                                                {% if curso.fecha_inicio or curso.fecha_fin %}
+                                                    {% if curso.fecha_inicio %}{{ curso.fecha_inicio|date:"Y" }}{% endif %}
+                                                    {% if curso.fecha_inicio and curso.fecha_fin %} - {% endif %}
+                                                    {% if curso.fecha_fin %}{{ curso.fecha_fin|date:"Y" }}{% endif %}
+                                                {% else %}
+                                                    <span class="text-muted">No especificado</span>
+                                                {% endif %}
+                                            </td>
+                                            <td class="dato-value">
+                                                {% if curso.nivel %}
+                                                    {{ curso.get_nivel_display }}
+                                                {% else %}
+                                                    <span class="text-muted">-</span>
+                                                {% endif %}
+                                            </td>
+                                            <td class="dato-value">
+                                                {% if curso.certificado %}
+                                                    <a href="{{ curso.certificado.url }}" target="_blank" class="btn btn-sm btn-outline-info">
+                                                        <i class="fal fa-download"></i> Ver
+                                                    </a>
+                                                {% else %}
+                                                    <span class="text-muted">-</span>
+                                                {% endif %}
+                                            </td>
+                                            <td class="dato-value">
+                                                <button class="btn btn-sm btn-outline-primary" onclick="editarCurso({{ curso.id }})" title="Editar">
+                                                    <i class="fal fa-edit"></i>
+                                                </button>
+                                                <button class="btn btn-sm btn-outline-danger" onclick="eliminarCurso({{ curso.id }}, '{{ curso.descripcion }}')" title="Eliminar">
+                                                    <i class="fal fa-trash"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        {% else %}
+                            <div class="empty-state">
+                                <i class="fal fa-certificate"></i>
+                                <p>No hay cursos de especialización registrados</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <!-- Experiencia Laboral -->
+                <div class="cv-section">
+                    <h3 class="section-title">
+                        <span><i class="fal fa-briefcase"></i> Experiencia Laboral</span>
+                        <button type="button" class="btn btn-primary" onclick="abrirModalExperiencia()">
+                            <i class="fal fa-plus"></i> Agregar Experiencia
+                        </button>
+                    </h3>
+                    
+                    <div id="experiencias-container">
+                        {% if experiencias %}
+                            <table class="datos-table">
+                                <thead>
+                                    <tr>
+                                        <th class="dato-label">Cargo</th>
+                                        <th class="dato-label">Entidad</th>
+                                        <th class="dato-label">Tipo</th>
+                                        <th class="dato-label">Período</th>
+                                        <th class="dato-label">Salario</th>
+                                        <th class="dato-label">Motivo Salida</th>
+                                        <th class="dato-label">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for experiencia in experiencias %}
+                                        <tr>
+                                            <td class="dato-value">{{ experiencia.cargo }}</td>
+                                            <td class="dato-value">{{ experiencia.nombre_entidad }}</td>
+                                            <td class="dato-value">{{ experiencia.get_tipo_experiencia_display }}</td>
+                                            <td class="dato-value">
+                                                {% if experiencia.fecha_inicio or experiencia.fecha_fin %}
+                                                    {% if experiencia.fecha_inicio %}{{ experiencia.fecha_inicio|date:"M Y" }}{% endif %}
+                                                    {% if experiencia.fecha_inicio and experiencia.fecha_fin %} - {% endif %}
+                                                    {% if experiencia.fecha_fin %}{{ experiencia.fecha_fin|date:"M Y" }}{% endif %}
+                                                {% else %}
+                                                    <span class="text-muted">No especificado</span>
+                                                {% endif %}
+                                            </td>
+                                            <td class="dato-value">
+                                                {% if experiencia.salario %}
+                                                    S/ {{ experiencia.salario }}
+                                                {% else %}
+                                                    <span class="text-muted">-</span>
+                                                {% endif %}
+                                            </td>
+                                            <td class="dato-value">
+                                                {% if experiencia.motivo_salida %}
+                                                    {{ experiencia.get_motivo_salida_display }}
+                                                {% else %}
+                                                    <span class="text-muted">-</span>
+                                                {% endif %}
+                                            </td>
+                                            <td class="dato-value">
+                                                <button class="btn btn-sm btn-outline-primary" onclick="editarExperiencia({{ experiencia.id }})" title="Editar">
+                                                    <i class="fal fa-edit"></i>
+                                                </button>
+                                                <button class="btn btn-sm btn-outline-danger" onclick="eliminarExperiencia({{ experiencia.id }}, '{{ experiencia.cargo }}')" title="Eliminar">
+                                                    <i class="fal fa-trash"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        {% else %}
+                            <div class="empty-state">
+                                <i class="fal fa-briefcase"></i>
+                                <p>No hay experiencias laborales registradas</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Formación Académica -->
+    <div class="modal fade" id="modalFormacion" tabindex="-1" role="dialog" aria-labelledby="modalFormacionLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalFormacionLabel">
+                        <i class="fal fa-graduation-cap mr-2"></i>
+                        Agregar Formación Académica
+                    </h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body" id="modalFormacionBody">
+                    <!-- El contenido se carga via AJAX -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Curso de Especialización -->
+    <div class="modal fade" id="modalCurso" tabindex="-1" role="dialog" aria-labelledby="modalCursoLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalCursoLabel">
+                        <i class="fal fa-certificate mr-2"></i>
+                        Agregar Curso de Especialización
+                    </h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body" id="modalCursoBody">
+                    <!-- El contenido se carga via AJAX -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Experiencia Laboral -->
+    <div class="modal fade" id="modalExperiencia" tabindex="-1" role="dialog" aria-labelledby="modalExperienciaLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalExperienciaLabel">
+                        <i class="fal fa-briefcase mr-2"></i>
+                        Agregar Experiencia Laboral
+                    </h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body" id="modalExperienciaBody">
+                    <!-- El contenido se carga via AJAX -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="{% static 'js/vendors.bundle.js' %}"></script>
+    <script src="{% static 'js/app.bundle.js' %}"></script>
+    
+    <script>
+        // Función para abrir modal de formación académica
+        function abrirModalFormacion() {
+            $('#modalFormacion').modal('show');
+            $('#modalFormacionBody').html(`
+                <div class="text-center">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="sr-only">Cargando...</span>
+                    </div>
+                    <p class="mt-2">Cargando formulario...</p>
+                </div>
+            `);
+            
+            $.ajax({
+                url: `/master/postulante/{{ persona.id }}/agregar-formacion/`,
+                type: 'GET',
+                success: function(data) {
+                    $('#modalFormacionBody').html(data);
+                    
+                    // Configurar el event handler para el formulario
+                    $('#formacionForm').on('submit', function(e) {
+                        e.preventDefault();
+                        agregarFormacion();
+                    });
+                },
+                error: function() {
+                    $('#modalFormacionBody').html(`
+                        <div class="alert alert-danger">
+                            Error al cargar el formulario. Por favor, intente nuevamente.
+                        </div>
+                    `);
+                }
+            });
+        }
+        
+        // Función para abrir modal de curso
+        function abrirModalCurso() {
+            $('#modalCurso').modal('show');
+            $('#modalCursoBody').html(`
+                <div class="text-center">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="sr-only">Cargando...</span>
+                    </div>
+                    <p class="mt-2">Cargando formulario...</p>
+                </div>
+            `);
+            
+            $.ajax({
+                url: `/master/postulante/{{ persona.id }}/agregar-curso/`,
+                type: 'GET',
+                success: function(data) {
+                    $('#modalCursoBody').html(data);
+                    
+                    // Configurar el event handler para el formulario
+                    $('#cursoForm').on('submit', function(e) {
+                        e.preventDefault();
+                        agregarCurso();
+                    });
+                },
+                error: function() {
+                    $('#modalCursoBody').html(`
+                        <div class="alert alert-danger">
+                            Error al cargar el formulario. Por favor, intente nuevamente.
+                        </div>
+                    `);
+                }
+            });
+        }
+        
+        // Función para abrir modal de experiencia
+        function abrirModalExperiencia() {
+            $('#modalExperiencia').modal('show');
+            $('#modalExperienciaBody').html(`
+                <div class="text-center">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="sr-only">Cargando...</span>
+                    </div>
+                    <p class="mt-2">Cargando formulario...</p>
+                </div>
+            `);
+            
+            $.ajax({
+                url: `/master/postulante/{{ persona.id }}/agregar-experiencia/`,
+                type: 'GET',
+                success: function(data) {
+                    $('#modalExperienciaBody').html(data);
+                    
+                    // Configurar el event handler para el formulario
+                    $('#experienciaForm').on('submit', function(e) {
+                        e.preventDefault();
+                        agregarExperiencia();
+                    });
+                },
+                error: function() {
+                    $('#modalExperienciaBody').html(`
+                        <div class="alert alert-danger">
+                            Error al cargar el formulario. Por favor, intente nuevamente.
+                        </div>
+                    `);
+                }
+            });
+        }
+        
+        // Función para agregar formación académica
+        function agregarFormacion() {
+            console.log('Iniciando agregarFormacion...');
+            const formData = new FormData(document.getElementById('formacionForm'));
+            
+            // Debug: mostrar datos del formulario
+            for (let [key, value] of formData.entries()) {
+                console.log(key, value);
+            }
+            
+            $.ajax({
+                url: `/master/postulante/{{ persona.id }}/agregar-formacion/`,
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                headers: {
+                    'X-CSRFToken': $('[name=csrfmiddlewaretoken]').val()
+                },
+                success: function(response) {
+                    console.log('Respuesta del servidor:', response);
+                    if (response.success) {
+                        alert('Formación académica agregada correctamente');
+                        $('#modalFormacion').modal('hide');
+                        location.reload();
+                    } else {
+                        alert('Error: ' + (response.errors.general ? response.errors.general[0] : 'Error desconocido'));
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error AJAX:', xhr.responseText);
+                    alert('Error al agregar la formación académica: ' + error);
+                }
+            });
+        }
+        
+        // Función para editar formación académica
+        function editarFormacion(formacionId) {
+            console.log('Editando formación:', formacionId);
+            $('#modalFormacion').modal('show');
+            $('#modalFormacionLabel').html('<i class="fal fa-edit mr-2"></i>Editar Formación Académica');
+            $('#modalFormacionBody').html(`
+                <div class="text-center">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="sr-only">Cargando...</span>
+                    </div>
+                    <p class="mt-2">Cargando formulario...</p>
+                </div>
+            `);
+            
+            $.ajax({
+                url: `/master/postulante/{{ persona.id }}/editar-formacion/${formacionId}/`,
+                type: 'GET',
+                success: function(data) {
+                    $('#modalFormacionBody').html(data);
+                    
+                    // Configurar el event handler para el formulario
+                    $('#formacionForm').on('submit', function(e) {
+                        e.preventDefault();
+                        actualizarFormacion(formacionId);
+                    });
+                },
+                error: function() {
+                    $('#modalFormacionBody').html(`
+                        <div class="alert alert-danger">
+                            Error al cargar el formulario. Por favor, intente nuevamente.
+                        </div>
+                    `);
+                }
+            });
+        }
+        
+        // Función para actualizar formación académica
+        function actualizarFormacion(formacionId) {
+            console.log('Actualizando formación:', formacionId);
+            const formData = new FormData(document.getElementById('formacionForm'));
+            
+            $.ajax({
+                url: `/master/postulante/{{ persona.id }}/editar-formacion/${formacionId}/`,
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                headers: {
+                    'X-CSRFToken': $('[name=csrfmiddlewaretoken]').val()
+                },
+                success: function(response) {
+                    console.log('Respuesta del servidor:', response);
+                    if (response.success) {
+                        alert('Formación académica actualizada correctamente');
+                        $('#modalFormacion').modal('hide');
+                        location.reload();
+                    } else {
+                        alert('Error: ' + (response.errors.general ? response.errors.general[0] : 'Error desconocido'));
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error AJAX:', xhr.responseText);
+                    alert('Error al actualizar la formación académica: ' + error);
+                }
+            });
+        }
+        
+        // Función para eliminar formación académica
+        function eliminarFormacion(formacionId, especialidad) {
+            console.log('Eliminando formación:', formacionId);
+            $('#modalFormacion').modal('show');
+            $('#modalFormacionLabel').html('<i class="fal fa-trash mr-2"></i>Eliminar Formación Académica');
+            $('#modalFormacionBody').html(`
+                <div class="text-center">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="sr-only">Cargando...</span>
+                    </div>
+                    <p class="mt-2">Cargando...</p>
+                </div>
+            `);
+            
+            $.ajax({
+                url: `/master/postulante/{{ persona.id }}/eliminar-formacion/${formacionId}/`,
+                type: 'GET',
+                success: function(data) {
+                    $('#modalFormacionBody').html(data);
+                },
+                error: function() {
+                    $('#modalFormacionBody').html(`
+                        <div class="alert alert-danger">
+                            Error al cargar el modal. Por favor, intente nuevamente.
+                        </div>
+                    `);
+                }
+            });
+        }
+        
+        // Función para confirmar eliminación
+        function confirmarEliminarFormacion(formacionId) {
+            console.log('Confirmando eliminación:', formacionId);
+            
+            // Obtener el token CSRF de múltiples fuentes
+            let csrfToken = $('[name=csrfmiddlewaretoken]').val();
+            
+            // Si no se encuentra en el modal, buscarlo en el documento principal
+            if (!csrfToken) {
+                csrfToken = $('input[name="csrfmiddlewaretoken"]').val();
+            }
+            
+            // Si aún no se encuentra, usar el token de las cookies
+            if (!csrfToken) {
+                csrfToken = getCookie('csrftoken');
+            }
+            
+            console.log('CSRF Token encontrado:', csrfToken);
+            
+            if (!csrfToken) {
+                alert('Error: No se pudo obtener el token de seguridad. Por favor, recarga la página.');
+                return;
+            }
+            
+            $.ajax({
+                url: `/master/postulante/{{ persona.id }}/eliminar-formacion/${formacionId}/`,
+                type: 'POST',
+                headers: {
+                    'X-CSRFToken': csrfToken,
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                success: function(response) {
+                    console.log('Respuesta del servidor:', response);
+                    if (response.success) {
+                        alert(response.message);
+                        $('#modalFormacion').modal('hide');
+                        location.reload();
+                    } else {
+                        alert('Error: ' + (response.errors.general ? response.errors.general[0] : 'Error desconocido'));
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error AJAX:', xhr.responseText);
+                    console.error('Status:', xhr.status);
+                    console.error('Response:', xhr.responseText);
+                    alert('Error al eliminar la formación académica: ' + error);
+                }
+            });
+        }
+        
+        // Función auxiliar para obtener cookies
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+        
+        // Función para agregar curso
+        function agregarCurso() {
+            const formData = new FormData(document.getElementById('cursoForm'));
+            
+            $.ajax({
+                url: `/master/postulante/{{ persona.id }}/agregar-curso/`,
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                headers: {
+                    'X-CSRFToken': $('[name=csrfmiddlewaretoken]').val()
+                },
+                success: function(response) {
+                    if (response.success) {
+                        $('#modalCurso').modal('hide');
+                        location.reload();
+                    } else {
+                        alert('Error: ' + (response.errors.general ? response.errors.general[0] : 'Error desconocido'));
+                    }
+                },
+                error: function() {
+                    alert('Error al agregar el curso');
+                }
+            });
+        }
+        
+        // Función para editar curso
+        function editarCurso(cursoId) {
+            console.log('Editando curso:', cursoId);
+            $('#modalCurso').modal('show');
+            $('#modalCursoLabel').html('<i class="fal fa-edit mr-2"></i>Editar Curso de Especialización');
+            $('#modalCursoBody').html(`
+                <div class="text-center">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="sr-only">Cargando...</span>
+                    </div>
+                    <p class="mt-2">Cargando formulario...</p>
+                </div>
+            `);
+            
+            $.ajax({
+                url: `/master/postulante/{{ persona.id }}/editar-curso/${cursoId}/`,
+                type: 'GET',
+                success: function(data) {
+                    $('#modalCursoBody').html(data);
+                    
+                    // Configurar el event handler para el formulario
+                    $('#cursoForm').on('submit', function(e) {
+                        e.preventDefault();
+                        actualizarCurso(cursoId);
+                    });
+                },
+                error: function() {
+                    $('#modalCursoBody').html(`
+                        <div class="alert alert-danger">
+                            Error al cargar el formulario. Por favor, intente nuevamente.
+                        </div>
+                    `);
+                }
+            });
+        }
+        
+        // Función para actualizar curso
+        function actualizarCurso(cursoId) {
+            console.log('Actualizando curso:', cursoId);
+            const formData = new FormData(document.getElementById('cursoForm'));
+            
+            $.ajax({
+                url: `/master/postulante/{{ persona.id }}/editar-curso/${cursoId}/`,
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                headers: {
+                    'X-CSRFToken': $('[name=csrfmiddlewaretoken]').val()
+                },
+                success: function(response) {
+                    console.log('Respuesta del servidor:', response);
+                    if (response.success) {
+                        alert('Curso actualizado correctamente');
+                        $('#modalCurso').modal('hide');
+                        location.reload();
+                    } else {
+                        alert('Error: ' + (response.errors.general ? response.errors.general[0] : 'Error desconocido'));
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error AJAX:', xhr.responseText);
+                    alert('Error al actualizar el curso: ' + error);
+                }
+            });
+        }
+        
+        // Función para eliminar curso
+        function eliminarCurso(cursoId, nombreCurso) {
+            console.log('Eliminando curso:', cursoId);
+            $('#modalCurso').modal('show');
+            $('#modalCursoLabel').html('<i class="fal fa-trash mr-2"></i>Eliminar Curso de Especialización');
+            $('#modalCursoBody').html(`
+                <div class="text-center">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="sr-only">Cargando...</span>
+                    </div>
+                    <p class="mt-2">Cargando...</p>
+                </div>
+            `);
+            
+            $.ajax({
+                url: `/master/postulante/{{ persona.id }}/eliminar-curso/${cursoId}/`,
+                type: 'GET',
+                success: function(data) {
+                    $('#modalCursoBody').html(data);
+                },
+                error: function() {
+                    $('#modalCursoBody').html(`
+                        <div class="alert alert-danger">
+                            Error al cargar el modal. Por favor, intente nuevamente.
+                        </div>
+                    `);
+                }
+            });
+        }
+        
+        // Función para confirmar eliminación de curso
+        function confirmarEliminarCurso(cursoId) {
+            console.log('Confirmando eliminación:', cursoId);
+            
+            // Obtener el token CSRF de múltiples fuentes
+            let csrfToken = $('[name=csrfmiddlewaretoken]').val();
+            
+            // Si no se encuentra en el modal, buscarlo en el documento principal
+            if (!csrfToken) {
+                csrfToken = $('input[name="csrfmiddlewaretoken"]').val();
+            }
+            
+            // Si aún no se encuentra, usar el token de las cookies
+            if (!csrfToken) {
+                csrfToken = getCookie('csrftoken');
+            }
+            
+            console.log('CSRF Token encontrado:', csrfToken);
+            
+            if (!csrfToken) {
+                alert('Error: No se pudo obtener el token de seguridad. Por favor, recarga la página.');
+                return;
+            }
+            
+            $.ajax({
+                url: `/master/postulante/{{ persona.id }}/eliminar-curso/${cursoId}/`,
+                type: 'POST',
+                headers: {
+                    'X-CSRFToken': csrfToken,
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                success: function(response) {
+                    console.log('Respuesta del servidor:', response);
+                    if (response.success) {
+                        alert(response.message);
+                        $('#modalCurso').modal('hide');
+                        location.reload();
+                    } else {
+                        alert('Error: ' + (response.errors.general ? response.errors.general[0] : 'Error desconocido'));
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error AJAX:', xhr.responseText);
+                    console.error('Status:', xhr.status);
+                    console.error('Response:', xhr.responseText);
+                    alert('Error al eliminar el curso: ' + error);
+                }
+            });
+        }
+        
+        // Función para agregar experiencia
+        function agregarExperiencia() {
+            const formData = new FormData(document.getElementById('experienciaForm'));
+            
+            $.ajax({
+                url: `/master/postulante/{{ persona.id }}/agregar-experiencia/`,
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                headers: {
+                    'X-CSRFToken': $('[name=csrfmiddlewaretoken]').val()
+                },
+                success: function(response) {
+                    if (response.success) {
+                        $('#modalExperiencia').modal('hide');
+                        location.reload();
+                    } else {
+                        alert('Error: ' + (response.errors.general ? response.errors.general[0] : 'Error desconocido'));
+                    }
+                },
+                error: function() {
+                    alert('Error al agregar la experiencia laboral');
+                }
+            });
+        }
+        
+        // Función para editar experiencia
+        function editarExperiencia(experienciaId) {
+            console.log('Editando experiencia:', experienciaId);
+            $('#modalExperiencia').modal('show');
+            $('#modalExperienciaLabel').html('<i class="fal fa-edit mr-2"></i>Editar Experiencia Laboral');
+            $('#modalExperienciaBody').html(`
+                <div class="text-center">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="sr-only">Cargando...</span>
+                    </div>
+                    <p class="mt-2">Cargando formulario...</p>
+                </div>
+            `);
+            
+            $.ajax({
+                url: `/master/postulante/{{ persona.id }}/editar-experiencia/${experienciaId}/`,
+                type: 'GET',
+                success: function(data) {
+                    $('#modalExperienciaBody').html(data);
+                    
+                    // Configurar el event handler para el formulario
+                    $('#experienciaForm').on('submit', function(e) {
+                        e.preventDefault();
+                        actualizarExperiencia(experienciaId);
+                    });
+                },
+                error: function() {
+                    $('#modalExperienciaBody').html(`
+                        <div class="alert alert-danger">
+                            Error al cargar el formulario. Por favor, intente nuevamente.
+                        </div>
+                    `);
+                }
+            });
+        }
+        
+        // Función para actualizar experiencia
+        function actualizarExperiencia(experienciaId) {
+            console.log('Actualizando experiencia:', experienciaId);
+            const formData = new FormData(document.getElementById('experienciaForm'));
+            
+            $.ajax({
+                url: `/master/postulante/{{ persona.id }}/editar-experiencia/${experienciaId}/`,
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                headers: {
+                    'X-CSRFToken': $('[name=csrfmiddlewaretoken]').val()
+                },
+                success: function(response) {
+                    console.log('Respuesta del servidor:', response);
+                    if (response.success) {
+                        alert('Experiencia laboral actualizada correctamente');
+                        $('#modalExperiencia').modal('hide');
+                        location.reload();
+                    } else {
+                        alert('Error: ' + (response.errors.general ? response.errors.general[0] : 'Error desconocido'));
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error AJAX:', xhr.responseText);
+                    alert('Error al actualizar la experiencia laboral: ' + error);
+                }
+            });
+        }
+        
+        // Función para eliminar experiencia
+        function eliminarExperiencia(experienciaId, cargo) {
+            console.log('Eliminando experiencia:', experienciaId);
+            $('#modalExperiencia').modal('show');
+            $('#modalExperienciaLabel').html('<i class="fal fa-trash mr-2"></i>Eliminar Experiencia Laboral');
+            $('#modalExperienciaBody').html(`
+                <div class="text-center">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="sr-only">Cargando...</span>
+                    </div>
+                    <p class="mt-2">Cargando...</p>
+                </div>
+            `);
+            
+            $.ajax({
+                url: `/master/postulante/{{ persona.id }}/eliminar-experiencia/${experienciaId}/`,
+                type: 'GET',
+                success: function(data) {
+                    $('#modalExperienciaBody').html(data);
+                },
+                error: function() {
+                    $('#modalExperienciaBody').html(`
+                        <div class="alert alert-danger">
+                            Error al cargar el modal. Por favor, intente nuevamente.
+                        </div>
+                    `);
+                }
+            });
+        }
+        
+        // Función para confirmar eliminación de experiencia
+        function confirmarEliminarExperiencia(experienciaId) {
+            console.log('Confirmando eliminación:', experienciaId);
+            
+            // Obtener el token CSRF de múltiples fuentes
+            let csrfToken = $('[name=csrfmiddlewaretoken]').val();
+            
+            // Si no se encuentra en el modal, buscarlo en el documento principal
+            if (!csrfToken) {
+                csrfToken = $('input[name="csrfmiddlewaretoken"]').val();
+            }
+            
+            // Si aún no se encuentra, usar el token de las cookies
+            if (!csrfToken) {
+                csrfToken = getCookie('csrftoken');
+            }
+            
+            console.log('CSRF Token encontrado:', csrfToken);
+            
+            if (!csrfToken) {
+                alert('Error: No se pudo obtener el token de seguridad. Por favor, recarga la página.');
+                return;
+            }
+            
+            $.ajax({
+                url: `/master/postulante/{{ persona.id }}/eliminar-experiencia/${experienciaId}/`,
+                type: 'POST',
+                headers: {
+                    'X-CSRFToken': csrfToken,
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                success: function(response) {
+                    console.log('Respuesta del servidor:', response);
+                    if (response.success) {
+                        alert(response.message);
+                        $('#modalExperiencia').modal('hide');
+                        location.reload();
+                    } else {
+                        alert('Error: ' + (response.errors.general ? response.errors.general[0] : 'Error desconocido'));
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error AJAX:', xhr.responseText);
+                    console.error('Status:', xhr.status);
+                    console.error('Response:', xhr.responseText);
+                    alert('Error al eliminar la experiencia laboral: ' + error);
+                }
+            });
+        }
+    </script>
+</body>
+</html>

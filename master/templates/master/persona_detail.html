@@ -1,0 +1,256 @@
+{% extends 'master/includes/base.html' %}
+{% load static %}
+
+{% block title %} Detalles {% endblock %}
+
+{% block content %}
+
+<div class="container-fluid">
+    <div class="d-flex align-items-center justify-content-between mb-4 pb-3 border-bottom">
+        <div class="d-flex align-items-center">
+            {% if cv and cv.foto_perfil %}
+            <img src="{{ cv.foto_url }}" alt="{{ persona.nombre_completo }}"
+                 class="mr-3 shadow-sm"
+                 style="width: 65px; height: 65px; border-radius: 15px; object-fit: cover; border: 2px solid #b2f5ea;">
+            {% else %}
+            <div class="icon-shape-avatar bg-teal-light text-teal mr-3" style="width: 65px; height: 65px; font-size: 1.5rem; border-radius: 15px; display: flex; align-items: center; justify-content: center; font-weight: 800;">
+                {{ persona.nombres|slice:":1" }}{{ persona.apellido_paterno|slice:":1" }}
+            </div>
+            {% endif %}
+            <div>
+                <h3 class="font-weight-800 mb-0" style="color: #0b1311; letter-spacing: -0.02em;">
+                    {{ persona.nombres }} {{ persona.apellido_paterno }} {{ persona.apellido_materno }}
+                </h3>
+                <div class="d-flex align-items-center mt-1">
+                    <span class="badge-soft-dark mr-2"><i class="fal fa-id-card mr-1"></i> {{ persona.get_tipo_documento_display }}: {{ persona.numero_documento }}</span>
+                    {% if colaborador %}
+                        <span class="badge badge-success btn-pills px-3 py-1" style="font-size: 0.7rem;"><i class="fal fa-check-circle mr-1"></i> COLABORADOR ACTIVO</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="d-flex align-items-center">
+            <a href="{% url 'master:colaboradores' %}" class="btn btn-outline-secondary btn-pills shadow-sm px-4 py-2 font-weight-bold mr-2">
+                <i class="fal fa-arrow-left mr-2"></i> Volver
+            </a>
+            <a href="{% url 'master:persona_edit' persona.id %}" class="btn btn-warning btn-pills shadow-sm px-4 py-2 font-weight-bold">
+                <i class="fal fa-edit mr-2"></i> Editar
+            </a>
+            {% if postulacion_actual and postulacion_actual.estado_postulacion == 'APROBADO' and not colaborador %}
+            <button type="button" class="btn btn-teal btn-pills shadow-sm px-4 py-2 font-weight-bold ml-2"
+                    id="btnRegistrar" data-id="{{ postulacion_actual.id }}"
+                    onclick="registrarColaborador(this.getAttribute('data-id'))">
+                <i class="fal fa-user-plus mr-2"></i> Registrar como Colaborador
+            </button>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-xl-8">
+            <div class="panel-talent mb-4">
+                <h6 class="section-title-talent mb-3"><i class="fal fa-user-circle mr-2 text-teal"></i> Datos Personales</h6>
+                <div class="row">
+                    <div class="col-md-3 mb-3">
+                        <label class="label-talent">Nombres</label>
+                        <p class="value-talent">{{ persona.nombres }}</p>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label class="label-talent">Ap. Paterno</label>
+                        <p class="value-talent">{{ persona.apellido_paterno }}</p>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label class="label-talent">Ap. Materno</label>
+                        <p class="value-talent">{{ persona.apellido_materno|default:"-" }}</p>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label class="label-talent">F. Nacimiento</label>
+                        <p class="value-talent">{{ persona.fecha_nacimiento|date:"d/m/Y" }}</p>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="label-talent">Sexo</label>
+                        <p class="value-talent">{{ persona.get_sexo_display }}</p>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="label-talent">Estado Civil</label>
+                        <p class="value-talent">{{ persona.get_estado_civil_display }}</p>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="label-talent">Celular</label>
+                        <p class="value-talent text-teal font-weight-bold">{{ persona.celular|default:"-" }}</p>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="label-talent">Email</label>
+                        <p class="value-talent small text-truncate">{{ persona.email|default:"-" }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel-talent mb-4">
+                <h6 class="section-title-talent mb-3"><i class="fal fa-map-marker-alt mr-2 text-info"></i> Información de Dirección</h6>
+                <div class="row align-items-center">
+                    <div class="col-md-6 border-right">
+                        <label class="label-talent">Dirección Exacta</label>
+                        <p class="value-talent">{{ persona.direccion|default:"No especificada" }}</p>
+                    </div>
+                    <div class="col-md-2 text-center">
+                        <label class="label-talent">Distrito</label>
+                        <p class="value-talent small">{{ persona.distrito|default:"-" }}</p>
+                    </div>
+                    <div class="col-md-2 text-center border-left border-right">
+                        <label class="label-talent">Provincia</label>
+                        <p class="value-talent small">{{ persona.provincia|default:"-" }}</p>
+                    </div>
+                    <div class="col-md-2 text-center">
+                        <label class="label-talent">Dpto.</label>
+                        <p class="value-talent small">{{ persona.departamento|default:"-" }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <div id="cv" class="panel-talent mb-4 border-left-teal">
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <h6 class="section-title-talent mb-0 border-0 pb-0">
+                        <i class="fal fa-file-alt mr-2 text-primary"></i> Perfil y Trayectoria Profesional
+                    </h6>
+                    <a href="{% url 'master:persona_cv_edit' persona.id %}" class="btn btn-sm btn-outline-primary btn-pills px-3">
+                        <i class="fal fa-edit mr-1"></i> Editar
+                    </a>
+                </div>
+            {% if cv %}
+                <div class="row mb-3">
+                    <div class="col-md-6 border-right">
+                        <label class="label-talent text-primary">Resumen Profesional</label>
+                        <p class="value-talent small text-muted text-justify">{{ cv.resumen_profesional|default:"Sin resumen" }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="label-talent text-primary">Objetivo Profesional</label>
+                        <p class="value-talent small text-muted text-justify">{{ cv.objetivo_profesional|default:"Sin objetivo" }}</p>
+                    </div>
+                </div>
+                <div class="row pt-3 border-top">
+                    <div class="col-md-3">
+                        <label class="label-talent">Email Prof.</label>
+                        <p class="value-talent small">{{ cv.email_profesional|default:"-" }}</p>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="label-talent">Teléfono Prof.</label>
+                        <p class="value-talent small">{{ cv.telefono_profesional|default:"-" }}</p>
+                    </div>
+                    <div class="col-md-6 d-flex align-items-center justify-content-end">
+                        {% if cv.linkedin %}<a href="{{ cv.linkedin }}" target="_blank" class="btn btn-icon btn-outline-info rounded-circle mr-2" title="LinkedIn"><i class="fab fa-linkedin-in"></i></a>{% endif %}
+                        {% if cv.portfolio %}<a href="{{ cv.portfolio }}" target="_blank" class="btn btn-icon btn-outline-dark rounded-circle mr-2" title="Portfolio"><i class="fal fa-globe"></i></a>{% endif %}
+                        {% if cv.cv_archivo %}
+                            {% if cv.archivo_existe %}
+                            <a href="{{ cv.archivo_url }}" target="_blank" class="btn btn-teal btn-sm btn-pills px-3 ml-2 shadow-sm">
+                                <i class="fal fa-download mr-1"></i> Descargar CV Completo
+                            </a>
+                            {% else %}
+                            <span class="text-muted small ml-2" title="El archivo no está en el servidor">
+                                <i class="fal fa-exclamation-triangle mr-1"></i> Archivo no disponible
+                            </span>
+                            {% endif %}
+                        {% endif %}
+                    </div>
+                </div>
+            {% else %}
+                <p class="text-muted small mb-0">Sin perfil profesional registrado. Use <strong>Editar</strong> para agregar la información.</p>
+            {% endif %}
+            </div>
+        </div>
+
+        <div class="col-xl-4">
+            {% if colaborador %}
+            <div class="panel-talent mb-4" style="background: linear-gradient(135deg, #f0fdfa 0%, #e6fffa 100%); border: 1px solid #b2f5ea;">
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <h6 class="section-title-talent text-teal mb-0 border-0 pb-0">
+                        <i class="fal fa-user-tie mr-2"></i> Datos de Empleo
+                    </h6>
+                    <a href="{% url 'master:persona_empleo_edit' persona.id %}" class="btn btn-sm btn-outline-primary btn-pills px-3">
+                        <i class="fal fa-edit mr-1"></i> Editar
+                    </a>
+                </div>
+                <div class="mb-3">
+                    <label class="label-talent">Cargo Actual</label>
+                    <p class="value-talent font-weight-bold" style="font-size: 1.1rem;">{{ colaborador.cargo|default:"-" }}</p>
+                </div>
+                <div class="row mb-2">
+                    <div class="col-6">
+                        <label class="label-talent">Estado</label>
+                        <p class="value-talent">{{ colaborador.get_estado_laboral_display }}</p>
+                    </div>
+                    <div class="col-6">
+                        <label class="label-talent">Tipo Contrato</label>
+                        <p class="value-talent">{{ colaborador.get_tipo_contrato_display }}</p>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-6">
+                        <label class="label-talent">Fecha Ingreso</label>
+                        <p class="value-talent">{{ colaborador.fecha_ingreso|date:"d/m/Y" }}</p>
+                    </div>
+                    <div class="col-6 text-right">
+                        <label class="label-talent">Salario</label>
+                        <p class="value-talent text-success font-weight-800">{{ colaborador.salario|default:"-" }}</p>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            {% if postulaciones %}
+            <div class="panel-talent">
+                <h6 class="section-title-talent mb-3"><i class="fal fa-briefcase mr-2"></i> Historial de Postulaciones</h6>
+                <div class="table-responsive">
+                    <table class="table table-sm table-borderless">
+                        <thead>
+                            <tr class="text-muted small uppercase">
+                                <th class="pl-0">Convocatoria</th>
+                                <th class="text-right pr-0">Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for postulacion in postulaciones %}
+                            <tr class="border-bottom">
+                                <td class="py-3 pl-0">
+                                    <div class="font-weight-bold text-dark mb-0 small">{{ postulacion.convocatoria.titulo }}</div>
+                                    <div class="text-muted" style="font-size: 0.65rem;">{{ postulacion.fecha_postulacion|date:"d/m/Y H:i" }}</div>
+                                </td>
+                                <td class="py-3 pr-0 text-right align-middle">
+                                    <span class="badge-soft-teal">{{ postulacion.convocatoria.estado }}</span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+
+    .container-fluid { padding: 50px; }
+    .panel-talent { background: #fff; padding: 22px; border-radius: 16px; border: 1px solid #eef2f2; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02); }
+    .section-title-talent { font-size: 0.75rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; color: #64748b; border-bottom: 1px solid #f1f5f9; padding-bottom: 12px; }
+    
+    .label-talent { font-size: 0.65rem; font-weight: 700; text-transform: uppercase; color: #94a3b8; letter-spacing: 0.03em; margin-bottom: 2px; display: block; }
+    .value-talent { font-weight: 600; color: #1e293b; margin-bottom: 0; line-height: 1.4; }
+    
+    .text-teal { color: #15b79a !important; }
+    .bg-teal-light { background-color: #f0fdfa; }
+    .btn-teal { background: #15b79a; color: #fff; border: none; transition: all 0.2s ease; }
+    .btn-teal:hover { background: #0e967e; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(21, 183, 154, 0.2); }
+    
+    .border-left-teal { border-left: 4px solid #15b79a !important; }
+    .badge-soft-teal { background: #e8f8f5; color: #15b79a; padding: 4px 10px; border-radius: 6px; font-weight: 700; font-size: 0.65rem; }
+    .badge-soft-dark { background: #f1f5f9; color: #475569; padding: 4px 10px; border-radius: 6px; font-size: 0.7rem; font-weight: 600; }
+    
+    .btn-icon { width: 34px; height: 34px; display: inline-flex; align-items: center; justify-content: center; transition: all 0.2s; }
+    .font-weight-800 { font-weight: 800; }
+</style>
+
+
+{% endblock %}

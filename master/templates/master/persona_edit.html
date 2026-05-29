@@ -1,0 +1,148 @@
+{% extends 'master/includes/base.html' %}
+{% load static %}
+
+{% block title %}Editar Persona{% endblock %}
+
+{% block content %}
+<div class="container-fluid persona-edit-page">
+    <div class="d-flex align-items-center justify-content-between mb-4 pb-3 border-bottom">
+        <div class="d-flex align-items-center">
+            <div class="icon-shape-avatar bg-teal-light text-teal mr-3">
+                {{ persona.nombres|slice:":1" }}{{ persona.apellido_paterno|slice:":1" }}
+            </div>
+            <div>
+                <h3 class="font-weight-800 mb-0 persona-edit-title">
+                    {{ persona.nombres }} {{ persona.apellido_paterno }} {{ persona.apellido_materno }}
+                </h3>
+                <div class="d-flex align-items-center mt-1 flex-wrap">
+                    <span class="badge-soft-dark mr-2">
+                        <i class="fal fa-id-card mr-1"></i>
+                        {{ persona.get_tipo_documento_display }}: {{ persona.numero_documento }}
+                    </span>
+                    <span class="badge-soft-teal">
+                        <i class="fal fa-edit mr-1"></i> Modo edición
+                    </span>
+                </div>
+            </div>
+        </div>
+        <div class="d-flex align-items-center">
+            <a href="{% url 'master:persona_detail' persona.id %}" class="btn btn-outline-secondary btn-pills shadow-sm px-4 py-2 font-weight-bold mr-2">
+                <i class="fal fa-times mr-2"></i> Cancelar
+            </a>
+            <button type="submit" form="editarPersonaForm" class="btn btn-teal btn-pills shadow-sm px-4 py-2 font-weight-bold">
+                <i class="fal fa-save mr-2"></i> Guardar cambios
+            </button>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-xl-12">
+            {% include 'master/persona_edit_form.html' with talent_style=True cv=cv persona=persona %}
+        </div>
+    </div>
+</div>
+
+<style>
+    .persona-edit-page.container-fluid { padding: 50px; }
+
+    .icon-shape-avatar {
+        width: 65px;
+        height: 65px;
+        font-size: 1.5rem;
+        border-radius: 15px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 800;
+    }
+
+    .persona-edit-title {
+        color: #0b1311;
+        letter-spacing: -0.02em;
+    }
+
+    .panel-talent {
+        background: #fff;
+        padding: 22px;
+        border-radius: 16px;
+        border: 1px solid #eef2f2;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02);
+    }
+
+    .section-title-talent {
+        font-size: 0.75rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: #64748b;
+        border-bottom: 1px solid #f1f5f9;
+        padding-bottom: 12px;
+    }
+
+    .text-teal { color: #15b79a !important; }
+    .bg-teal-light { background-color: #f0fdfa; }
+
+    .btn-teal {
+        background: #15b79a;
+        color: #fff;
+        border: none;
+        transition: all 0.2s ease;
+    }
+
+    .btn-teal:hover {
+        background: #0e967e;
+        color: #fff;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(21, 183, 154, 0.2);
+    }
+
+    .badge-soft-teal {
+        background: #e8f8f5;
+        color: #15b79a;
+        padding: 4px 10px;
+        border-radius: 6px;
+        font-weight: 700;
+        font-size: 0.65rem;
+    }
+
+    .badge-soft-dark {
+        background: #f1f5f9;
+        color: #475569;
+        padding: 4px 10px;
+        border-radius: 6px;
+        font-size: 0.7rem;
+        font-weight: 600;
+    }
+
+    .font-weight-800 { font-weight: 800; }
+
+    /* Campos Bootstrap dentro de los paneles */
+    .persona-edit-page .panel-talent .form-group {
+        margin-bottom: 1rem;
+    }
+
+    .persona-edit-page .panel-talent .form-label {
+        font-weight: 600;
+        color: #475569;
+        margin-bottom: 0.35rem;
+    }
+
+    .persona-edit-page .edit-form-title { display: none; }
+
+    @media (max-width: 767.98px) {
+        .persona-edit-page .d-flex.justify-content-between {
+            flex-direction: column;
+            align-items: flex-start !important;
+        }
+
+        .persona-edit-page .d-flex.justify-content-between > .d-flex:last-child {
+            margin-top: 1rem;
+            width: 100%;
+        }
+
+        .persona-edit-page .d-flex.justify-content-between > .d-flex:last-child .btn {
+            flex: 1;
+        }
+    }
+</style>
+{% endblock %}

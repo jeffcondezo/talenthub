@@ -1,0 +1,122 @@
+{% extends 'master/includes/base.html' %}
+{% load static %}
+
+{% block title %}Editar Perfil Profesional{% endblock %}
+
+{% block content %}
+<div class="container-fluid persona-edit-page">
+    <div class="d-flex align-items-center justify-content-between mb-4 pb-3 border-bottom">
+        <div class="d-flex align-items-center">
+            <div class="icon-shape-avatar bg-teal-light text-teal mr-3">
+                {{ persona.nombres|slice:":1" }}{{ persona.apellido_paterno|slice:":1" }}
+            </div>
+            <div>
+                <h3 class="font-weight-800 mb-0 persona-edit-title">
+                    {{ persona.nombres }} {{ persona.apellido_paterno }} {{ persona.apellido_materno }}
+                </h3>
+                <div class="d-flex align-items-center mt-1 flex-wrap">
+                    <span class="badge-soft-dark mr-2">
+                        <i class="fal fa-file-alt mr-1"></i> Perfil y Trayectoria Profesional
+                    </span>
+                    <span class="badge-soft-teal">
+                        <i class="fal fa-edit mr-1"></i> Modo edición
+                    </span>
+                </div>
+            </div>
+        </div>
+        <div class="d-flex align-items-center">
+            <a href="{% url 'master:persona_detail' persona.id %}" class="btn btn-outline-secondary btn-pills shadow-sm px-4 py-2 font-weight-bold mr-2">
+                <i class="fal fa-times mr-2"></i> Cancelar
+            </a>
+            <button type="submit" form="cvPerfilForm" class="btn btn-teal btn-pills shadow-sm px-4 py-2 font-weight-bold">
+                <i class="fal fa-save mr-2"></i> Guardar cambios
+            </button>
+        </div>
+    </div>
+
+    <form method="post" id="cvPerfilForm" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="panel-talent mb-4 border-left-teal" style="border-left: 4px solid #15b79a;">
+            <h6 class="section-title-talent mb-3">
+                <i class="fal fa-file-alt mr-2 text-primary"></i> Perfil Profesional
+            </h6>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="{{ form.resumen_profesional.id_for_label }}" class="form-label">Resumen Profesional</label>
+                        {{ form.resumen_profesional }}
+                        {% if form.resumen_profesional.errors %}
+                        <div class="text-danger">{% for e in form.resumen_profesional.errors %}<small>{{ e }}</small>{% endfor %}</div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="{{ form.objetivo_profesional.id_for_label }}" class="form-label">Objetivo Profesional</label>
+                        {{ form.objetivo_profesional }}
+                        {% if form.objetivo_profesional.errors %}
+                        <div class="text-danger">{% for e in form.objetivo_profesional.errors %}<small>{{ e }}</small>{% endfor %}</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel-talent mb-4">
+            <h6 class="section-title-talent mb-3">
+                <i class="fal fa-address-card mr-2 text-teal"></i> Contacto Profesional
+            </h6>
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label for="{{ form.email_profesional.id_for_label }}" class="form-label">Email Profesional</label>
+                        {{ form.email_profesional }}
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label for="{{ form.telefono_profesional.id_for_label }}" class="form-label">Teléfono Profesional</label>
+                        {{ form.telefono_profesional }}
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label for="{{ form.cv_archivo.id_for_label }}" class="form-label">Archivo CV</label>
+                        {{ form.cv_archivo }}
+                        {% if cv.cv_archivo %}
+                        <small class="form-text text-muted">
+                            Actual:
+                            {% if cv.archivo_existe %}
+                            <a href="{{ cv.archivo_url }}" target="_blank">{{ cv.cv_archivo.name|truncatechars:40 }}</a>
+                            {% else %}
+                            {{ cv.cv_archivo.name|truncatechars:40 }} (no disponible)
+                            {% endif %}
+                        </small>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="{{ form.linkedin.id_for_label }}" class="form-label">LinkedIn</label>
+                        {{ form.linkedin }}
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="{{ form.portfolio.id_for_label }}" class="form-label">Portfolio / Sitio web</label>
+                        {{ form.portfolio }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+
+    <div class="text-right">
+        <a href="{% url 'master:cv_detail' persona.id %}" class="btn btn-outline-primary btn-pills px-4">
+            <i class="fal fa-external-link mr-1"></i> Gestionar formación, cursos y experiencia
+        </a>
+    </div>
+</div>
+
+{% include 'master/includes/persona_edit_styles.html' %}
+{% endblock %}

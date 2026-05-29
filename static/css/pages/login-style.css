@@ -1,0 +1,141 @@
+body,
+html {
+    height: 100%;
+    margin: 0;
+    font-family: 'Poppins';
+}
+
+.login-container {
+    display: flex;
+    height: 100vh;
+    width: 100%;
+}
+
+/* Panel Izquierdo (Verde) */
+.info-panel {
+    background-color: #14a085;
+    /* El verde de la imagen */
+    color: white;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 40px;
+    text-align: center;
+}
+
+.info-panel h1 {
+    font-weight: 700;
+    font-size: 2.5rem;
+    margin-bottom: 20px;
+}
+
+.info-panel img.main-illustration {
+    max-width: 80%;
+    margin-bottom: 30px;
+}
+
+.info-panel h2 {
+    font-size: 1.8rem;
+    font-weight: 600;
+    max-width: 500px;
+}
+
+.info-panel p {
+    max-width: 500px;
+    font-size: 1rem;
+    opacity: 0.9;
+    margin-bottom: 30px;
+}
+
+.badge-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+    max-width: 500px;
+}
+
+.info-badge {
+    background: rgba(255, 255, 255, 0.9);
+    color: #f39c12;
+    /* Color naranja suave de los textos en la imagen */
+    padding: 8px 15px;
+    border-radius: 20px;
+    font-weight: 500;
+    font-size: 0.85rem;
+}
+
+/* Panel Derecho (Login) */
+.form-panel {
+    flex: 1;
+    background-color: #f4f7f6;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+.login-card {
+    background: white;
+    padding: 40px;
+    border-radius: 15px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+    width: 100%;
+    max-width: 450px;
+}
+
+.login-card h3 {
+    color: #14a085;
+    text-align: center;
+    font-weight: 700;
+    margin-bottom: 30px;
+}
+
+.form-label {
+    font-weight: 600;
+    color: #555;
+}
+
+.form-control {
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    padding: 12px;
+}
+
+.btn-login {
+    background-color: #14a085;
+    border: none;
+    color: red;
+    padding: 12px;
+    border-radius: 8px;
+    font-weight: 600;
+    width: 100%;
+    margin-top: 20px;
+    box-shadow: 0 4px 6px rgba(20, 160, 133, 0.2);
+}
+
+.btn-login:hover {
+    background-color: #11866f;
+    color: white;
+}
+
+.footer-links {
+    text-align: center;
+    margin-top: 20px;
+    font-size: 0.9rem;
+}
+
+.footer-links a {
+    color: #14a085;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+/* Responsive */
+@media (max-width: 992px) {
+    .info-panel {
+        display: none;
+    }
+}

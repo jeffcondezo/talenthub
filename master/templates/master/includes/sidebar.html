@@ -1,0 +1,38 @@
+{% load static %}
+<div class="sidebar" id="mySidebar">
+    <div class="p-4 d-flex align-items-center justify-content-between">
+        <img id="logo-sidebar" src="{% static 'img/prayaga-logo-sidebar.webp' %}" alt="TalentHub Logo"
+            style="width: 70%;">
+        <button id="toggleSidebar"><i class="fal fa-bars"></i></button>
+    </div>
+
+    <nav class="nav flex-column mt-3">
+        <div class="px-4 mb-2"><small class="text-muted text-uppercase">Navegación</small></div>
+
+        {% for item in modulos_menu %}
+        {% if item.clave in user_modulos %}
+        <a class="nav-link {% if item.clave == 'inicio' and '/master/inicio' in request.path %}active{% elif item.clave == 'convocatorias' and '/master/convocatorias' in request.path or '/master/postulante' in request.path or '/master/postulaciones' in request.path %}active{% elif item.clave == 'colaboradores' and '/master/colaboradores' in request.path or '/master/personas' in request.path or '/master/cv' in request.path %}active{% elif item.clave == 'capacitacion' and '/master/capacitacion' in request.path or '/master/induccion' in request.path %}active{% elif item.clave == 'proyecto' and '/master/proyecto' in request.path or '/master/perfiles' in request.path %}active{% elif item.clave == 'analitica' and '/master/analitica' in request.path %}active{% endif %}" href="{% url item.url_name %}">
+            <i class="{{ item.icon }}"></i> <span>{{ item.label }}</span>
+        </a>
+        {% endif %}
+        {% endfor %}
+
+        <div class="mt-5 px-4 mb-2"><small class="text-muted text-uppercase">Cuenta</small></div>
+
+        {% if user_es_admin %}
+        <a class="nav-link {% if '/master/usuarios' in request.path %}active{% endif %}" href="{% url 'master:usuarios_list' %}">
+            <i class="fal fa-user-shield"></i> <span>Usuarios</span>
+        </a>
+        {% endif %}
+
+        <a class="nav-link {% if '/master/ajustes' in request.path %}active{% endif %}" href="{% url 'master:ajustes' %}">
+            <i class="fal fa-cog"></i> <span>Ajustes</span>
+        </a>
+        <form action="{% url 'master:logout' %}" method="post" class="mt-2">
+            {% csrf_token %}
+            <button type="submit" class="nav-link w-100 text-start border-0 bg-transparent text-danger">
+                <i class="fal fa-sign-out"></i> <span>Cerrar sesión</span>
+            </button>
+        </form>
+    </nav>
+</div>
