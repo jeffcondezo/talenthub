@@ -3,9 +3,7 @@
 <form method="post" id="formacionAcademicaForm" enctype="multipart/form-data">
     {% csrf_token %}
     
-    <!-- Campos ocultos para aspirante/colaborador -->
-    {{ form.aspirante }}
-    {{ form.colaborador }}
+    {{ form.cv }}
     
     <div class="row">
         <div class="col-md-6">

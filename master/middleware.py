@@ -6,6 +6,7 @@ from .permissions import (
     PATH_PUBLIC_PREFIXES,
     get_first_allowed_url,
     resolve_modulo_from_path,
+    user_can_access_cv_path,
     user_has_module,
     user_is_admin,
 )
@@ -46,6 +47,8 @@ class ModulePermissionMiddleware:
             return self.get_response(request)
 
         if modulo and not user_has_module(request.user, modulo):
+            if user_can_access_cv_path(request.user, path):
+                return self.get_response(request)
             messages.error(
                 request,
                 'No tiene permiso para acceder a esta sección.',

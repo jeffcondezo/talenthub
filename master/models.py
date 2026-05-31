@@ -3,6 +3,8 @@ from django.core.validators import RegexValidator
 from django.utils import timezone
 from django.contrib.auth.models import User
 
+from .actividades_catalogo import GRUPO_CHOICES, ALL_TIPO_CHOICES
+
 
 class Departamento(models.Model):
     """
@@ -647,7 +649,14 @@ class CV(models.Model):
         upload_to='cvs/',
         blank=True,
         null=True,
-        verbose_name='Archivo CV'
+        verbose_name='CV descriptivo',
+    )
+
+    cv_archivo_anexos = models.FileField(
+        upload_to='cvs/anexos/',
+        blank=True,
+        null=True,
+        verbose_name='CV con anexos',
     )
     
     foto_perfil = models.ImageField(
@@ -692,21 +701,37 @@ class CV(models.Model):
 
     @property
     def archivo_url(self):
-        """URL pública correcta del archivo CV."""
-        if not self.cv_archivo:
-            return ''
-        from django.conf import settings
-        nombre = self.normalizar_ruta_archivo(self.cv_archivo.name)
-        return f"{settings.MEDIA_URL.rstrip('/')}/{nombre}"
+        """URL pública correcta del CV descriptivo."""
+        return self._archivo_url(self.cv_archivo)
 
     @property
     def archivo_existe(self):
-        """Indica si el archivo físico está disponible en el almacenamiento."""
-        if not self.cv_archivo:
+        """Indica si el CV descriptivo está disponible en el almacenamiento."""
+        return self._archivo_existe(self.cv_archivo)
+
+    @property
+    def archivo_anexos_url(self):
+        """URL pública correcta del CV con anexos."""
+        return self._archivo_url(self.cv_archivo_anexos)
+
+    @property
+    def archivo_anexos_existe(self):
+        """Indica si el CV con anexos está disponible en el almacenamiento."""
+        return self._archivo_existe(self.cv_archivo_anexos)
+
+    def _archivo_url(self, file_field):
+        if not file_field:
+            return ''
+        from django.conf import settings
+        nombre = self.normalizar_ruta_archivo(file_field.name)
+        return f"{settings.MEDIA_URL.rstrip('/')}/{nombre}"
+
+    def _archivo_existe(self, file_field):
+        if not file_field:
             return False
-        nombre = self.normalizar_ruta_archivo(self.cv_archivo.name)
+        nombre = self.normalizar_ruta_archivo(file_field.name)
         try:
-            return self.cv_archivo.storage.exists(nombre)
+            return file_field.storage.exists(nombre)
         except Exception:
             return False
 
@@ -720,14 +745,12 @@ class CV(models.Model):
         return f"{settings.MEDIA_URL.rstrip('/')}/{nombre}"
 
     def save(self, *args, **kwargs):
-        if self.cv_archivo and self.cv_archivo.name:
-            nombre_normalizado = self.normalizar_ruta_archivo(self.cv_archivo.name)
-            if nombre_normalizado != self.cv_archivo.name:
-                self.cv_archivo.name = nombre_normalizado
-        if self.foto_perfil and self.foto_perfil.name:
-            nombre_normalizado = self.normalizar_ruta_archivo(self.foto_perfil.name)
-            if nombre_normalizado != self.foto_perfil.name:
-                self.foto_perfil.name = nombre_normalizado
+        for field_name in ('cv_archivo', 'cv_archivo_anexos', 'foto_perfil'):
+            file_field = getattr(self, field_name)
+            if file_field and file_field.name:
+                nombre_normalizado = self.normalizar_ruta_archivo(file_field.name)
+                if nombre_normalizado != file_field.name:
+                    file_field.name = nombre_normalizado
         super().save(*args, **kwargs)
     
     @property
@@ -896,6 +919,31 @@ class Postulacion(models.Model):
         """Indica si el archivo CV existe en el servidor."""
         try:
             return self.persona.cv.archivo_existe
+        except (AttributeError, CV.DoesNotExist):
+            return False
+
+    @property
+    def cv_archivo_anexos(self):
+        """Archivo CV con anexos de la persona (compatibilidad con plantillas)."""
+        try:
+            archivo = self.persona.cv.cv_archivo_anexos
+            return archivo if archivo else None
+        except (AttributeError, CV.DoesNotExist):
+            return None
+
+    @property
+    def cv_archivo_anexos_url(self):
+        """URL corregida del CV con anexos de la persona."""
+        try:
+            return self.persona.cv.archivo_anexos_url
+        except (AttributeError, CV.DoesNotExist):
+            return ''
+
+    @property
+    def cv_archivo_anexos_disponible(self):
+        """Indica si el CV con anexos existe en el servidor."""
+        try:
+            return self.persona.cv.archivo_anexos_existe
         except (AttributeError, CV.DoesNotExist):
             return False
     
@@ -1086,6 +1134,79 @@ class Colaborador(models.Model):
                 'supervisor': 'Una persona no puede ser su propio supervisor.'
             })
     
+    def save(self, *args, **kwargs):
+        self.clean()
+        super().save(*args, **kwargs)
+
+
+class ContratoColaborador(models.Model):
+    """Historial de contratos laborales firmados con un colaborador."""
+
+    colaborador = models.ForeignKey(
+        Colaborador,
+        on_delete=models.CASCADE,
+        related_name='contratos',
+        verbose_name='Colaborador',
+    )
+    tipo_contrato = models.CharField(
+        max_length=20,
+        choices=Colaborador.TIPO_CONTRATO_CHOICES,
+        verbose_name='Tipo de contrato',
+    )
+    fecha_inicio = models.DateField(verbose_name='Fecha de inicio')
+    fecha_fin = models.DateField(
+        blank=True,
+        null=True,
+        verbose_name='Fecha de fin',
+    )
+    archivo = models.FileField(
+        upload_to='contratos/',
+        blank=True,
+        null=True,
+        verbose_name='Archivo del contrato',
+    )
+    observaciones = models.TextField(
+        blank=True,
+        null=True,
+        verbose_name='Observaciones',
+    )
+    fecha_creacion = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name='Fecha de registro',
+    )
+
+    class Meta:
+        verbose_name = 'Contrato de colaborador'
+        verbose_name_plural = 'Contratos de colaborador'
+        ordering = ['-fecha_inicio', '-id']
+
+    def __str__(self):
+        return f'{self.colaborador} — {self.get_tipo_contrato_display()} ({self.fecha_inicio})'
+
+    @staticmethod
+    def normalizar_ruta_archivo(nombre):
+        if not nombre:
+            return nombre
+        nombre = str(nombre).replace('\\', '/')
+        while nombre.startswith('media/'):
+            nombre = nombre[6:]
+        return nombre
+
+    @property
+    def archivo_url(self):
+        if not self.archivo:
+            return ''
+        from django.conf import settings
+        nombre = self.normalizar_ruta_archivo(self.archivo.name)
+        return f"{settings.MEDIA_URL.rstrip('/')}/{nombre}"
+
+    def clean(self):
+        from django.core.exceptions import ValidationError
+        if self.fecha_fin and self.fecha_inicio and self.fecha_fin <= self.fecha_inicio:
+            raise ValidationError({
+                'fecha_fin': 'La fecha de fin debe ser posterior a la fecha de inicio.',
+            })
+
     def save(self, *args, **kwargs):
         self.clean()
         super().save(*args, **kwargs)
@@ -1591,3 +1712,103 @@ class PerfilAcceso(models.Model):
     def __str__(self):
         rol = 'Administrador' if self.es_administrador else 'Usuario'
         return f'{self.user.username} ({rol})'
+
+
+class RegistroActividadSemanal(models.Model):
+    """Registro semanal de actividades de una persona."""
+
+    persona = models.ForeignKey(
+        Persona,
+        on_delete=models.CASCADE,
+        related_name='registros_semanales',
+        verbose_name='Persona',
+    )
+    anio = models.PositiveSmallIntegerField(verbose_name='Año')
+    semana = models.PositiveSmallIntegerField(verbose_name='Semana ISO')
+    fecha_inicio = models.DateField(verbose_name='Inicio de semana')
+    fecha_fin = models.DateField(verbose_name='Fin de semana')
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    fecha_actualizacion = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'Registro semanal de actividades'
+        verbose_name_plural = 'Registros semanales de actividades'
+        unique_together = [('persona', 'anio', 'semana')]
+        ordering = ['-anio', '-semana']
+        indexes = [
+            models.Index(fields=['persona', 'anio', 'semana']),
+        ]
+
+    def __str__(self):
+        return f'{self.persona.nombre_completo} — S{self.semana}/{self.anio}'
+
+
+class ActividadSemanal(models.Model):
+    """Línea de actividad dentro de un registro semanal."""
+
+    registro = models.ForeignKey(
+        RegistroActividadSemanal,
+        on_delete=models.CASCADE,
+        related_name='actividades',
+        verbose_name='Registro semanal',
+    )
+    grupo = models.CharField(
+        max_length=20,
+        choices=GRUPO_CHOICES,
+        verbose_name='Grupo',
+    )
+    tipo = models.CharField(
+        max_length=50,
+        choices=ALL_TIPO_CHOICES,
+        verbose_name='Tipo de actividad',
+    )
+    fecha = models.DateField(verbose_name='Fecha')
+    descripcion = models.TextField(
+        blank=True,
+        null=True,
+        verbose_name='Descripción',
+    )
+    cliente_proyecto = models.CharField(
+        max_length=200,
+        blank=True,
+        null=True,
+        verbose_name='Cliente o proyecto',
+    )
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    fecha_actualizacion = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'Actividad semanal'
+        verbose_name_plural = 'Actividades semanales'
+        ordering = ['fecha', 'id']
+
+    def __str__(self):
+        from .actividades_catalogo import get_tipo_label
+        return f'{get_tipo_label(self.grupo, self.tipo)} ({self.fecha})'
+
+    def clean(self):
+        from django.core.exceptions import ValidationError
+        from .actividades_catalogo import tipo_pertenece_a_grupo
+
+        super().clean()
+        if self.grupo and self.tipo and not tipo_pertenece_a_grupo(self.grupo, self.tipo):
+            raise ValidationError({
+                'tipo': 'El tipo seleccionado no corresponde al grupo indicado.',
+            })
+        if self.registro_id and self.fecha:
+            if self.fecha < self.registro.fecha_inicio or self.fecha > self.registro.fecha_fin:
+                raise ValidationError({
+                    'fecha': 'La fecha debe estar dentro de la semana del registro.',
+                })
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)
+
+    def get_grupo_display_label(self):
+        from .actividades_catalogo import get_grupo_label
+        return get_grupo_label(self.grupo)
+
+    def get_tipo_display_label(self):
+        from .actividades_catalogo import get_tipo_label
+        return get_tipo_label(self.grupo, self.tipo)

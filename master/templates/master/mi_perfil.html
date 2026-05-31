@@ -1,0 +1,119 @@
+{% extends 'master/includes/base.html' %}
+{% load static %}
+
+{% block title %}Mi perfil{% endblock %}
+
+{% block content %}
+<div class="container-fluid persona-edit-page">
+    <div class="d-flex align-items-center justify-content-between mb-4 pb-3 border-bottom flex-wrap">
+        <div class="d-flex align-items-center mb-2 mb-md-0">
+            {% if cv and cv.foto_perfil %}
+            <img src="{{ cv.foto_url }}" alt="{{ persona.nombre_completo }}"
+                 class="mr-3 shadow-sm"
+                 style="width: 65px; height: 65px; border-radius: 15px; object-fit: cover; border: 2px solid #b2f5ea;">
+            {% else %}
+            <div class="icon-shape-avatar bg-teal-light text-teal mr-3">
+                {{ persona.nombres|slice:":1" }}{{ persona.apellido_paterno|slice:":1" }}
+            </div>
+            {% endif %}
+            <div>
+                <h3 class="font-weight-800 mb-0 persona-edit-title">
+                    {{ persona.nombres }} {{ persona.apellido_paterno }} {{ persona.apellido_materno }}
+                </h3>
+                <div class="d-flex align-items-center mt-1 flex-wrap">
+                    <span class="badge-soft-dark mr-2">
+                        <i class="fal fa-id-card mr-1"></i>
+                        {{ persona.get_tipo_documento_display }}: {{ persona.numero_documento }}
+                    </span>
+                    <span class="badge-soft-teal">
+                        <i class="fal fa-user mr-1"></i> Mi perfil
+                    </span>
+                </div>
+            </div>
+        </div>
+        <div class="d-flex align-items-center flex-wrap">
+            <a href="{% url 'master:persona_cv_edit' persona.id %}"
+               class="btn btn-warning btn-pills shadow-sm px-4 py-2 font-weight-bold mb-2 mb-sm-0">
+                <i class="fal fa-edit mr-2"></i> Editar perfil CV
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-xl-8">
+            <div class="panel-talent mb-4">
+                <h6 class="section-title-talent mb-3">
+                    <i class="fal fa-user-circle mr-2 text-teal"></i> Datos personales
+                </h6>
+                <div class="row">
+                    <div class="col-md-3 mb-3">
+                        <label class="label-talent">Nombres</label>
+                        <p class="value-talent">{{ persona.nombres }}</p>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label class="label-talent">Ap. paterno</label>
+                        <p class="value-talent">{{ persona.apellido_paterno }}</p>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label class="label-talent">Ap. materno</label>
+                        <p class="value-talent">{{ persona.apellido_materno|default:"-" }}</p>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label class="label-talent">F. nacimiento</label>
+                        <p class="value-talent">{{ persona.fecha_nacimiento|date:"d/m/Y"|default:"-" }}</p>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="label-talent">Sexo</label>
+                        <p class="value-talent">{{ persona.get_sexo_display }}</p>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="label-talent">Estado civil</label>
+                        <p class="value-talent">{{ persona.get_estado_civil_display }}</p>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="label-talent">Celular</label>
+                        <p class="value-talent text-teal font-weight-bold">{{ persona.celular|default:"-" }}</p>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="label-talent">Email</label>
+                        <p class="value-talent small text-truncate">{{ persona.email|default:"-" }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel-talent mb-4">
+                <h6 class="section-title-talent mb-3">
+                    <i class="fal fa-map-marker-alt mr-2 text-info"></i> Información de dirección
+                </h6>
+                <div class="row align-items-center">
+                    <div class="col-md-6 border-right">
+                        <label class="label-talent">Dirección exacta</label>
+                        <p class="value-talent">{{ persona.direccion|default:"No especificada" }}</p>
+                    </div>
+                    <div class="col-md-2 text-center">
+                        <label class="label-talent">Distrito</label>
+                        <p class="value-talent small">{{ persona.distrito|default:"-" }}</p>
+                    </div>
+                    <div class="col-md-2 text-center border-left border-right">
+                        <label class="label-talent">Provincia</label>
+                        <p class="value-talent small">{{ persona.provincia|default:"-" }}</p>
+                    </div>
+                    <div class="col-md-2 text-center">
+                        <label class="label-talent">Dpto.</label>
+                        <p class="value-talent small">{{ persona.departamento|default:"-" }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <h6 class="section-title-talent mb-3 mt-2">
+        <i class="fal fa-file-alt mr-2 text-primary"></i> Mi CV virtual
+    </h6>
+
+    {% include 'master/includes/cv_detail_sections.html' %}
+</div>
+
+{% include 'master/includes/cv_detail_modals.html' %}
+{% include 'master/includes/cv_detail_assets.html' %}
+{% endblock %}

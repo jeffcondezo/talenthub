@@ -11,7 +11,7 @@
 
         {% for item in modulos_menu %}
         {% if item.clave in user_modulos %}
-        <a class="nav-link {% if item.clave == 'inicio' and '/master/inicio' in request.path %}active{% elif item.clave == 'convocatorias' and '/master/convocatorias' in request.path or '/master/postulante' in request.path or '/master/postulaciones' in request.path %}active{% elif item.clave == 'colaboradores' and '/master/colaboradores' in request.path or '/master/personas' in request.path or '/master/cv' in request.path %}active{% elif item.clave == 'capacitacion' and '/master/capacitacion' in request.path or '/master/induccion' in request.path %}active{% elif item.clave == 'proyecto' and '/master/proyecto' in request.path or '/master/perfiles' in request.path %}active{% elif item.clave == 'analitica' and '/master/analitica' in request.path %}active{% endif %}" href="{% url item.url_name %}">
+        <a class="nav-link{% if item.clave == 'inicio' and '/master/inicio' in request.path %} active{% elif item.clave == 'convocatorias' and '/master/convocatorias' in request.path or item.clave == 'convocatorias' and '/master/postulante' in request.path or item.clave == 'convocatorias' and '/master/postulaciones' in request.path %} active{% elif item.clave == 'colaboradores' and '/master/colaboradores' in request.path or item.clave == 'colaboradores' and '/master/personas' in request.path or item.clave == 'colaboradores' and '/master/cv/' in request.path %} active{% elif item.clave == 'capacitacion' and '/master/capacitacion' in request.path or item.clave == 'capacitacion' and '/master/induccion' in request.path %} active{% elif item.clave == 'proyecto' and '/master/proyecto' in request.path or item.clave == 'proyecto' and '/master/perfiles' in request.path %} active{% elif item.clave == 'analitica' and '/master/analitica' in request.path %} active{% endif %}" href="{% url item.url_name %}">
             <i class="{{ item.icon }}"></i> <span>{{ item.label }}</span>
         </a>
         {% endif %}
@@ -22,6 +22,15 @@
         {% if user_es_admin %}
         <a class="nav-link {% if '/master/usuarios' in request.path %}active{% endif %}" href="{% url 'master:usuarios_list' %}">
             <i class="fal fa-user-shield"></i> <span>Usuarios</span>
+        </a>
+        {% endif %}
+
+        {% if user_tiene_perfil_empleado %}
+        <a class="nav-link{% if '/master/mi-perfil' in request.path %} active{% endif %}" href="{% url 'master:mi_perfil' %}">
+            <i class="fal fa-id-card"></i> <span>Perfil</span>
+        </a>
+        <a class="nav-link{% if '/master/mis-actividades' in request.path %} active{% endif %}" href="{% url 'master:mis_actividades' %}">
+            <i class="fal fa-calendar-check"></i> <span>Mis actividades</span>
         </a>
         {% endif %}
 

@@ -1,0 +1,179 @@
+<script>
+    const actividadAnio = {{ anio }};
+    const actividadSemana = {{ semana }};
+    const tiposPorGrupo = {{ tipos_por_grupo_json|safe }};
+
+    function showToast(message, type) {
+        const toastId = 'toast-' + Date.now();
+        const icon = type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle';
+        const toastClass = type === 'success' ? 'toast-success' : 'toast-error';
+        const html = `
+            <div class="toast ${toastClass}" id="${toastId}">
+                <div class="toast-header">
+                    <i class="fal ${icon} toast-icon"></i>
+                    <strong>${type === 'success' ? 'Éxito' : 'Error'}</strong>
+                    <button type="button" class="toast-close" onclick="document.getElementById('${toastId}').remove()">&times;</button>
+                </div>
+                <div class="toast-body">${message}</div>
+            </div>`;
+        $('#toastContainer').append(html);
+        setTimeout(function() { $('#' + toastId).addClass('show'); }, 10);
+        setTimeout(function() {
+            $('#' + toastId).removeClass('show');
+            setTimeout(function() { $('#' + toastId).remove(); }, 300);
+        }, 4000);
+    }
+
+    function initGrupoTipoCascade() {
+        const $grupo = $('#id_grupo');
+        const $tipo = $('#id_tipo');
+        if (!$grupo.length || !$tipo.length) return;
+
+        function repoblarTipos(grupo, selected) {
+            $tipo.empty();
+            $tipo.append($('<option>', { value: '', text: '---------' }));
+            const tipos = tiposPorGrupo[grupo] || [];
+            tipos.forEach(function(item) {
+                $tipo.append($('<option>', { value: item.value, text: item.label }));
+            });
+            if (selected) {
+                $tipo.val(selected);
+            }
+        }
+
+        repoblarTipos($grupo.val(), $tipo.val());
+
+        $grupo.off('change.actividadCascade').on('change.actividadCascade', function() {
+            repoblarTipos($(this).val(), null);
+        });
+    }
+
+    function bindActividadFormSubmit(actividadId) {
+        $('#actividadSemanalForm').off('submit').on('submit', function(e) {
+            e.preventDefault();
+            const url = actividadId
+                ? `/master/mis-actividades/actividad/${actividadId}/`
+                : `/master/mis-actividades/${actividadAnio}/${actividadSemana}/actividad/`;
+            const formData = new FormData(this);
+
+            $.ajax({
+                url: url,
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                success: function() {
+                    $('#actividadSemanalModal').modal('hide');
+                    showToast(actividadId ? 'Actividad actualizada correctamente' : 'Actividad registrada correctamente', 'success');
+                    setTimeout(function() { location.reload(); }, 800);
+                },
+                error: function(xhr) {
+                    if (xhr.status === 400 && xhr.responseJSON && xhr.responseJSON.errors) {
+                        showToast('Revise los datos del formulario', 'error');
+                    } else {
+                        showToast('Error al guardar la actividad', 'error');
+                    }
+                }
+            });
+        });
+    }
+
+    function agregarActividadSemanal() {
+        $('#actividadSemanalModal').modal('show');
+        $('#actividadSemanalModalLabel').text('Agregar actividad');
+        $('#actividadSemanalModalBody').html(`
+            <div class="text-center py-4">
+                <div class="spinner-border text-primary" role="status"></div>
+                <p class="mt-2 mb-0">Cargando formulario...</p>
+            </div>
+        `);
+
+        $.ajax({
+            url: `/master/mis-actividades/${actividadAnio}/${actividadSemana}/actividad/`,
+            type: 'GET',
+            headers: { 'X-Requested-With': 'XMLHttpRequest' },
+            success: function(data) {
+                $('#actividadSemanalModalBody').html(data);
+                initGrupoTipoCascade();
+                bindActividadFormSubmit(null);
+            },
+            error: function() {
+                showToast('Error al cargar el formulario', 'error');
+            }
+        });
+    }
+
+    function editarActividadSemanal(actividadId) {
+        $('#actividadSemanalModal').modal('show');
+        $('#actividadSemanalModalLabel').text('Editar actividad');
+        $('#actividadSemanalModalBody').html(`
+            <div class="text-center py-4">
+                <div class="spinner-border text-primary" role="status"></div>
+                <p class="mt-2 mb-0">Cargando formulario...</p>
+            </div>
+        `);
+
+        $.ajax({
+            url: `/master/mis-actividades/actividad/${actividadId}/`,
+            type: 'GET',
+            headers: { 'X-Requested-With': 'XMLHttpRequest' },
+            success: function(data) {
+                $('#actividadSemanalModalBody').html(data);
+                initGrupoTipoCascade();
+                bindActividadFormSubmit(actividadId);
+            },
+            error: function() {
+                showToast('Error al cargar el formulario', 'error');
+            }
+        });
+    }
+
+    function eliminarActividadSemanal(actividadId, descripcion) {
+        $('#eliminarActividadSemanalModal').modal('show');
+        $('#eliminarActividadSemanalModalBody').html(`
+            <div class="text-center py-4">
+                <div class="spinner-border text-primary" role="status"></div>
+                <p class="mt-2 mb-0">Cargando confirmación...</p>
+            </div>
+        `);
+
+        $.ajax({
+            url: `/master/mis-actividades/actividad/${actividadId}/eliminar/`,
+            type: 'GET',
+            headers: { 'X-Requested-With': 'XMLHttpRequest' },
+            success: function(data) {
+                $('#eliminarActividadSemanalModalBody').html(data);
+                $(document).off('change', '#confirmDeleteActividad').on('change', '#confirmDeleteActividad', function() {
+                    const enabled = $(this).is(':checked');
+                    $('#confirmDeleteActividadBtn').prop('disabled', !enabled)
+                        .toggleClass('btn-danger', enabled).toggleClass('btn-secondary', !enabled);
+                });
+                $(document).off('click', '#confirmDeleteActividadBtn').on('click', '#confirmDeleteActividadBtn', function(e) {
+                    e.preventDefault();
+                    const formData = new FormData();
+                    formData.append('csrfmiddlewaretoken', $('#eliminarActividadSemanalModalBody [name=csrfmiddlewaretoken]').val());
+                    $.ajax({
+                        url: `/master/mis-actividades/actividad/${actividadId}/eliminar/`,
+                        type: 'POST',
+                        data: formData,
+                        processData: false,
+                        contentType: false,
+                        headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                        success: function() {
+                            $('#eliminarActividadSemanalModal').modal('hide');
+                            showToast(`Actividad "${descripcion}" eliminada correctamente`, 'success');
+                            setTimeout(function() { location.reload(); }, 800);
+                        },
+                        error: function() {
+                            showToast('Error al eliminar la actividad', 'error');
+                        }
+                    });
+                });
+            },
+            error: function() {
+                showToast('Error al cargar la confirmación', 'error');
+            }
+        });
+    }
+</script>

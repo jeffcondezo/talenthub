@@ -1481,11 +1481,21 @@ License: You must have a valid license purchased only from wrapbootstrap.com (li
                                                                 <i class="fal fa-trash-alt"></i>
                                                             </button>
                                                             {% if postulacion.cv_archivo and postulacion.cv_archivo_disponible %}
-                                                            <a href="{{ postulacion.cv_archivo_url }}" class="btn btn-sm btn-success" title="Ver CV" target="_blank">
-                                                                <i class="fal fa-folder"></i>
+                                                            <a href="{{ postulacion.cv_archivo_url }}" class="btn btn-sm btn-success" title="CV descriptivo" target="_blank">
+                                                                <i class="fal fa-file-alt"></i>
                                                             </a>
-                                                            {% else %}
+                                                            {% endif %}
+                                                            {% if postulacion.cv_archivo_anexos and postulacion.cv_archivo_anexos_disponible %}
+                                                            <a href="{{ postulacion.cv_archivo_anexos_url }}" class="btn btn-sm btn-outline-success" title="CV con anexos" target="_blank">
+                                                                <i class="fal fa-folder-open"></i>
+                                                            </a>
+                                                            {% endif %}
+                                                            {% if not postulacion.cv_archivo and not postulacion.cv_archivo_anexos %}
                                                             <button class="btn btn-sm btn-secondary" title="Sin CV" disabled>
+                                                                <i class="fal fa-folder"></i>
+                                                            </button>
+                                                            {% elif not postulacion.cv_archivo_disponible and not postulacion.cv_archivo_anexos_disponible %}
+                                                            <button class="btn btn-sm btn-secondary" title="CV no disponible" disabled>
                                                                 <i class="fal fa-folder"></i>
                                                             </button>
                                                             {% endif %}

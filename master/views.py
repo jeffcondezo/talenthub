@@ -6,18 +6,32 @@ from django.views.generic import ListView, DetailView, CreateView, UpdateView, D
 from django.db.models import Q
 from django.utils import timezone
 from django.db.models import Count
+from datetime import date
+import json
 from .models import PasoInduccion
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from .forms import (
     CustomLoginForm, FormacionAcademicaForm, CursoEspecializacionForm, ExperienciaLaboralForm,
-    PostulacionForm, ColaboradorForm, PersonaEditForm, PersonaAltaForm, CVPerfilForm,
-    PasswordChangeSpanishForm, UsuarioAccesoForm,
+    PostulacionForm, ColaboradorForm, ContratoColaboradorForm, PersonaEditForm,
+    PersonaAltaForm, CVPerfilForm, PasswordChangeSpanishForm, UsuarioAccesoForm,
+    ActividadSemanalForm,
 )
-from .permissions import get_login_redirect_url, get_first_allowed_url, user_is_admin, modulos_labels
+from .permissions import (
+    get_login_redirect_url, get_first_allowed_url, user_is_admin, modulos_labels,
+    user_can_manage_persona_cv, get_user_persona, user_has_module,
+    user_can_manage_own_actividades, get_or_create_registro_semana,
+    semana_iso_desplazada,
+)
+from .actividades_catalogo import TIPOS_POR_GRUPO, GRUPO_CHOICES
+from .actividades_pdf import generar_actividades_semanales_pdf
 from functools import wraps
 from django.contrib.auth.models import User
 from django.contrib.auth import update_session_auth_hash
-from .models import Persona, Cargo, Area, Convocatoria, Postulacion, FormacionAcademica, CursoEspecializacion, ExperienciaLaboral, CV, Colaborador, Departamento, Provincia, Distrito
+from .models import (
+    Persona, Cargo, Area, Convocatoria, Postulacion, FormacionAcademica,
+    CursoEspecializacion, ExperienciaLaboral, CV, Colaborador, ContratoColaborador,
+    Departamento, Provincia, Distrito, ActividadSemanal,
+)
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required # <--- 1. Importa esto
 
@@ -31,6 +45,54 @@ def admin_required(view_func):
             return redirect(get_first_allowed_url(request.user))
         return view_func(request, *args, **kwargs)
     return wrapper
+
+
+def build_cv_context(persona):
+    """Contexto compartido para CV virtual (detalle HR y mi-perfil)."""
+    cv, _ = CV.objects.get_or_create(persona=persona)
+    formaciones = cv.formaciones_academicas.all().order_by('-fecha_expedicion')
+    cursos = cv.cursos_especializacion.all().order_by('-fecha_fin')
+    experiencias = cv.experiencias_laborales.all().order_by('-fecha_inicio')
+    return {
+        'cv': cv,
+        'formaciones_academicas': formaciones,
+        'cursos_especializacion': cursos,
+        'experiencias_laborales': experiencias,
+        'total_formaciones': formaciones.count(),
+        'total_cursos': cursos.count(),
+        'total_experiencias': experiencias.count(),
+    }
+
+
+def deny_cv_access_response(request):
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return JsonResponse({'success': False, 'message': 'No autorizado'}, status=403)
+    messages.error(request, 'No tiene permiso para acceder a este CV.')
+    persona = get_user_persona(request.user)
+    if persona:
+        return redirect('master:mi_perfil')
+    return redirect('master:ajustes')
+
+
+class CVPersonaAccessMixin:
+    def dispatch(self, request, *args, **kwargs):
+        persona_id = kwargs.get('persona_id') or kwargs.get('id')
+        if persona_id is not None and not user_can_manage_persona_cv(request.user, persona_id):
+            return deny_cv_access_response(request)
+        return super().dispatch(request, *args, **kwargs)
+
+
+class CVRecordOwnerMixin:
+    def dispatch(self, request, *args, **kwargs):
+        if user_is_admin(request.user) or user_has_module(request.user, 'colaboradores'):
+            return super().dispatch(request, *args, **kwargs)
+        persona = get_user_persona(request.user)
+        if not persona:
+            return deny_cv_access_response(request)
+        pk = kwargs.get(self.pk_url_kwarg)
+        if pk and not self.model.objects.filter(pk=pk, cv__persona_id=persona.pk).exists():
+            return deny_cv_access_response(request)
+        return super().dispatch(request, *args, **kwargs)
 
 
 @login_required
@@ -49,6 +111,22 @@ def ajustes_view(request):
         'form': form,
         'usuario': request.user,
     })
+
+
+@login_required
+def mi_perfil_view(request):
+    """Perfil personal del empleado vinculado a la cuenta."""
+    persona = get_user_persona(request.user)
+    if persona is None:
+        messages.info(
+            request,
+            'Su cuenta no está vinculada a un empleado. Contacte al administrador.',
+        )
+        return redirect('master:ajustes')
+    context = build_cv_context(persona)
+    context['persona'] = persona
+    context['es_mi_perfil'] = True
+    return render(request, 'master/mi_perfil.html', context)
 
 
 @login_required # 
@@ -200,53 +278,31 @@ def analitica_view(request):
 
     return render(request, 'master/analitica.html', context)
 
-class CVDetailView(DetailView):
+class CVDetailView(CVPersonaAccessMixin, DetailView):
     """
     Vista basada en clases para mostrar el CV completo de una persona
     """
-    template_name = 'master/cv.html'
+    template_name = 'master/cv_detail.html'
     context_object_name = 'persona'
     model = Persona
-    
+
     def get_object(self):
         """
         Obtiene la persona basada en el ID de la URL
         """
         id = self.kwargs.get('id')
         return Persona.objects.get(id=id)
-    
+
     def get_context_data(self, **kwargs):
         """
         Agrega los datos del CV al contexto
         """
         context = super().get_context_data(**kwargs)
         persona = self.object
-        
-        # Obtener CV si existe
-        try:
-            cv = persona.cv
-            context['cv'] = cv
-            
-            # Obtener datos del CV
-            context['formaciones_academicas'] = cv.formaciones_academicas.all().order_by('-fecha_expedicion')
-            context['cursos_especializacion'] = cv.cursos_especializacion.all().order_by('-fecha_fin')
-            context['experiencias_laborales'] = cv.experiencias_laborales.all().order_by('-fecha_inicio')
-            
-        except CV.DoesNotExist:
-            context['cv'] = None
-            context['formaciones_academicas'] = []
-            context['cursos_especializacion'] = []
-            context['experiencias_laborales'] = []
-        
-        # Información adicional de la persona (sin depender de tipo)
+        context.update(build_cv_context(persona))
+        context['colaborador'] = getattr(persona, 'colaborador', None)
         context['tiene_postulaciones'] = persona.postulaciones.exists()
-        context['es_colaborador'] = hasattr(persona, 'colaborador') and persona.colaborador is not None
-        
-        # Datos adicionales para el contexto
-        context['total_formaciones'] = len(context['formaciones_academicas'])
-        context['total_cursos'] = len(context['cursos_especializacion'])
-        context['total_experiencias'] = len(context['experiencias_laborales'])
-        
+        context['es_colaborador'] = context['colaborador'] is not None
         return context
 
 
@@ -504,16 +560,26 @@ class PersonaDetailView(DetailView):
         return context
 
 
+@login_required
 def cv_perfil_edit(request, id):
     """Editar perfil y trayectoria profesional (CV) de una persona."""
     persona = get_object_or_404(Persona, id=id)
+    if not user_can_manage_persona_cv(request.user, persona.id):
+        return deny_cv_access_response(request)
+
     cv, _created = CV.objects.get_or_create(persona=persona)
+    es_mi_perfil = (
+        get_user_persona(request.user) is not None
+        and request.user.perfil.pk == persona.pk
+    )
 
     if request.method == 'POST':
         form = CVPerfilForm(request.POST, request.FILES, instance=cv)
         if form.is_valid():
             form.save()
             messages.success(request, 'Perfil profesional actualizado correctamente.')
+            if es_mi_perfil:
+                return redirect('master:mi_perfil')
             return redirect('master:persona_detail', id=persona.id)
     else:
         form = CVPerfilForm(instance=cv)
@@ -522,6 +588,7 @@ def cv_perfil_edit(request, id):
         'persona': persona,
         'cv': cv,
         'form': form,
+        'es_mi_perfil': es_mi_perfil,
     })
 
 
@@ -530,29 +597,60 @@ def colaborador_empleo_edit(request, id):
     persona = get_object_or_404(Persona, id=id)
     colaborador = Colaborador.objects.select_related('cargo').filter(persona=persona).first()
     es_nuevo = colaborador is None
+    puede_registrar_contratos = colaborador is not None
+    redirect_url = reverse('master:persona_empleo_edit', kwargs={'id': persona.id})
 
     if request.method == 'POST':
-        form = ColaboradorForm(request.POST, instance=colaborador)
-        if form.is_valid():
-            colaborador_actualizado = form.save(commit=False)
-            colaborador_actualizado.persona = persona
-            colaborador_actualizado.save()
-            messages.success(
-                request,
-                'Colaborador registrado correctamente.' if es_nuevo else 'Datos de empleo actualizados correctamente.',
+        accion = request.POST.get('accion', 'empleo')
+
+        if accion == 'eliminar_contrato' and colaborador:
+            contrato_id = request.POST.get('contrato_id')
+            contrato = get_object_or_404(
+                ContratoColaborador,
+                pk=contrato_id,
+                colaborador=colaborador,
             )
-            if es_nuevo:
-                return redirect('master:colaboradores')
-            return redirect('master:persona_detail', id=persona.id)
+            contrato.delete()
+            messages.success(request, 'Contrato eliminado correctamente.')
+            return redirect(redirect_url)
+
+        if accion == 'contrato' and colaborador:
+            contrato_form = ContratoColaboradorForm(request.POST, request.FILES)
+            if contrato_form.is_valid():
+                contrato = contrato_form.save(commit=False)
+                contrato.colaborador = colaborador
+                contrato.save()
+                messages.success(request, 'Contrato registrado correctamente.')
+                return redirect(redirect_url)
+            form = ColaboradorForm(instance=colaborador)
+            contratos = colaborador.contratos.all()
+        else:
+            contrato_form = ContratoColaboradorForm()
+            form = ColaboradorForm(request.POST, instance=colaborador)
+            if form.is_valid():
+                colaborador_actualizado = form.save(commit=False)
+                colaborador_actualizado.persona = persona
+                colaborador_actualizado.save()
+                messages.success(
+                    request,
+                    'Colaborador registrado correctamente.' if es_nuevo else 'Datos de empleo actualizados correctamente.',
+                )
+                if es_nuevo:
+                    return redirect('master:colaboradores')
+                return redirect('master:persona_detail', id=persona.id)
+            contratos = colaborador.contratos.all() if colaborador else []
     else:
+        contrato_form = ContratoColaboradorForm()
         if colaborador:
             form = ColaboradorForm(instance=colaborador)
+            contratos = colaborador.contratos.all()
         else:
             form = ColaboradorForm(initial={
                 'fecha_ingreso': timezone.now().date(),
                 'estado_laboral': 'ACTIVO',
                 'tipo_contrato': 'TIEMPO_COMPLETO',
             })
+            contratos = []
 
     form.fields['cargo'].queryset = Cargo.objects.filter(activo=True).select_related('area')
     supervisor_qs = Colaborador.objects.select_related('persona')
@@ -566,7 +664,10 @@ def colaborador_empleo_edit(request, id):
         'persona': persona,
         'colaborador': colaborador,
         'form': form,
+        'contrato_form': contrato_form,
+        'contratos': contratos,
         'es_nuevo': es_nuevo,
+        'puede_registrar_contratos': puede_registrar_contratos,
     })
 
 
@@ -1114,7 +1215,7 @@ class ConvocatoriaDeleteView(DeleteView):
 
 # ===== VISTAS PARA GESTIÓN DE CV =====
 
-class FormacionAcademicaCreateView(CreateView):
+class FormacionAcademicaCreateView(CVPersonaAccessMixin, CreateView):
     """Vista para crear formación académica"""
     model = FormacionAcademica
     form_class = FormacionAcademicaForm
@@ -1168,7 +1269,7 @@ class FormacionAcademicaCreateView(CreateView):
         return super().form_invalid(form)
 
 
-class FormacionAcademicaUpdateView(UpdateView):
+class FormacionAcademicaUpdateView(CVPersonaAccessMixin, UpdateView):
     """Vista para editar formación académica"""
     model = FormacionAcademica
     form_class = FormacionAcademicaForm
@@ -1225,7 +1326,7 @@ class FormacionAcademicaUpdateView(UpdateView):
         return super().form_invalid(form)
 
 
-class FormacionAcademicaDeleteView(DeleteView):
+class FormacionAcademicaDeleteView(CVRecordOwnerMixin, DeleteView):
     """Vista para eliminar formación académica"""
     model = FormacionAcademica
     pk_url_kwarg = 'formacion_id'
@@ -1268,7 +1369,7 @@ class FormacionAcademicaDeleteView(DeleteView):
         return reverse('master:cv_detail', kwargs={'id': formacion.cv.persona.id})
 
 
-class CursoEspecializacionCreateView(CreateView):
+class CursoEspecializacionCreateView(CVPersonaAccessMixin, CreateView):
     """Vista para crear curso de especialización"""
     model = CursoEspecializacion
     form_class = CursoEspecializacionForm
@@ -1322,7 +1423,7 @@ class CursoEspecializacionCreateView(CreateView):
         return super().form_invalid(form)
 
 
-class CursoEspecializacionUpdateView(UpdateView):
+class CursoEspecializacionUpdateView(CVPersonaAccessMixin, UpdateView):
     """Vista para editar curso de especialización"""
     model = CursoEspecializacion
     form_class = CursoEspecializacionForm
@@ -1379,7 +1480,7 @@ class CursoEspecializacionUpdateView(UpdateView):
         return super().form_invalid(form)
 
 
-class CursoEspecializacionDeleteView(DeleteView):
+class CursoEspecializacionDeleteView(CVRecordOwnerMixin, DeleteView):
     """Vista para eliminar curso de especialización"""
     model = CursoEspecializacion
     pk_url_kwarg = 'curso_id'
@@ -1422,7 +1523,7 @@ class CursoEspecializacionDeleteView(DeleteView):
         return reverse('master:cv_detail', kwargs={'id': curso.cv.persona.id})
 
 
-class ExperienciaLaboralCreateView(CreateView):
+class ExperienciaLaboralCreateView(CVPersonaAccessMixin, CreateView):
     """Vista para crear experiencia laboral"""
     model = ExperienciaLaboral
     form_class = ExperienciaLaboralForm
@@ -1468,15 +1569,17 @@ class ExperienciaLaboralCreateView(CreateView):
     
     def form_invalid(self, form):
         """Manejar formulario inválido"""
-        # Si es petición AJAX, devolver errores
         if self.request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-            from django.http import JsonResponse
-            return JsonResponse({'success': False, 'errors': form.errors}, status=400)
-        
+            from django.template.loader import render_to_string
+            from django.http import HttpResponse
+            context = self.get_context_data(form=form)
+            html = render_to_string('master/cv_experiencia_modal.html', context, request=self.request)
+            return HttpResponse(html, status=400)
+
         return super().form_invalid(form)
 
 
-class ExperienciaLaboralUpdateView(UpdateView):
+class ExperienciaLaboralUpdateView(CVPersonaAccessMixin, UpdateView):
     """Vista para editar experiencia laboral"""
     model = ExperienciaLaboral
     form_class = ExperienciaLaboralForm
@@ -1525,15 +1628,17 @@ class ExperienciaLaboralUpdateView(UpdateView):
     
     def form_invalid(self, form):
         """Manejar formulario inválido"""
-        # Si es petición AJAX, devolver errores
         if self.request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-            from django.http import JsonResponse
-            return JsonResponse({'success': False, 'errors': form.errors}, status=400)
-        
+            from django.template.loader import render_to_string
+            from django.http import HttpResponse
+            context = self.get_context_data(form=form)
+            html = render_to_string('master/cv_experiencia_modal.html', context, request=self.request)
+            return HttpResponse(html, status=400)
+
         return super().form_invalid(form)
 
 
-class ExperienciaLaboralDeleteView(DeleteView):
+class ExperienciaLaboralDeleteView(CVRecordOwnerMixin, DeleteView):
     """Vista para eliminar experiencia laboral"""
     model = ExperienciaLaboral
     pk_url_kwarg = 'experiencia_id'
@@ -2467,7 +2572,7 @@ def registrar_colaborador(request, postulacion_id):
 
 @admin_required
 def usuarios_list(request):
-    usuarios = User.objects.select_related('perfil_acceso').order_by('username')
+    usuarios = User.objects.select_related('perfil_acceso', 'perfil').order_by('username')
     filas = []
     for u in usuarios:
         perfil = getattr(u, 'perfil_acceso', None)
@@ -2480,10 +2585,13 @@ def usuarios_list(request):
         else:
             rol = '—'
             modulos_txt = '—'
+        persona = getattr(u, 'perfil', None)
+        empleado_txt = persona.nombre_completo if persona else '—'
         filas.append({
             'user': u,
             'rol': rol,
             'modulos_txt': modulos_txt,
+            'empleado_txt': empleado_txt,
             'activo': u.is_active,
         })
     return render(request, 'master/usuarios_list.html', {'filas': filas})
@@ -2517,3 +2625,229 @@ def usuario_edit(request, user_id):
         'es_edicion': True,
         'usuario_obj': usuario,
     })
+
+
+# ===== REGISTRO SEMANAL DE ACTIVIDADES =====
+
+def deny_actividad_access_response(request):
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return JsonResponse({'success': False, 'message': 'No autorizado'}, status=403)
+    messages.error(request, 'No tiene permiso para acceder a este registro de actividades.')
+    persona = get_user_persona(request.user)
+    if persona:
+        return redirect('master:mis_actividades')
+    return redirect('master:ajustes')
+
+
+class ActividadSemanalAccessMixin:
+    """Restringe el acceso al propio empleado vinculado (o admin)."""
+
+    def _persona_puede_acceder_registro(self, user, registro):
+        if user_is_admin(user):
+            return True
+        persona = get_user_persona(user)
+        return persona is not None and registro.persona_id == persona.pk
+
+    def _persona_puede_acceder_actividad(self, user, actividad):
+        return self._persona_puede_acceder_registro(user, actividad.registro)
+
+
+@login_required
+def mis_actividades_view(request):
+    """Pantalla principal de registro semanal de actividades."""
+    persona = get_user_persona(request.user)
+    if persona is None:
+        messages.info(
+            request,
+            'Su cuenta no está vinculada a un empleado. Contacte al administrador.',
+        )
+        return redirect('master:ajustes')
+
+    iso = date.today().isocalendar()
+    anio = int(request.GET.get('anio', iso[0]))
+    semana = int(request.GET.get('semana', iso[1]))
+
+    registro = get_or_create_registro_semana(persona, anio, semana)
+    actividades = registro.actividades.all().order_by('fecha', 'id')
+
+    anio_anterior, semana_anterior = semana_iso_desplazada(anio, semana, -1)
+    anio_siguiente, semana_siguiente = semana_iso_desplazada(anio, semana, 1)
+
+    tipos_por_grupo = {
+        grupo: [{'value': clave, 'label': label} for clave, label in tipos]
+        for grupo, tipos in TIPOS_POR_GRUPO.items()
+    }
+
+    return render(request, 'master/mis_actividades.html', {
+        'persona': persona,
+        'registro': registro,
+        'actividades': actividades,
+        'anio': anio,
+        'semana': semana,
+        'fecha_inicio': registro.fecha_inicio,
+        'fecha_fin': registro.fecha_fin,
+        'anio_anterior': anio_anterior,
+        'semana_anterior': semana_anterior,
+        'anio_siguiente': anio_siguiente,
+        'semana_siguiente': semana_siguiente,
+        'total_actividades': actividades.count(),
+        'tipos_por_grupo_json': json.dumps(tipos_por_grupo),
+        'grupo_choices': GRUPO_CHOICES,
+    })
+
+
+@login_required
+def mis_actividades_pdf_view(request):
+    """Descarga PDF del registro semanal de actividades."""
+    persona = get_user_persona(request.user)
+    if persona is None:
+        messages.info(
+            request,
+            'Su cuenta no está vinculada a un empleado. Contacte al administrador.',
+        )
+        return redirect('master:ajustes')
+
+    iso = date.today().isocalendar()
+    anio = int(request.GET.get('anio', iso[0]))
+    semana = int(request.GET.get('semana', iso[1]))
+
+    registro = get_or_create_registro_semana(persona, anio, semana)
+    actividades = list(registro.actividades.all().order_by('fecha', 'id'))
+
+    pdf_bytes = generar_actividades_semanales_pdf(persona, registro, actividades)
+    filename = f'actividades_semana_{semana}_{anio}.pdf'
+    response = HttpResponse(pdf_bytes, content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+    return response
+
+
+class ActividadSemanalCreateView(ActividadSemanalAccessMixin, CreateView):
+    """Alta de actividad semanal vía modal AJAX."""
+    model = ActividadSemanal
+    form_class = ActividadSemanalForm
+    template_name = 'master/actividad_semanal_form.html'
+
+    def dispatch(self, request, *args, **kwargs):
+        if not user_can_manage_own_actividades(request.user):
+            return deny_actividad_access_response(request)
+        persona = get_user_persona(request.user)
+        if persona is None:
+            return deny_actividad_access_response(request)
+        self.registro = get_or_create_registro_semana(
+            persona,
+            kwargs['anio'],
+            kwargs['semana'],
+        )
+        if not self._persona_puede_acceder_registro(request.user, self.registro):
+            return deny_actividad_access_response(request)
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['registro'] = self.registro
+        return kwargs
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['es_edicion'] = False
+        context['anio'] = self.kwargs['anio']
+        context['semana'] = self.kwargs['semana']
+        return context
+
+    def get_template_names(self):
+        if self.request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return ['master/includes/actividad_semanal_modal.html']
+        return [self.template_name]
+
+    def form_valid(self, form):
+        form.instance.registro = self.registro
+        form.save()
+        if self.request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'success': True, 'message': 'Actividad registrada correctamente'})
+        return redirect(f"{reverse('master:mis_actividades')}?anio={self.kwargs['anio']}&semana={self.kwargs['semana']}")
+
+    def form_invalid(self, form):
+        if self.request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'success': False, 'errors': form.errors}, status=400)
+        return super().form_invalid(form)
+
+
+class ActividadSemanalUpdateView(ActividadSemanalAccessMixin, UpdateView):
+    """Edición de actividad semanal vía modal AJAX."""
+    model = ActividadSemanal
+    form_class = ActividadSemanalForm
+    template_name = 'master/actividad_semanal_form.html'
+    pk_url_kwarg = 'pk'
+
+    def dispatch(self, request, *args, **kwargs):
+        if not user_can_manage_own_actividades(request.user):
+            return deny_actividad_access_response(request)
+        actividad = get_object_or_404(ActividadSemanal, pk=kwargs['pk'])
+        if not self._persona_puede_acceder_actividad(request.user, actividad):
+            return deny_actividad_access_response(request)
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['registro'] = self.object.registro
+        return kwargs
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['es_edicion'] = True
+        context['anio'] = self.object.registro.anio
+        context['semana'] = self.object.registro.semana
+        return context
+
+    def get_template_names(self):
+        if self.request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return ['master/includes/actividad_semanal_modal.html']
+        return [self.template_name]
+
+    def form_valid(self, form):
+        form.save()
+        registro = form.instance.registro
+        if self.request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'success': True, 'message': 'Actividad actualizada correctamente'})
+        return redirect(f"{reverse('master:mis_actividades')}?anio={registro.anio}&semana={registro.semana}")
+
+    def form_invalid(self, form):
+        if self.request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'success': False, 'errors': form.errors}, status=400)
+        return super().form_invalid(form)
+
+
+class ActividadSemanalDeleteView(ActividadSemanalAccessMixin, DeleteView):
+    """Eliminación de actividad semanal vía modal AJAX."""
+    model = ActividadSemanal
+    pk_url_kwarg = 'pk'
+    template_name = 'master/actividad_semanal_confirm_delete.html'
+
+    def dispatch(self, request, *args, **kwargs):
+        if not user_can_manage_own_actividades(request.user):
+            return deny_actividad_access_response(request)
+        actividad = get_object_or_404(ActividadSemanal, pk=kwargs['pk'])
+        if not self._persona_puede_acceder_actividad(request.user, actividad):
+            return deny_actividad_access_response(request)
+        return super().dispatch(request, *args, **kwargs)
+
+    def get(self, request, *args, **kwargs):
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            from django.template.loader import render_to_string
+            from django.http import HttpResponse
+            html = render_to_string(
+                self.template_name,
+                {'object': self.get_object()},
+                request=request,
+            )
+            return HttpResponse(html)
+        return super().get(request, *args, **kwargs)
+
+    def delete(self, request, *args, **kwargs):
+        actividad = self.get_object()
+        anio = actividad.registro.anio
+        semana = actividad.registro.semana
+        actividad.delete()
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'success': True, 'message': 'Actividad eliminada correctamente'})
+        return redirect(f"{reverse('master:mis_actividades')}?anio={anio}&semana={semana}")

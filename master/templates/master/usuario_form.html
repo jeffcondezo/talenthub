@@ -76,6 +76,19 @@
 
                     <hr class="my-4">
 
+                    <h6 class="section-title-talent mb-3">Vinculación con empleado</h6>
+
+                    <div class="form-group">
+                        <label for="{{ form.persona_vinculada.id_for_label }}" class="font-weight-bold">{{ form.persona_vinculada.label }}</label>
+                        {{ form.persona_vinculada }}
+                        {% if form.persona_vinculada.help_text %}
+                        <small class="form-text text-muted">{{ form.persona_vinculada.help_text }}</small>
+                        {% endif %}
+                        {% for error in form.persona_vinculada.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+                    </div>
+
+                    <hr class="my-4">
+
                     <h6 class="section-title-talent mb-3">Permisos</h6>
 
                     <div class="form-group form-check mb-3">

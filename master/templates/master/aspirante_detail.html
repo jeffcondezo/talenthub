@@ -78,18 +78,30 @@
                             <p><strong>Institución:</strong> {{ postulacion.institucion_educacion|default:"No especificada" }}</p>
                         </div>
                     </div>
-                    {% if postulacion.cv_archivo %}
+                    {% if postulacion.cv_archivo or postulacion.cv_archivo_anexos %}
                     <div class="row mt-3">
                         <div class="col-12">
-                            <p><strong>CV:</strong>
-                                {% if postulacion.cv_archivo_disponible %}
-                                <a href="{{ postulacion.cv_archivo_url }}" class="btn btn-sm btn-success" target="_blank">
-                                    <i class="fal fa-download"></i> Descargar CV
-                                </a>
-                                {% else %}
-                                <span class="text-muted small">Archivo no disponible en el servidor</span>
+                            <p><strong>Archivos CV:</strong></p>
+                            <div class="d-flex flex-wrap">
+                                {% if postulacion.cv_archivo %}
+                                    {% if postulacion.cv_archivo_disponible %}
+                                    <a href="{{ postulacion.cv_archivo_url }}" class="btn btn-sm btn-success mr-2 mb-2" target="_blank">
+                                        <i class="fal fa-download"></i> CV descriptivo
+                                    </a>
+                                    {% else %}
+                                    <span class="text-muted small mr-2 mb-2">CV descriptivo no disponible</span>
+                                    {% endif %}
                                 {% endif %}
-                            </p>
+                                {% if postulacion.cv_archivo_anexos %}
+                                    {% if postulacion.cv_archivo_anexos_disponible %}
+                                    <a href="{{ postulacion.cv_archivo_anexos_url }}" class="btn btn-sm btn-outline-success mr-2 mb-2" target="_blank">
+                                        <i class="fal fa-download"></i> CV con anexos
+                                    </a>
+                                    {% else %}
+                                    <span class="text-muted small mr-2 mb-2">CV con anexos no disponible</span>
+                                    {% endif %}
+                                {% endif %}
+                            </div>
                         </div>
                     </div>
                     {% endif %}

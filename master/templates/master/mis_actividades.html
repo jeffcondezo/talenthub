@@ -1,0 +1,174 @@
+{% extends 'master/includes/base.html' %}
+{% load static %}
+
+{% block title %}Mis actividades{% endblock %}
+
+{% block content %}
+<div class="container-fluid persona-edit-page">
+    <div class="d-flex align-items-center justify-content-between mb-4 pb-3 border-bottom flex-wrap">
+        <div class="d-flex align-items-center mb-2 mb-md-0">
+            <div class="icon-shape-avatar bg-teal-light text-teal mr-3">
+                <i class="fal fa-calendar-check"></i>
+            </div>
+            <div>
+                <h3 class="font-weight-800 mb-0 persona-edit-title">Mis actividades</h3>
+                <div class="d-flex align-items-center mt-1 flex-wrap">
+                    <span class="badge-soft-teal mr-2">
+                        <i class="fal fa-user mr-1"></i> {{ persona.nombre_completo }}
+                    </span>
+                    <span class="badge-soft-dark">
+                        Semana {{ semana }} / {{ anio }}
+                    </span>
+                </div>
+            </div>
+        </div>
+        <button type="button" class="btn btn-success btn-pills shadow-sm px-4 py-2 font-weight-bold"
+                onclick="agregarActividadSemanal()">
+            <i class="fal fa-plus mr-2"></i> Agregar actividad
+        </button>
+    </div>
+
+    <div class="panel-talent mb-4">
+        <div class="d-flex align-items-center justify-content-between flex-wrap">
+            <div class="mb-2 mb-md-0">
+                <h6 class="section-title-talent mb-1">
+                    <i class="fal fa-calendar-alt mr-2 text-teal"></i>
+                    {{ fecha_inicio|date:"d/m/Y" }} — {{ fecha_fin|date:"d/m/Y" }}
+                </h6>
+                <small class="text-muted">{{ total_actividades }} actividad{{ total_actividades|pluralize:"es" }} registrada{{ total_actividades|pluralize }}</small>
+            </div>
+            <div class="d-flex align-items-center flex-wrap">
+                <a href="{% url 'master:mis_actividades_pdf' %}?anio={{ anio }}&semana={{ semana }}"
+                   class="btn btn-outline-danger btn-sm mr-2">
+                    <i class="fal fa-file-pdf mr-1"></i> Descargar PDF
+                </a>
+                <a href="{% url 'master:mis_actividades' %}?anio={{ anio_anterior }}&semana={{ semana_anterior }}"
+                   class="btn btn-outline-secondary btn-sm mr-2">
+                    <i class="fal fa-chevron-left mr-1"></i> Semana anterior
+                </a>
+                <a href="{% url 'master:mis_actividades' %}?anio={{ anio_siguiente }}&semana={{ semana_siguiente }}"
+                   class="btn btn-outline-secondary btn-sm">
+                    Semana siguiente <i class="fal fa-chevron-right ml-1"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="panel-talent">
+        {% if actividades %}
+        <div class="table-responsive">
+            <table class="table table-modern mb-0">
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Grupo</th>
+                        <th>Tipo</th>
+                        <th>Cliente / Proyecto</th>
+                        <th>Descripción</th>
+                        <th class="text-right">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for actividad in actividades %}
+                    <tr>
+                        <td>{{ actividad.fecha|date:"d/m/Y" }}</td>
+                        <td>{{ actividad.get_grupo_display_label }}</td>
+                        <td>{{ actividad.get_tipo_display_label }}</td>
+                        <td>{{ actividad.cliente_proyecto|default:"—" }}</td>
+                        <td>
+                            {% if actividad.descripcion %}
+                            <span title="{{ actividad.descripcion }}">
+                                {{ actividad.descripcion|truncatechars:60 }}
+                            </span>
+                            {% else %}
+                            —
+                            {% endif %}
+                        </td>
+                        <td class="text-right text-nowrap">
+                            <button type="button" class="btn btn-sm btn-outline-warning btn-icon mr-1"
+                                    onclick="editarActividadSemanal({{ actividad.id }})"
+                                    title="Editar">
+                                <i class="fal fa-edit"></i>
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-danger btn-icon"
+                                    onclick="eliminarActividadSemanal({{ actividad.id }}, '{{ actividad.get_tipo_display_label|escapejs }}')"
+                                    title="Eliminar">
+                                <i class="fal fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5 text-muted">
+            <i class="fal fa-clipboard-list-check mb-3" style="font-size: 3rem; opacity: 0.4;"></i>
+            <p class="mb-2 font-weight-bold">No hay actividades registradas esta semana</p>
+            <p class="mb-0 small">Use el botón «Agregar actividad» para registrar su trabajo de la semana.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<div class="modal fade" id="actividadSemanalModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title font-weight-bold" id="actividadSemanalModalLabel">Agregar actividad</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Cerrar">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" id="actividadSemanalModalBody"></div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="eliminarActividadSemanalModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title font-weight-bold">Eliminar actividad</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Cerrar">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div id="eliminarActividadSemanalModalBody"></div>
+        </div>
+    </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+{% include 'master/includes/persona_edit_styles.html' %}
+<style>
+    .icon-shape-avatar {
+        width: 65px;
+        height: 65px;
+        border-radius: 15px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        font-weight: 800;
+    }
+    .bg-teal-light { background: #ccfbf1; }
+    .text-teal { color: #0f766e; }
+    .badge-soft-teal { background: #ccfbf1; color: #0f766e; padding: 4px 10px; border-radius: 6px; font-weight: 700; font-size: 0.65rem; }
+    .badge-soft-dark { background: #f1f5f9; color: #475569; padding: 4px 10px; border-radius: 6px; font-weight: 700; font-size: 0.65rem; }
+    .btn-icon { width: 34px; height: 34px; display: inline-flex; align-items: center; justify-content: center; }
+    .toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; }
+    .toast { min-width: 300px; background: #fff; border: 1px solid #dee2e6; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); margin-bottom: 10px; opacity: 0; transform: translateX(100%); transition: all 0.3s ease-in-out; }
+    .toast.show { opacity: 1; transform: translateX(0); }
+    .toast-header { padding: 12px 16px; border-bottom: 1px solid #dee2e6; display: flex; align-items: center; }
+    .toast-success .toast-header { background: #d4edda; color: #155724; }
+    .toast-error .toast-header { background: #f8d7da; color: #721c24; }
+    .toast-body { padding: 12px 16px; color: #495057; font-size: 14px; }
+    .toast-close { background: none; border: none; font-size: 20px; margin-left: auto; cursor: pointer; opacity: 0.7; }
+</style>
+
+<script src="{% static 'js/vendors.bundle.js' %}"></script>
+<script src="{% static 'js/app.bundle.js' %}"></script>
+{% include 'master/includes/actividad_semanal_scripts.html' %}
+{% endblock %}

@@ -1,0 +1,177 @@
+    <div class="panel-talent mb-4">
+        <div class="d-flex align-items-center justify-content-between mb-3">
+            <h6 class="section-title-talent mb-0 border-0 pb-0">
+                <i class="fal fa-graduation-cap mr-2 text-primary"></i> Formación académica
+            </h6>
+            <button type="button" class="btn btn-teal btn-sm btn-pills px-3 font-weight-bold" onclick="agregarFormacionAcademica()">
+                <i class="fal fa-plus mr-1"></i> Agregar
+            </button>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover table-modern mb-0">
+                <thead>
+                    <tr>
+                        <th>Grado</th>
+                        <th>Especialidad</th>
+                        <th>Centro de estudio</th>
+                        <th>Ciudad</th>
+                        <th>País</th>
+                        <th>F. expedición</th>
+                        <th>F. inicio</th>
+                        <th>F. fin</th>
+                        <th class="text-right">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for formacion in formaciones_academicas %}
+                    <tr>
+                        <td>{{ formacion.get_grado_display }}</td>
+                        <td>{{ formacion.especialidad }}</td>
+                        <td>{{ formacion.centro_estudio }}</td>
+                        <td>{{ formacion.ciudad }}</td>
+                        <td>{{ formacion.pais }}</td>
+                        <td>{{ formacion.fecha_expedicion|date:"d/m/Y" }}</td>
+                        <td>{{ formacion.fecha_inicio|date:"d/m/Y" }}</td>
+                        <td>{{ formacion.fecha_fin|date:"d/m/Y" }}</td>
+                        <td class="text-right text-nowrap">
+                            <button type="button" class="btn btn-action btn-outline-warning mr-1" title="Editar"
+                                    onclick="editarFormacionAcademica({{ formacion.id }})">
+                                <i class="fal fa-edit"></i>
+                            </button>
+                            <button type="button" class="btn btn-action btn-outline-danger" title="Eliminar"
+                                    onclick="eliminarFormacionAcademica({{ formacion.id }}, '{{ formacion.get_grado_display|escapejs }} en {{ formacion.especialidad|escapejs }}')">
+                                <i class="fal fa-trash-alt"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="9" class="text-center text-muted py-4">
+                            <i class="fal fa-info-circle mr-2"></i>No hay formaciones académicas registradas
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="panel-talent mb-4">
+        <div class="d-flex align-items-center justify-content-between mb-3">
+            <h6 class="section-title-talent mb-0 border-0 pb-0">
+                <i class="fal fa-certificate mr-2 text-teal"></i> Cursos de especialización
+            </h6>
+            <button type="button" class="btn btn-teal btn-sm btn-pills px-3 font-weight-bold" onclick="agregarCursoEspecializacion()">
+                <i class="fal fa-plus mr-1"></i> Agregar
+            </button>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover table-modern mb-0">
+                <thead>
+                    <tr>
+                        <th>Tipo</th>
+                        <th>Descripción</th>
+                        <th>Institución</th>
+                        <th>País</th>
+                        <th>Ciudad</th>
+                        <th>F. inicio</th>
+                        <th>F. fin</th>
+                        <th>Horas</th>
+                        <th>Nivel</th>
+                        <th class="text-right">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for curso in cursos_especializacion %}
+                    <tr>
+                        <td>{{ curso.get_tipo_estudio_display }}</td>
+                        <td>{{ curso.descripcion }}</td>
+                        <td>{{ curso.institucion }}</td>
+                        <td>{{ curso.pais }}</td>
+                        <td>{{ curso.ciudad }}</td>
+                        <td>{{ curso.fecha_inicio|date:"d/m/Y" }}</td>
+                        <td>{{ curso.fecha_fin|date:"d/m/Y" }}</td>
+                        <td>{{ curso.horas_lectivas|default:"-" }}</td>
+                        <td>{{ curso.get_nivel_display|default:"-" }}</td>
+                        <td class="text-right text-nowrap">
+                            <button type="button" class="btn btn-action btn-outline-warning mr-1" title="Editar"
+                                    onclick="editarCursoEspecializacion({{ curso.id }})">
+                                <i class="fal fa-edit"></i>
+                            </button>
+                            <button type="button" class="btn btn-action btn-outline-danger" title="Eliminar"
+                                    onclick="eliminarCursoEspecializacion({{ curso.id }}, '{{ curso.get_tipo_estudio_display|escapejs }}: {{ curso.descripcion|escapejs }}')">
+                                <i class="fal fa-trash-alt"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="10" class="text-center text-muted py-4">
+                            <i class="fal fa-info-circle mr-2"></i>No hay cursos de especialización registrados
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="panel-talent mb-4">
+        <div class="d-flex align-items-center justify-content-between mb-3">
+            <h6 class="section-title-talent mb-0 border-0 pb-0">
+                <i class="fal fa-briefcase mr-2 text-info"></i> Experiencia laboral
+            </h6>
+            <button type="button" class="btn btn-teal btn-sm btn-pills px-3 font-weight-bold" onclick="agregarExperienciaLaboral()">
+                <i class="fal fa-plus mr-1"></i> Agregar
+            </button>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover table-modern mb-0">
+                <thead>
+                    <tr>
+                        <th>Tipo experiencia</th>
+                        <th>Tipo entidad</th>
+                        <th>Entidad</th>
+                        <th>Cargo</th>
+                        <th>F. inicio</th>
+                        <th>F. fin</th>
+                        <th class="text-right">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for experiencia in experiencias_laborales %}
+                    <tr>
+                        <td>{{ experiencia.get_tipo_experiencia_display }}</td>
+                        <td>{{ experiencia.get_tipo_entidad_display }}</td>
+                        <td>{{ experiencia.nombre_entidad }}</td>
+                        <td>{{ experiencia.cargo }}</td>
+                        <td>{{ experiencia.fecha_inicio|date:"d/m/Y" }}</td>
+                        <td>
+                            {% if experiencia.fecha_fin %}
+                                {{ experiencia.fecha_fin|date:"d/m/Y" }}
+                            {% else %}
+                                <span class="badge badge-soft-success">Actual</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-right text-nowrap">
+                            <button type="button" class="btn btn-action btn-outline-warning mr-1" title="Editar"
+                                    onclick="editarExperienciaLaboral({{ experiencia.id }})">
+                                <i class="fal fa-edit"></i>
+                            </button>
+                            <button type="button" class="btn btn-action btn-outline-danger" title="Eliminar"
+                                    onclick="eliminarExperienciaLaboral({{ experiencia.id }}, '{{ experiencia.cargo|escapejs }} en {{ experiencia.nombre_entidad|escapejs }}')">
+                                <i class="fal fa-trash-alt"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center text-muted py-4">
+                            <i class="fal fa-info-circle mr-2"></i>No hay experiencias laborales registradas
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>

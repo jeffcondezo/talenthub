@@ -2,11 +2,14 @@ from django import forms
 from django.contrib.auth import password_validation
 from django.contrib.auth.forms import AuthenticationForm, PasswordChangeForm
 from django.contrib.auth.models import User
+from django.db.models import Q
 
 from .models import (
     Postulacion, Convocatoria, FormacionAcademica, CursoEspecializacion,
-    ExperienciaLaboral, Persona, CV, Colaborador, PerfilAcceso,
+    ExperienciaLaboral, Persona, CV, Colaborador, ContratoColaborador, PerfilAcceso,
+    ActividadSemanal,
 )
+from .actividades_catalogo import TIPOS_POR_GRUPO, tipo_pertenece_a_grupo
 from .permissions import MODULOS_MENU
 
 
@@ -127,7 +130,7 @@ class CVPerfilForm(forms.ModelForm):
         fields = [
             'resumen_profesional', 'objetivo_profesional',
             'email_profesional', 'telefono_profesional',
-            'linkedin', 'portfolio', 'cv_archivo',
+            'linkedin', 'portfolio', 'cv_archivo', 'cv_archivo_anexos',
         ]
         widgets = {
             'resumen_profesional': forms.Textarea(attrs={'class': 'form-control', 'rows': 4}),
@@ -136,7 +139,12 @@ class CVPerfilForm(forms.ModelForm):
             'telefono_profesional': forms.TextInput(attrs={'class': 'form-control'}),
             'linkedin': forms.URLInput(attrs={'class': 'form-control', 'placeholder': 'https://linkedin.com/in/...'}),
             'portfolio': forms.URLInput(attrs={'class': 'form-control', 'placeholder': 'https://...'}),
-            'cv_archivo': forms.FileInput(attrs={'class': 'form-control-file'}),
+            'cv_archivo': forms.FileInput(attrs={'class': 'form-control-file', 'accept': '.pdf,.doc,.docx'}),
+            'cv_archivo_anexos': forms.FileInput(attrs={'class': 'form-control-file', 'accept': '.pdf,.doc,.docx,.zip,.rar'}),
+        }
+        labels = {
+            'cv_archivo': 'CV descriptivo',
+            'cv_archivo_anexos': 'CV con anexos',
         }
 
 
@@ -395,7 +403,7 @@ class ExperienciaLaboralForm(forms.ModelForm):
             'fecha_inicio': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
             'fecha_fin': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
             'salario': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': '0'}),
-            'motivo_salida': forms.TextInput(attrs={'class': 'form-control'}),
+            'motivo_salida': forms.Select(attrs={'class': 'form-control'}),
             'logros': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
             'responsabilidades': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
             'supervisor': forms.TextInput(attrs={'class': 'form-control'}),
@@ -490,6 +498,55 @@ class ColaboradorForm(forms.ModelForm):
         return numero_empleado
 
 
+class ContratoColaboradorForm(forms.ModelForm):
+    """Formulario para registrar un contrato laboral con archivo PDF."""
+
+    class Meta:
+        model = ContratoColaborador
+        fields = ['tipo_contrato', 'fecha_inicio', 'fecha_fin', 'archivo', 'observaciones']
+        widgets = {
+            'tipo_contrato': forms.Select(attrs={'class': 'custom-select form-control'}),
+            'fecha_inicio': forms.DateInput(
+                format='%Y-%m-%d',
+                attrs={'class': 'form-control', 'type': 'date'},
+            ),
+            'fecha_fin': forms.DateInput(
+                format='%Y-%m-%d',
+                attrs={'class': 'form-control', 'type': 'date'},
+            ),
+            'archivo': forms.FileInput(attrs={
+                'class': 'form-control-file',
+                'accept': 'application/pdf,.pdf',
+            }),
+            'observaciones': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 2,
+                'placeholder': 'Opcional',
+            }),
+        }
+        labels = {
+            'tipo_contrato': 'Tipo de contrato *',
+            'fecha_inicio': 'Fecha de inicio *',
+            'fecha_fin': 'Fecha de fin',
+            'archivo': 'Archivo PDF (opcional)',
+            'observaciones': 'Observaciones',
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['fecha_fin'].required = False
+        self.fields['observaciones'].required = False
+        self.fields['archivo'].required = False
+
+    def clean_archivo(self):
+        archivo = self.cleaned_data.get('archivo')
+        if archivo:
+            nombre = archivo.name.lower()
+            if not nombre.endswith('.pdf'):
+                raise forms.ValidationError('Solo se permiten archivos PDF.')
+        return archivo
+
+
 MODULO_FORM_CHOICES = [(m['clave'], m['label']) for m in MODULOS_MENU]
 
 
@@ -543,11 +600,34 @@ class UsuarioAccesoForm(forms.Form):
         initial=True,
         label='Usuario activo',
     )
+    persona_vinculada = forms.ModelChoiceField(
+        queryset=Persona.objects.none(),
+        required=False,
+        label='Empleado vinculado',
+        empty_label='— Sin vincular —',
+        widget=forms.Select(attrs={'class': 'form-control'}),
+        help_text='Vincula esta cuenta al registro del empleado para que vea su perfil personal.',
+    )
 
     def __init__(self, *args, user_instance=None, **kwargs):
         self.user_instance = user_instance
         super().__init__(*args, **kwargs)
         is_edit = user_instance is not None
+
+        empleados_qs = Persona.objects.filter(
+            colaborador__isnull=False,
+        ).select_related('colaborador').order_by('apellido_paterno', 'nombres')
+        if is_edit:
+            empleados_qs = empleados_qs.filter(
+                Q(user__isnull=True) | Q(user=user_instance),
+            )
+            persona = getattr(user_instance, 'perfil', None)
+            if persona:
+                self.initial['persona_vinculada'] = persona.pk
+        else:
+            empleados_qs = empleados_qs.filter(user__isnull=True)
+        self.fields['persona_vinculada'].queryset = empleados_qs
+
         if is_edit:
             self.fields['username'].disabled = True
             perfil = getattr(user_instance, 'perfil_acceso', None)
@@ -578,9 +658,13 @@ class UsuarioAccesoForm(forms.Form):
         cleaned = super().clean()
         es_admin = cleaned.get('es_administrador')
         modulos = cleaned.get('modulos') or []
-        if not es_admin and not modulos:
+        persona = cleaned.get('persona_vinculada')
+        if not persona and self.user_instance:
+            persona = getattr(self.user_instance, 'perfil', None)
+        if not es_admin and not modulos and not persona:
             raise forms.ValidationError(
-                'Debe asignar al menos un módulo o marcar al usuario como administrador.'
+                'Debe asignar al menos un módulo, marcar al usuario como administrador '
+                'o vincular un empleado.'
             )
         p1 = cleaned.get('password1')
         p2 = cleaned.get('password2')
@@ -619,6 +703,15 @@ class UsuarioAccesoForm(forms.Form):
                 )
         return is_active
 
+    def _sync_persona_link(self, user):
+        """Vincula o desvincula la cuenta con un registro Persona (empleado)."""
+        persona_nueva = self.cleaned_data.get('persona_vinculada')
+        Persona.objects.filter(user=user).update(user=None)
+        if persona_nueva:
+            Persona.objects.filter(pk=persona_nueva.pk).update(user=None)
+            persona_nueva.user = user
+            persona_nueva.save(update_fields=['user'])
+
     def save(self):
         es_admin = self.cleaned_data['es_administrador']
         modulos = list(self.cleaned_data.get('modulos') or [])
@@ -638,6 +731,7 @@ class UsuarioAccesoForm(forms.Form):
                 es_administrador=es_admin,
                 modulos=modulos,
             )
+            self._sync_persona_link(user)
             return user
 
         user = self.user_instance
@@ -659,4 +753,64 @@ class UsuarioAccesoForm(forms.Form):
         perfil.es_administrador = es_admin
         perfil.modulos = modulos
         perfil.save()
+        self._sync_persona_link(user)
         return user
+
+
+class ActividadSemanalForm(forms.ModelForm):
+    """Formulario para registrar una actividad semanal."""
+
+    class Meta:
+        model = ActividadSemanal
+        fields = ['grupo', 'tipo', 'fecha', 'descripcion', 'cliente_proyecto', 'registro']
+        widgets = {
+            'grupo': forms.Select(attrs={'class': 'custom-select form-control', 'id': 'id_grupo'}),
+            'tipo': forms.Select(attrs={'class': 'custom-select form-control', 'id': 'id_tipo'}),
+            'fecha': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'descripcion': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'cliente_proyecto': forms.TextInput(attrs={'class': 'form-control'}),
+            'registro': forms.HiddenInput(),
+        }
+        labels = {
+            'grupo': 'Grupo',
+            'tipo': 'Tipo de actividad',
+            'fecha': 'Fecha',
+            'descripcion': 'Descripción',
+            'cliente_proyecto': 'Cliente o proyecto',
+        }
+
+    def __init__(self, *args, **kwargs):
+        self.registro = kwargs.pop('registro', None)
+        super().__init__(*args, **kwargs)
+        self.fields['tipo'].choices = [('', '---------')]
+        grupo = self.data.get('grupo') if self.data else None
+        if not grupo and self.instance.pk:
+            grupo = self.instance.grupo
+        if not grupo:
+            grupo = self.initial.get('grupo')
+        if grupo:
+            self.fields['tipo'].choices = [('', '---------')] + list(TIPOS_POR_GRUPO.get(grupo, []))
+        if self.registro:
+            self.fields['registro'].initial = self.registro.pk
+            self.fields['fecha'].widget.attrs['min'] = self.registro.fecha_inicio.isoformat()
+            self.fields['fecha'].widget.attrs['max'] = self.registro.fecha_fin.isoformat()
+
+    def clean(self):
+        cleaned_data = super().clean()
+        grupo = cleaned_data.get('grupo')
+        tipo = cleaned_data.get('tipo')
+        fecha = cleaned_data.get('fecha')
+        registro = cleaned_data.get('registro') or self.registro
+
+        if grupo and tipo and not tipo_pertenece_a_grupo(grupo, tipo):
+            self.add_error('tipo', 'El tipo seleccionado no corresponde al grupo indicado.')
+
+        if registro and fecha:
+            if fecha < registro.fecha_inicio or fecha > registro.fecha_fin:
+                self.add_error(
+                    'fecha',
+                    f'La fecha debe estar entre {registro.fecha_inicio.strftime("%d/%m/%Y")} '
+                    f'y {registro.fecha_fin.strftime("%d/%m/%Y")}.',
+                )
+
+        return cleaned_data

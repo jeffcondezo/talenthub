@@ -15,6 +15,24 @@ urlpatterns = [
 
     path('inicio/', views.inicio_view, name='inicio'),
     path('ajustes/', views.ajustes_view, name='ajustes'),
+    path('mi-perfil/', views.mi_perfil_view, name='mi_perfil'),
+    path('mis-actividades/', views.mis_actividades_view, name='mis_actividades'),
+    path('mis-actividades/pdf/', views.mis_actividades_pdf_view, name='mis_actividades_pdf'),
+    path(
+        'mis-actividades/<int:anio>/<int:semana>/actividad/',
+        views.ActividadSemanalCreateView.as_view(),
+        name='actividad_semanal_create',
+    ),
+    path(
+        'mis-actividades/actividad/<int:pk>/',
+        views.ActividadSemanalUpdateView.as_view(),
+        name='actividad_semanal_edit',
+    ),
+    path(
+        'mis-actividades/actividad/<int:pk>/eliminar/',
+        views.ActividadSemanalDeleteView.as_view(),
+        name='actividad_semanal_delete',
+    ),
     path('usuarios/', views.usuarios_list, name='usuarios_list'),
     path('usuarios/nuevo/', views.usuario_create, name='usuario_create'),
     path('usuarios/<int:user_id>/editar/', views.usuario_edit, name='usuario_edit'),

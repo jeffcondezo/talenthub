@@ -144,11 +144,22 @@
                         {% if cv.cv_archivo %}
                             {% if cv.archivo_existe %}
                             <a href="{{ cv.archivo_url }}" target="_blank" class="btn btn-teal btn-sm btn-pills px-3 ml-2 shadow-sm">
-                                <i class="fal fa-download mr-1"></i> Descargar CV Completo
+                                <i class="fal fa-download mr-1"></i> CV descriptivo
                             </a>
                             {% else %}
                             <span class="text-muted small ml-2" title="El archivo no está en el servidor">
-                                <i class="fal fa-exclamation-triangle mr-1"></i> Archivo no disponible
+                                <i class="fal fa-exclamation-triangle mr-1"></i> CV descriptivo no disponible
+                            </span>
+                            {% endif %}
+                        {% endif %}
+                        {% if cv.cv_archivo_anexos %}
+                            {% if cv.archivo_anexos_existe %}
+                            <a href="{{ cv.archivo_anexos_url }}" target="_blank" class="btn btn-outline-success btn-sm btn-pills px-3 ml-2 shadow-sm">
+                                <i class="fal fa-download mr-1"></i> CV con anexos
+                            </a>
+                            {% else %}
+                            <span class="text-muted small ml-2" title="El archivo no está en el servidor">
+                                <i class="fal fa-exclamation-triangle mr-1"></i> CV con anexos no disponible
                             </span>
                             {% endif %}
                         {% endif %}

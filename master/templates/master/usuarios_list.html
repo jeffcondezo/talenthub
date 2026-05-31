@@ -37,6 +37,7 @@
                     <tr>
                         <th>Usuario</th>
                         <th>Nombre</th>
+                        <th>Empleado vinculado</th>
                         <th>Rol</th>
                         <th>Módulos</th>
                         <th>Estado</th>
@@ -48,6 +49,7 @@
                     <tr>
                         <td><strong>{{ fila.user.username }}</strong></td>
                         <td>{{ fila.user.get_full_name|default:"—" }}</td>
+                        <td><small>{{ fila.empleado_txt }}</small></td>
                         <td>{{ fila.rol }}</td>
                         <td><small class="text-muted">{{ fila.modulos_txt }}</small></td>
                         <td>
@@ -65,7 +67,7 @@
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="6" class="text-center text-muted py-4">No hay usuarios registrados.</td>
+                        <td colspan="7" class="text-center text-muted py-4">No hay usuarios registrados.</td>
                     </tr>
                     {% endfor %}
                 </tbody>

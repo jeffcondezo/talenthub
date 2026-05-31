@@ -1,7 +1,16 @@
 """
 Permisos de acceso por módulo del menú lateral.
 """
+import re
+
 from django.urls import reverse
+
+from datetime import date, timedelta
+
+from .models import (
+    Persona, FormacionAcademica, CursoEspecializacion, ExperienciaLaboral,
+    RegistroActividadSemanal,
+)
 
 # Módulos visibles en el menú (clave, etiqueta, url name, icono FontAwesome)
 MODULOS_MENU = [
@@ -50,6 +59,8 @@ PATH_ALWAYS_ALLOWED_PREFIXES = (
     '/master/login',
     '/master/logout',
     '/master/ajustes',
+    '/master/mi-perfil',
+    '/master/mis-actividades',
     '/master/ajax/',
     '/master/ajax',
     '/master/registro',
@@ -118,6 +129,103 @@ def resolve_modulo_from_path(path):
     return None
 
 
+def user_has_linked_persona(user):
+    """True si la cuenta está vinculada a un registro Persona (empleado)."""
+    if not user or not user.is_authenticated:
+        return False
+    return Persona.objects.filter(user=user).exists()
+
+
+def get_user_persona(user):
+    """Persona vinculada a la cuenta, o None."""
+    if not user or not user.is_authenticated:
+        return None
+    return getattr(user, 'perfil', None)
+
+
+def user_can_manage_persona_cv(user, persona_id):
+    """HR/admin o el propio empleado vinculado."""
+    if user_is_admin(user) or user_has_module(user, 'colaboradores'):
+        return True
+    persona = get_user_persona(user)
+    return persona is not None and persona.pk == int(persona_id)
+
+
+def user_can_access_cv_path(user, path):
+    """
+    Permite rutas de CV propias sin módulo colaboradores (p. ej. AJAX desde mi-perfil).
+    """
+    if user_is_admin(user) or user_has_module(user, 'colaboradores'):
+        return False
+    persona = get_user_persona(user)
+    if not persona:
+        return False
+
+    m = re.match(r'^/master/cv/(\d+)(?:/|$)', path)
+    if m and int(m.group(1)) == persona.pk:
+        return True
+
+    m = re.match(r'^/master/personas/(\d+)/cv/', path)
+    if m and int(m.group(1)) == persona.pk:
+        return True
+
+    delete_checks = [
+        (r'^/master/cv/formacion/(\d+)/delete/', FormacionAcademica),
+        (r'^/master/cv/curso/(\d+)/delete/', CursoEspecializacion),
+        (r'^/master/cv/experiencia/(\d+)/delete/', ExperienciaLaboral),
+    ]
+    for pattern, model in delete_checks:
+        m = re.match(pattern, path)
+        if m:
+            return model.objects.filter(
+                pk=int(m.group(1)),
+                cv__persona_id=persona.pk,
+            ).exists()
+
+    return False
+
+
+def user_can_manage_own_actividades(user, persona_id=None):
+    """Admin o el empleado vinculado a su propio registro de actividades."""
+    if user_is_admin(user):
+        return True
+    persona = get_user_persona(user)
+    if not persona:
+        return False
+    if persona_id is None:
+        return True
+    return persona.pk == int(persona_id)
+
+
+def calcular_limites_semana_iso(anio, semana):
+    """Devuelve (fecha_inicio, fecha_fin) para una semana ISO."""
+    fecha_inicio = date.fromisocalendar(anio, semana, 1)
+    fecha_fin = date.fromisocalendar(anio, semana, 7)
+    return fecha_inicio, fecha_fin
+
+
+def semana_iso_desplazada(anio, semana, delta_semanas):
+    """Desplaza una semana ISO por delta_semanas (negativo = anterior)."""
+    base = date.fromisocalendar(anio, semana, 1) + timedelta(weeks=delta_semanas)
+    iso = base.isocalendar()
+    return iso[0], iso[1]
+
+
+def get_or_create_registro_semana(persona, anio, semana):
+    """Obtiene o crea el registro semanal de actividades de una persona."""
+    fecha_inicio, fecha_fin = calcular_limites_semana_iso(anio, semana)
+    registro, _ = RegistroActividadSemanal.objects.get_or_create(
+        persona=persona,
+        anio=anio,
+        semana=semana,
+        defaults={
+            'fecha_inicio': fecha_inicio,
+            'fecha_fin': fecha_fin,
+        },
+    )
+    return registro
+
+
 def get_login_redirect_url(user):
     modulos = get_user_modulos(user)
     orden = MODULOS_ASIGNABLES + ([MODULO_USUARIOS] if user_is_admin(user) else [])
@@ -128,6 +236,8 @@ def get_login_redirect_url(user):
                     return reverse(item['url_name'])
             if clave == MODULO_USUARIOS:
                 return reverse('master:usuarios_list')
+    if user_has_linked_persona(user):
+        return reverse('master:mi_perfil')
     return reverse('master:ajustes')
 
 

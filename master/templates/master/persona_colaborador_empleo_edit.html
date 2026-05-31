@@ -34,6 +34,19 @@
         </div>
     </div>
 
+    {% if messages %}
+    <div class="mb-4">
+        {% for message in messages %}
+        <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags|default:'info' }}{% endif %} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="close" data-dismiss="alert" aria-label="Cerrar">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
     <form method="post" id="empleoForm">
         {% csrf_token %}
         <div class="panel-talent mb-4" style="background: linear-gradient(135deg, #f0fdfa 0%, #e6fffa 100%); border: 1px solid #b2f5ea;">
@@ -92,7 +105,151 @@
             </div>
         </div>
     </form>
+
+    <div class="panel-talent mb-4">
+        <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap">
+            <h6 class="section-title-talent mb-0">
+                <i class="fal fa-file-contract mr-2 text-teal"></i> Historial de contratos
+            </h6>
+            {% if puede_registrar_contratos %}
+            <button type="button" class="btn btn-teal btn-pills px-4 font-weight-bold text-white mt-2 mt-md-0"
+                data-toggle="modal" data-target="#agregarContratoModal">
+                <i class="fal fa-plus-circle mr-2"></i> Agregar contrato
+            </button>
+            {% endif %}
+        </div>
+
+        {% if not puede_registrar_contratos %}
+        <div class="alert alert-info mb-0">
+            <i class="fal fa-info-circle mr-2"></i>
+            Guarde primero los datos de empleo para registrar contratos.
+        </div>
+        {% else %}
+
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>Tipo</th>
+                        <th>Inicio</th>
+                        <th>Fin</th>
+                        <th>Archivo</th>
+                        <th>Observaciones</th>
+                        <th class="text-right">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for contrato in contratos %}
+                    <tr>
+                        <td>{{ contrato.get_tipo_contrato_display }}</td>
+                        <td>{{ contrato.fecha_inicio|date:"d/m/Y" }}</td>
+                        <td>{% if contrato.fecha_fin %}{{ contrato.fecha_fin|date:"d/m/Y" }}{% else %}—{% endif %}</td>
+                        <td>
+                            {% if contrato.archivo %}
+                            <a href="{{ contrato.archivo_url }}" target="_blank" rel="noopener" class="btn btn-sm btn-outline-teal">
+                                <i class="fal fa-file-pdf mr-1"></i> Ver PDF
+                            </a>
+                            {% else %}—{% endif %}
+                        </td>
+                        <td><small class="text-muted">{{ contrato.observaciones|truncatechars:60|default:"—" }}</small></td>
+                        <td class="text-right">
+                            <form method="post" class="d-inline" onsubmit="return confirm('¿Eliminar este contrato?');">
+                                {% csrf_token %}
+                                <input type="hidden" name="accion" value="eliminar_contrato">
+                                <input type="hidden" name="contrato_id" value="{{ contrato.id }}">
+                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Eliminar">
+                                    <i class="fal fa-trash-alt"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center text-muted py-4">
+                            No hay contratos registrados para este colaborador.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="modal fade" id="agregarContratoModal" tabindex="-1" role="dialog"
+            aria-labelledby="agregarContratoModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title font-weight-bold" id="agregarContratoModalLabel">
+                            <i class="fal fa-file-contract mr-2 text-teal"></i> Nuevo contrato
+                        </h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Cerrar">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <form method="post" id="contratoForm" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <input type="hidden" name="accion" value="contrato">
+                        <div class="modal-body">
+                            {% if contrato_form.non_field_errors %}
+                            <div class="alert alert-danger">
+                                {% for error in contrato_form.non_field_errors %}
+                                <div>{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="{{ contrato_form.tipo_contrato.id_for_label }}" class="form-label font-weight-bold">{{ contrato_form.tipo_contrato.label }}</label>
+                                    {{ contrato_form.tipo_contrato }}
+                                    {% for error in contrato_form.tipo_contrato.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+                                </div>
+                                <div class="col-md-3 mb-3">
+                                    <label for="{{ contrato_form.fecha_inicio.id_for_label }}" class="form-label font-weight-bold">{{ contrato_form.fecha_inicio.label }}</label>
+                                    {{ contrato_form.fecha_inicio }}
+                                    {% for error in contrato_form.fecha_inicio.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+                                </div>
+                                <div class="col-md-3 mb-3">
+                                    <label for="{{ contrato_form.fecha_fin.id_for_label }}" class="form-label font-weight-bold">{{ contrato_form.fecha_fin.label }}</label>
+                                    {{ contrato_form.fecha_fin }}
+                                    {% for error in contrato_form.fecha_fin.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+                                </div>
+                                <div class="col-md-12 mb-3">
+                                    <label for="{{ contrato_form.archivo.id_for_label }}" class="form-label font-weight-bold">{{ contrato_form.archivo.label }}</label>
+                                    {{ contrato_form.archivo }}
+                                    {% for error in contrato_form.archivo.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+                                </div>
+                                <div class="col-md-12 mb-0">
+                                    <label for="{{ contrato_form.observaciones.id_for_label }}" class="form-label font-weight-bold">{{ contrato_form.observaciones.label }}</label>
+                                    {{ contrato_form.observaciones }}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Cancelar</button>
+                            <button type="submit" class="btn btn-teal font-weight-bold text-white px-4">
+                                <i class="fal fa-save mr-2"></i> Guardar contrato
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
 </div>
 
 {% include 'master/includes/persona_edit_styles.html' %}
+
+{% if puede_registrar_contratos %}
+<script src="{% static 'js/vendors.bundle.js' %}"></script>
+<script src="{% static 'js/app.bundle.js' %}"></script>
+{% if contrato_form.errors %}
+<script>
+    $(function () {
+        $('#agregarContratoModal').modal('show');
+    });
+</script>
+{% endif %}
+{% endif %}
 {% endblock %}

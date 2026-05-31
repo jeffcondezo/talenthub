@@ -1,0 +1,555 @@
+<script>
+    const personaId = {{ persona_id|default:"0" }};
+
+    function agregarFormacionAcademica() {
+        $('#formacionAcademicaModal').modal('show');
+        $('#formacionAcademicaModalLabel').text('Agregar formación académica');
+        $('#formacionAcademicaModalBody').html(`
+            <div class="text-center py-4">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="sr-only">Cargando...</span>
+                </div>
+                <p class="mt-2 mb-0">Cargando formulario...</p>
+            </div>
+        `);
+
+        $.ajax({
+            url: `/master/cv/${personaId}/formacion/`,
+            type: 'GET',
+            headers: { 'X-Requested-With': 'XMLHttpRequest' },
+            success: function(data) {
+                $('#formacionAcademicaModalBody').html(data);
+                $('#formacionAcademicaForm')[0].reset();
+                $('#formacionAcademicaForm').off('submit').on('submit', function(e) {
+                    e.preventDefault();
+                    guardarFormacionAcademica();
+                });
+            },
+            error: function() {
+                $('#formacionAcademicaModalBody').html(`
+                    <div class="alert alert-danger mb-0">
+                        <i class="fal fa-exclamation-triangle mr-2"></i>
+                        Error al cargar el formulario. Por favor, intente nuevamente.
+                    </div>
+                `);
+            }
+        });
+    }
+
+    function editarFormacionAcademica(formacionId) {
+        $('#formacionAcademicaModal').modal('show');
+        $('#formacionAcademicaModalLabel').text('Editar formación académica');
+        $('#formacionAcademicaModalBody').html(`
+            <div class="text-center py-4">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="sr-only">Cargando...</span>
+                </div>
+                <p class="mt-2 mb-0">Cargando formulario de edición...</p>
+            </div>
+        `);
+
+        $.ajax({
+            url: `/master/cv/${personaId}/formacion/${formacionId}/`,
+            type: 'GET',
+            headers: { 'X-Requested-With': 'XMLHttpRequest' },
+            success: function(data) {
+                $('#formacionAcademicaModalBody').html(data);
+                $('#formacionAcademicaForm').off('submit').on('submit', function(e) {
+                    e.preventDefault();
+                    guardarFormacionAcademica(formacionId);
+                });
+            },
+            error: function() {
+                $('#formacionAcademicaModalBody').html(`
+                    <div class="alert alert-danger mb-0">
+                        <i class="fal fa-exclamation-triangle mr-2"></i>
+                        Error al cargar el formulario. Por favor, intente nuevamente.
+                    </div>
+                `);
+            }
+        });
+    }
+
+    function eliminarFormacionAcademica(formacionId, descripcion) {
+        $('#eliminarFormacionAcademicaModal').modal('show');
+        $('#eliminarFormacionAcademicaModalBody').html(`
+            <div class="text-center py-4">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="sr-only">Cargando...</span>
+                </div>
+                <p class="mt-2 mb-0">Cargando confirmación...</p>
+            </div>
+        `);
+
+        $.ajax({
+            url: `/master/cv/formacion/${formacionId}/delete/`,
+            type: 'GET',
+            headers: { 'X-Requested-With': 'XMLHttpRequest' },
+            success: function(data) {
+                $('#eliminarFormacionAcademicaModalBody').html(data);
+                $(document).off('change', '#confirmDeleteFormacion').on('change', '#confirmDeleteFormacion', function() {
+                    const enabled = $(this).is(':checked');
+                    $('#confirmDeleteFormacionBtn').prop('disabled', !enabled)
+                        .toggleClass('btn-danger', enabled).toggleClass('btn-secondary', !enabled);
+                });
+                $(document).off('click', '#confirmDeleteFormacionBtn').on('click', '#confirmDeleteFormacionBtn', function(e) {
+                    e.preventDefault();
+                    const formData = new FormData();
+                    formData.append('csrfmiddlewaretoken', $('#eliminarFormacionAcademicaModalBody [name=csrfmiddlewaretoken]').val());
+                    $.ajax({
+                        url: `/master/cv/formacion/${formacionId}/delete/`,
+                        type: 'POST',
+                        data: formData,
+                        processData: false,
+                        contentType: false,
+                        headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                        success: function() {
+                            $('#eliminarFormacionAcademicaModal').modal('hide');
+                            showPersistentToast(`Formación académica "${descripcion}" eliminada correctamente`, 'success');
+                            setTimeout(function() { location.reload(); }, 1000);
+                        },
+                        error: function() {
+                            showToast('Error al eliminar la formación académica', 'error');
+                        }
+                    });
+                });
+            },
+            error: function() {
+                $('#eliminarFormacionAcademicaModalBody').html(`
+                    <div class="alert alert-danger mb-0">
+                        <i class="fal fa-exclamation-triangle mr-2"></i>
+                        Error al cargar la confirmación. Por favor, intente nuevamente.
+                    </div>
+                `);
+            }
+        });
+    }
+
+    function guardarFormacionAcademica(formacionId) {
+        const form = $('#formacionAcademicaForm');
+        const formData = new FormData(form[0]);
+        const url = formacionId
+            ? `/master/cv/${personaId}/formacion/${formacionId}/`
+            : `/master/cv/${personaId}/formacion/`;
+
+        $.ajax({
+            url: url,
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            headers: { 'X-Requested-With': 'XMLHttpRequest' },
+            success: function() {
+                $('#formacionAcademicaModal').modal('hide');
+                const mensaje = formacionId
+                    ? 'Formación académica actualizada correctamente'
+                    : 'Formación académica creada correctamente';
+                showPersistentToast(mensaje, 'success');
+                setTimeout(function() { location.reload(); }, 1000);
+            },
+            error: function() {
+                showToast('Error al guardar la formación académica', 'error');
+            }
+        });
+    }
+
+    function agregarCursoEspecializacion() {
+        $('#cursoEspecializacionModal').modal('show');
+        $('#cursoEspecializacionModalLabel').text('Agregar curso de especialización');
+        $('#cursoEspecializacionModalBody').html(`
+            <div class="text-center py-4">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="sr-only">Cargando...</span>
+                </div>
+                <p class="mt-2 mb-0">Cargando formulario...</p>
+            </div>
+        `);
+
+        $.ajax({
+            url: `/master/cv/${personaId}/curso/`,
+            type: 'GET',
+            headers: { 'X-Requested-With': 'XMLHttpRequest' },
+            success: function(data) {
+                $('#cursoEspecializacionModalBody').html(data);
+                $('#cursoEspecializacionForm')[0].reset();
+                $('#cursoEspecializacionForm').off('submit').on('submit', function(e) {
+                    e.preventDefault();
+                    guardarCursoEspecializacion();
+                });
+            },
+            error: function() {
+                $('#cursoEspecializacionModalBody').html(`
+                    <div class="alert alert-danger mb-0">
+                        <i class="fal fa-exclamation-triangle mr-2"></i>
+                        Error al cargar el formulario. Por favor, intente nuevamente.
+                    </div>
+                `);
+            }
+        });
+    }
+
+    function editarCursoEspecializacion(cursoId) {
+        $('#cursoEspecializacionModal').modal('show');
+        $('#cursoEspecializacionModalLabel').text('Editar curso de especialización');
+        $('#cursoEspecializacionModalBody').html(`
+            <div class="text-center py-4">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="sr-only">Cargando...</span>
+                </div>
+                <p class="mt-2 mb-0">Cargando formulario de edición...</p>
+            </div>
+        `);
+
+        $.ajax({
+            url: `/master/cv/${personaId}/curso/${cursoId}/`,
+            type: 'GET',
+            headers: { 'X-Requested-With': 'XMLHttpRequest' },
+            success: function(data) {
+                $('#cursoEspecializacionModalBody').html(data);
+                $('#cursoEspecializacionForm').off('submit').on('submit', function(e) {
+                    e.preventDefault();
+                    guardarCursoEspecializacion(cursoId);
+                });
+            },
+            error: function() {
+                $('#cursoEspecializacionModalBody').html(`
+                    <div class="alert alert-danger mb-0">
+                        <i class="fal fa-exclamation-triangle mr-2"></i>
+                        Error al cargar el formulario. Por favor, intente nuevamente.
+                    </div>
+                `);
+            }
+        });
+    }
+
+    function eliminarCursoEspecializacion(cursoId, descripcion) {
+        $('#eliminarCursoEspecializacionModal').modal('show');
+        $('#eliminarCursoEspecializacionModalBody').html(`
+            <div class="text-center py-4">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="sr-only">Cargando...</span>
+                </div>
+                <p class="mt-2 mb-0">Cargando confirmación...</p>
+            </div>
+        `);
+
+        $.ajax({
+            url: `/master/cv/curso/${cursoId}/delete/`,
+            type: 'GET',
+            headers: { 'X-Requested-With': 'XMLHttpRequest' },
+            success: function(data) {
+                $('#eliminarCursoEspecializacionModalBody').html(data);
+                $(document).off('change', '#confirmDeleteCurso').on('change', '#confirmDeleteCurso', function() {
+                    const enabled = $(this).is(':checked');
+                    $('#confirmDeleteCursoBtn').prop('disabled', !enabled)
+                        .toggleClass('btn-danger', enabled).toggleClass('btn-secondary', !enabled);
+                });
+                $(document).off('click', '#confirmDeleteCursoBtn').on('click', '#confirmDeleteCursoBtn', function(e) {
+                    e.preventDefault();
+                    const formData = new FormData();
+                    formData.append('csrfmiddlewaretoken', $('#eliminarCursoEspecializacionModalBody [name=csrfmiddlewaretoken]').val());
+                    $.ajax({
+                        url: `/master/cv/curso/${cursoId}/delete/`,
+                        type: 'POST',
+                        data: formData,
+                        processData: false,
+                        contentType: false,
+                        headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                        success: function() {
+                            $('#eliminarCursoEspecializacionModal').modal('hide');
+                            showPersistentToast(`Curso "${descripcion}" eliminado correctamente`, 'success');
+                            setTimeout(function() { location.reload(); }, 1000);
+                        },
+                        error: function() {
+                            showToast('Error al eliminar el curso de especialización', 'error');
+                        }
+                    });
+                });
+            },
+            error: function() {
+                $('#eliminarCursoEspecializacionModalBody').html(`
+                    <div class="alert alert-danger mb-0">
+                        <i class="fal fa-exclamation-triangle mr-2"></i>
+                        Error al cargar la confirmación. Por favor, intente nuevamente.
+                    </div>
+                `);
+            }
+        });
+    }
+
+    function guardarCursoEspecializacion(cursoId) {
+        const form = $('#cursoEspecializacionForm');
+        const formData = new FormData(form[0]);
+        const url = cursoId
+            ? `/master/cv/${personaId}/curso/${cursoId}/`
+            : `/master/cv/${personaId}/curso/`;
+
+        $.ajax({
+            url: url,
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            headers: { 'X-Requested-With': 'XMLHttpRequest' },
+            success: function() {
+                $('#cursoEspecializacionModal').modal('hide');
+                const mensaje = cursoId
+                    ? 'Curso de especialización actualizado correctamente'
+                    : 'Curso de especialización creado correctamente';
+                showPersistentToast(mensaje, 'success');
+                setTimeout(function() { location.reload(); }, 1000);
+            },
+            error: function() {
+                showToast('Error al guardar el curso de especialización', 'error');
+            }
+        });
+    }
+
+    function bindExperienciaLaboralForm(experienciaId) {
+        $('#experienciaLaboralForm').off('submit').on('submit', function(e) {
+            e.preventDefault();
+            guardarExperienciaLaboral(experienciaId);
+        });
+    }
+
+    function handleExperienciaSaveError(xhr, experienciaId) {
+        if (xhr.status === 400 && xhr.responseText && xhr.responseText.indexOf('experienciaLaboralForm') !== -1) {
+            $('#experienciaLaboralModalBody').html(xhr.responseText);
+            bindExperienciaLaboralForm(experienciaId);
+            showToast('Revise los errores marcados en el formulario', 'error');
+            return;
+        }
+
+        let message = 'Error al guardar la experiencia laboral';
+        try {
+            const data = JSON.parse(xhr.responseText);
+            if (data.errors) {
+                const parts = [];
+                Object.keys(data.errors).forEach(function(field) {
+                    parts.push(data.errors[field].join(', '));
+                });
+                if (parts.length) {
+                    message = parts.join('. ');
+                }
+            }
+        } catch (e) {
+            // respuesta no JSON
+        }
+        showToast(message, 'error');
+    }
+
+    function agregarExperienciaLaboral() {
+        $('#experienciaLaboralModal').modal('show');
+        $('#experienciaLaboralModalLabel').text('Agregar experiencia laboral');
+        $('#experienciaLaboralModalBody').html(`
+            <div class="text-center py-4">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="sr-only">Cargando...</span>
+                </div>
+                <p class="mt-2 mb-0">Cargando formulario...</p>
+            </div>
+        `);
+
+        $.ajax({
+            url: `/master/cv/${personaId}/experiencia/`,
+            type: 'GET',
+            headers: { 'X-Requested-With': 'XMLHttpRequest' },
+            success: function(data) {
+                $('#experienciaLaboralModalBody').html(data);
+                bindExperienciaLaboralForm();
+            },
+            error: function() {
+                $('#experienciaLaboralModalBody').html(`
+                    <div class="alert alert-danger mb-0">
+                        <i class="fal fa-exclamation-triangle mr-2"></i>
+                        Error al cargar el formulario. Por favor, intente nuevamente.
+                    </div>
+                `);
+            }
+        });
+    }
+
+    function editarExperienciaLaboral(experienciaId) {
+        $('#experienciaLaboralModal').modal('show');
+        $('#experienciaLaboralModalLabel').text('Editar experiencia laboral');
+        $('#experienciaLaboralModalBody').html(`
+            <div class="text-center py-4">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="sr-only">Cargando...</span>
+                </div>
+                <p class="mt-2 mb-0">Cargando formulario de edición...</p>
+            </div>
+        `);
+
+        $.ajax({
+            url: `/master/cv/${personaId}/experiencia/${experienciaId}/`,
+            type: 'GET',
+            headers: { 'X-Requested-With': 'XMLHttpRequest' },
+            success: function(data) {
+                $('#experienciaLaboralModalBody').html(data);
+                bindExperienciaLaboralForm(experienciaId);
+            },
+            error: function() {
+                $('#experienciaLaboralModalBody').html(`
+                    <div class="alert alert-danger mb-0">
+                        <i class="fal fa-exclamation-triangle mr-2"></i>
+                        Error al cargar el formulario. Por favor, intente nuevamente.
+                    </div>
+                `);
+            }
+        });
+    }
+
+    function eliminarExperienciaLaboral(experienciaId, descripcion) {
+        $('#eliminarExperienciaLaboralModal').modal('show');
+        $('#eliminarExperienciaLaboralModalBody').html(`
+            <div class="text-center py-4">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="sr-only">Cargando...</span>
+                </div>
+                <p class="mt-2 mb-0">Cargando confirmación...</p>
+            </div>
+        `);
+
+        $.ajax({
+            url: `/master/cv/experiencia/${experienciaId}/delete/`,
+            type: 'GET',
+            headers: { 'X-Requested-With': 'XMLHttpRequest' },
+            success: function(data) {
+                $('#eliminarExperienciaLaboralModalBody').html(data);
+                $(document).off('change', '#confirmDeleteExperiencia').on('change', '#confirmDeleteExperiencia', function() {
+                    const enabled = $(this).is(':checked');
+                    $('#confirmDeleteExperienciaBtn').prop('disabled', !enabled)
+                        .toggleClass('btn-danger', enabled).toggleClass('btn-secondary', !enabled);
+                });
+                $(document).off('click', '#confirmDeleteExperienciaBtn').on('click', '#confirmDeleteExperienciaBtn', function(e) {
+                    e.preventDefault();
+                    const formData = new FormData();
+                    formData.append('csrfmiddlewaretoken', $('#eliminarExperienciaLaboralModalBody [name=csrfmiddlewaretoken]').val());
+                    $.ajax({
+                        url: `/master/cv/experiencia/${experienciaId}/delete/`,
+                        type: 'POST',
+                        data: formData,
+                        processData: false,
+                        contentType: false,
+                        headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                        success: function() {
+                            $('#eliminarExperienciaLaboralModal').modal('hide');
+                            showPersistentToast(`Experiencia laboral "${descripcion}" eliminada correctamente`, 'success');
+                            setTimeout(function() { location.reload(); }, 1000);
+                        },
+                        error: function() {
+                            showToast('Error al eliminar la experiencia laboral', 'error');
+                        }
+                    });
+                });
+            },
+            error: function() {
+                $('#eliminarExperienciaLaboralModalBody').html(`
+                    <div class="alert alert-danger mb-0">
+                        <i class="fal fa-exclamation-triangle mr-2"></i>
+                        Error al cargar la confirmación. Por favor, intente nuevamente.
+                    </div>
+                `);
+            }
+        });
+    }
+
+    function guardarExperienciaLaboral(experienciaId) {
+        const form = $('#experienciaLaboralForm');
+        const formData = new FormData(form[0]);
+        const url = experienciaId
+            ? `/master/cv/${personaId}/experiencia/${experienciaId}/`
+            : `/master/cv/${personaId}/experiencia/`;
+
+        $.ajax({
+            url: url,
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            headers: { 'X-Requested-With': 'XMLHttpRequest' },
+            success: function() {
+                $('#experienciaLaboralModal').modal('hide');
+                const mensaje = experienciaId
+                    ? 'Experiencia laboral actualizada correctamente'
+                    : 'Experiencia laboral creada correctamente';
+                showPersistentToast(mensaje, 'success');
+                setTimeout(function() { location.reload(); }, 1000);
+            },
+            error: function(xhr) {
+                handleExperienciaSaveError(xhr, experienciaId);
+            }
+        });
+    }
+
+    window.showToast = function(message, type, duration) {
+        type = type || 'success';
+        duration = duration || 4000;
+        const toastContainer = document.getElementById('toastContainer');
+        const toastId = 'toast-' + Date.now();
+        const iconClass = type === 'success' ? 'fal fa-check-circle' : 'fal fa-exclamation-triangle';
+        const toastClass = type === 'success' ? 'toast-success' : 'toast-error';
+        const title = type === 'success' ? 'Éxito' : 'Error';
+
+        toastContainer.insertAdjacentHTML('beforeend', `
+            <div class="toast ${toastClass}" id="${toastId}">
+                <div class="toast-header">
+                    <i class="${iconClass} toast-icon"></i>
+                    <strong>${title}</strong>
+                    <button type="button" class="toast-close" onclick="hideToast('${toastId}')">&times;</button>
+                </div>
+                <div class="toast-body">${message}</div>
+            </div>
+        `);
+
+        setTimeout(function() {
+            document.getElementById(toastId).classList.add('show');
+        }, 100);
+        setTimeout(function() {
+            hideToast(toastId);
+        }, duration);
+    };
+
+    window.hideToast = function(toastId) {
+        const toast = document.getElementById(toastId);
+        if (!toast) return;
+        toast.classList.remove('show');
+        setTimeout(function() {
+            if (toast.parentNode) {
+                toast.parentNode.removeChild(toast);
+            }
+        }, 300);
+    };
+
+    window.showPersistentToast = function(message, type, duration) {
+        type = type || 'success';
+        duration = duration || 6000;
+        localStorage.setItem('pendingToast', JSON.stringify({
+            message: message,
+            type: type,
+            duration: duration,
+            timestamp: Date.now()
+        }));
+        showToast(message, type, duration);
+    };
+
+    window.showPendingToasts = function() {
+        const pendingToast = localStorage.getItem('pendingToast');
+        if (!pendingToast) return;
+        try {
+            const toastData = JSON.parse(pendingToast);
+            if (Date.now() - toastData.timestamp < 10000) {
+                showToast(toastData.message, toastData.type, toastData.duration);
+            }
+        } catch (e) {
+            console.error('Error al mostrar toast pendiente:', e);
+        } finally {
+            localStorage.removeItem('pendingToast');
+        }
+    };
+
+    document.addEventListener('DOMContentLoaded', function() {
+        showPendingToasts();
+    });
+</script>
