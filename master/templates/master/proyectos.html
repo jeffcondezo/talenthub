@@ -1,0 +1,193 @@
+{% extends 'master/includes/base.html' %}
+{% load static %}
+
+{% block title %}Proyectos{% endblock %}
+
+{% block content %}
+<div class="container-fluid persona-edit-page">
+    <div class="d-flex align-items-center justify-content-between mb-4 pb-3 border-bottom flex-wrap">
+        <div class="d-flex align-items-center mb-2 mb-md-0">
+            <div class="icon-shape-avatar bg-teal-light text-teal mr-3">
+                <i class="fal fa-briefcase"></i>
+            </div>
+            <div>
+                <h3 class="font-weight-800 mb-0 persona-edit-title">Proyectos</h3>
+                <p class="text-muted mb-0 mt-1">Registra proyectos, skills y asigna empleados con horas.</p>
+            </div>
+        </div>
+        <a href="{% url 'master:proyecto_create' %}"
+           class="btn btn-teal btn-pills shadow-sm px-4 py-2 font-weight-bold text-white">
+            <i class="fal fa-plus mr-2"></i> Nuevo proyecto
+        </a>
+    </div>
+
+    {% if messages %}
+    <div class="mb-4">
+        {% for message in messages %}
+        <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags|default:'info' }}{% endif %} alert-dismissible fade show">
+            {{ message }}
+            <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="row mb-4">
+        <div class="col-md-3 col-6 mb-3 mb-md-0">
+            <div class="stat-card-talent">
+                <div class="stat-label">Total</div>
+                <div class="stat-value">{{ total }}</div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6 mb-3 mb-md-0">
+            <div class="stat-card-talent">
+                <div class="stat-label">En curso</div>
+                <div class="stat-value text-teal">{{ en_curso }}</div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6">
+            <div class="stat-card-talent">
+                <div class="stat-label">Planificados</div>
+                <div class="stat-value">{{ planificados }}</div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6">
+            <div class="stat-card-talent">
+                <div class="stat-label">Finalizados</div>
+                <div class="stat-value">{{ finalizados }}</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="panel-talent mb-4">
+        <h6 class="section-title-talent mb-3">
+            <i class="fal fa-filter mr-2 text-teal"></i> Filtros
+        </h6>
+        <form method="get" class="row align-items-end">
+            <div class="col-md-6 mb-3">
+                <label class="form-label" for="search">Buscar</label>
+                <input type="text" class="form-control" id="search" name="search"
+                       value="{{ search }}" placeholder="Nombre, código, cliente o skill...">
+            </div>
+            <div class="col-md-4 mb-3">
+                <label class="form-label" for="estado">Estado</label>
+                <select class="custom-select form-control" id="estado" name="estado">
+                    <option value="">Todos</option>
+                    {% for value, label in estado_choices %}
+                    <option value="{{ value }}" {% if estado == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2 mb-3">
+                <button type="submit" class="btn btn-teal btn-block text-white">
+                    <i class="fal fa-search mr-1"></i> Filtrar
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <div class="panel-talent">
+        <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap">
+            <h6 class="section-title-talent mb-0 border-0 pb-0">
+                <i class="fal fa-list mr-2 text-teal"></i> Listado
+            </h6>
+            <small class="text-muted">{{ total }} proyecto{{ total|pluralize:"s" }}</small>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-modern mb-0">
+                <thead>
+                    <tr>
+                        <th>Proyecto</th>
+                        <th>Cliente</th>
+                        <th>Estado</th>
+                        <th>Skills</th>
+                        <th class="text-center">Equipo</th>
+                        <th class="text-center">Horas/sem</th>
+                        <th class="text-right">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in proyectos %}
+                    <tr>
+                        <td>
+                            <a href="{% url 'master:proyecto_detail' p.id %}"
+                               class="font-weight-bold text-dark d-block conv-title-link">
+                                {{ p.nombre }}
+                            </a>
+                            <small class="text-muted">{{ p.codigo }}</small>
+                        </td>
+                        <td>{{ p.cliente|default:"—" }}</td>
+                        <td>
+                            {% if p.estado == 'EN_CURSO' %}
+                            <span class="badge-soft badge-soft-success">{{ p.get_estado_display }}</span>
+                            {% elif p.estado == 'PLANIFICADO' %}
+                            <span class="badge-soft badge-soft-info">{{ p.get_estado_display }}</span>
+                            {% elif p.estado == 'PAUSADO' %}
+                            <span class="badge-soft badge-soft-warning">{{ p.get_estado_display }}</span>
+                            {% elif p.estado == 'FINALIZADO' %}
+                            <span class="badge-soft badge-soft-dark">{{ p.get_estado_display }}</span>
+                            {% else %}
+                            <span class="badge-soft badge-soft-danger">{{ p.get_estado_display }}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% for s in p.skills.all %}
+                                {% if forloop.counter <= 4 %}
+                                <span class="badge-soft-teal mr-1 mb-1 d-inline-block">{{ s.nombre }}</span>
+                                {% endif %}
+                            {% empty %}
+                            <span class="text-muted">—</span>
+                            {% endfor %}
+                        </td>
+                        <td class="text-center">
+                            <span class="vacantes-pill">{{ p.n_asignados|default:0 }}</span>
+                        </td>
+                        <td class="text-center font-weight-600">{{ p.horas_asignadas_total }}</td>
+                        <td class="text-right text-nowrap">
+                            <a href="{% url 'master:proyecto_detail' p.id %}"
+                               class="btn btn-sm btn-outline-info btn-icon" title="Ver">
+                                <i class="fal fa-eye"></i>
+                            </a>
+                            <a href="{% url 'master:proyecto_edit' p.id %}"
+                               class="btn btn-sm btn-outline-warning btn-icon" title="Editar">
+                                <i class="fal fa-edit"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center py-5 text-muted">
+                            <i class="fal fa-briefcase mb-3 d-block" style="font-size: 2.5rem; opacity: 0.35;"></i>
+                            <p class="font-weight-bold mb-1">No hay proyectos</p>
+                            <a href="{% url 'master:proyecto_create' %}" class="btn btn-teal text-white btn-pills px-4 mt-2">
+                                <i class="fal fa-plus mr-1"></i> Crear el primero
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{% include 'master/includes/persona_edit_styles.html' %}
+<style>
+    .stat-card-talent {
+        background: #fff; border: 1px solid #eef2f2; border-radius: 14px;
+        padding: 18px 20px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02); height: 100%;
+    }
+    .stat-label { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #94a3b8; margin-bottom: 6px; }
+    .stat-value { font-size: 1.75rem; font-weight: 800; color: #0b1311; line-height: 1.1; }
+    .btn-icon { width: 34px; height: 34px; padding: 0; display: inline-flex; align-items: center; justify-content: center; margin-left: 2px; }
+    .vacantes-pill {
+        display: inline-flex; align-items: center; justify-content: center;
+        min-width: 32px; height: 28px; padding: 0 10px; border-radius: 8px;
+        background: #f0fdfa; color: #0f766e; font-weight: 800; font-size: 0.9rem;
+    }
+    .conv-title-link:hover { color: #0e967e !important; text-decoration: none; }
+    .font-weight-600 { font-weight: 600; }
+</style>
+<script src="{% static 'js/vendors.bundle.js' %}"></script>
+<script src="{% static 'js/app.bundle.js' %}"></script>
+{% endblock %}

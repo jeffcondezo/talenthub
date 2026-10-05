@@ -85,9 +85,9 @@
         <div class="col-md-6">
             <div class="form-group">
                 <label for="certificado">Certificado</label>
-                <input type="file" name="certificado" id="certificado" class="form-control" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx">
+                <input type="file" name="certificado" id="certificado" class="form-control" accept="application/pdf,.pdf">
                 {% if curso and curso.certificado %}
-                    <small class="text-muted">Archivo actual: <a href="{{ curso.certificado.url }}" target="_blank">{{ curso.certificado.name|basename }}</a></small>
+                    <small class="text-muted">Archivo actual: <a href="{{ curso.certificado.url }}" target="_blank">Ver PDF</a></small>
                 {% endif %}
             </div>
         </div>

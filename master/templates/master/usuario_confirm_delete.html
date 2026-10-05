@@ -1,0 +1,39 @@
+{% extends 'master/includes/base.html' %}
+{% load static %}
+
+{% block title %}Eliminar usuario{% endblock %}
+
+{% block content %}
+<div class="container-fluid persona-edit-page">
+    <div class="panel-talent" style="max-width: 560px; margin: 40px auto;">
+        <h6 class="section-title-talent mb-3">
+            <i class="fal fa-trash-alt mr-2 text-danger"></i> Eliminar usuario
+        </h6>
+        <p>
+            ¿Seguro que desea eliminar la cuenta
+            <strong>{{ usuario_obj.username }}</strong>
+            {% if usuario_obj.get_full_name %}({{ usuario_obj.get_full_name }}){% endif %}?
+        </p>
+        <ul class="text-muted small pl-3 mb-3">
+            {% if es_admin %}
+            <li>Este usuario es <strong>administrador</strong>.</li>
+            {% endif %}
+            {% if empleado_txt %}
+            <li>Está vinculado al empleado <strong>{{ empleado_txt }}</strong>. El empleado no se eliminará; solo se desvincula la cuenta.</li>
+            {% endif %}
+            <li>Se eliminarán el acceso al sistema y su perfil de permisos.</li>
+            <li>Esta acción no se puede deshacer.</li>
+        </ul>
+        <form method="post" class="d-flex justify-content-end mt-4">
+            {% csrf_token %}
+            <a href="{% url 'master:usuarios_list' %}" class="btn btn-secondary mr-2">Cancelar</a>
+            <button type="submit" class="btn btn-danger">
+                <i class="fal fa-trash mr-1"></i> Sí, eliminar
+            </button>
+        </form>
+    </div>
+</div>
+{% include 'master/includes/persona_edit_styles.html' %}
+<script src="{% static 'js/vendors.bundle.js' %}"></script>
+<script src="{% static 'js/app.bundle.js' %}"></script>
+{% endblock %}

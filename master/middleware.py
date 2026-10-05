@@ -11,6 +11,9 @@ from .permissions import (
     user_is_admin,
 )
 
+SESSION_CV_PERSONA_KEY = 'cv_postulante_persona_id'
+SESSION_CV_TOKEN_KEY = 'cv_postulante_token'
+
 
 class ModulePermissionMiddleware:
     """
@@ -29,6 +32,10 @@ class ModulePermissionMiddleware:
         for prefix in PATH_PUBLIC_PREFIXES:
             if path.startswith(prefix):
                 return self.get_response(request)
+
+        # Acceso público al portal CV del postulante vía sesión de token
+        if self._permite_postulante_por_token(request, path):
+            return self.get_response(request)
 
         modulo = resolve_modulo_from_path(path)
 
@@ -56,3 +63,13 @@ class ModulePermissionMiddleware:
             return redirect(get_first_allowed_url(request.user))
 
         return self.get_response(request)
+
+    def _permite_postulante_por_token(self, request, path):
+        """Permite /master/postulante/<id>/... si el token de sesión coincide."""
+        import re
+        m = re.match(r'^/master/postulante/(\d+)(?:/|$)', path)
+        if not m:
+            return False
+        persona_id = int(m.group(1))
+        session_persona = request.session.get(SESSION_CV_PERSONA_KEY)
+        return session_persona is not None and int(session_persona) == persona_id

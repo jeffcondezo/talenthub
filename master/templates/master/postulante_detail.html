@@ -26,46 +26,186 @@
     
     <!-- Estilos personalizados -->
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+        :root {
+            --th-green: #12A58A;
+            --th-green-dark: #0d8a73;
+            --th-green-soft: #e8f8f5;
+            --th-bg: #f5faf8;
+            --th-text: #0b1311;
+            --th-muted: #64748b;
+        }
+
         body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: var(--th-bg);
+            background-image:
+                radial-gradient(ellipse at top left, rgba(18, 165, 138, 0.12) 0%, transparent 50%),
+                radial-gradient(ellipse at bottom right, rgba(13, 138, 115, 0.08) 0%, transparent 45%);
             min-height: 100vh;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Poppins', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: var(--th-text);
         }
         
         .main-container {
             background: white;
-            border-radius: 15px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-            margin: 20px auto;
+            border-radius: 16px;
+            border: 1px solid #eef2f2;
+            box-shadow: 0 8px 30px rgba(11, 19, 17, 0.06);
+            margin: 24px auto;
             max-width: 1200px;
             overflow: hidden;
         }
         
         .header-section {
-            background: linear-gradient(135deg, #12A58A 0%, #0d8a73 100%);
+            background: linear-gradient(135deg, var(--th-green) 0%, var(--th-green-dark) 100%);
             color: white;
-            padding: 30px;
+            padding: 28px 30px;
             text-align: center;
         }
         
+        .header-section .brand-mark {
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            opacity: 0.9;
+            margin-bottom: 8px;
+        }
+
         .header-section h1 {
             margin: 0;
-            font-size: 2.5rem;
-            font-weight: 300;
+            font-size: 1.75rem;
+            font-weight: 600;
+            letter-spacing: -0.02em;
         }
         
         .header-section p {
-            margin: 10px 0 0 0;
-            font-size: 1.1rem;
-            opacity: 0.9;
+            margin: 8px 0 0 0;
+            font-size: 1rem;
+            opacity: 0.92;
+            font-weight: 400;
         }
         
         .content-section {
             padding: 40px;
         }
+
+        .portal-footer {
+            text-align: center;
+            padding: 16px 20px 22px;
+            font-size: 0.75rem;
+            color: #94a3b8;
+            border-top: 1px solid #eef2f2;
+            background: #fafcfb;
+        }
+
+        /* Tour guiado primera visita */
+        .cv-tour-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 2000;
+            background: rgba(11, 19, 17, 0.55);
+            display: none;
+            align-items: flex-end;
+            justify-content: center;
+            padding: 24px;
+        }
+        .cv-tour-overlay.is-open { display: flex; }
+        .cv-tour-card {
+            background: #fff;
+            border-radius: 16px;
+            border: 1px solid #eef2f2;
+            box-shadow: 0 20px 50px rgba(11, 19, 17, 0.2);
+            max-width: 420px;
+            width: 100%;
+            padding: 22px 22px 18px;
+            animation: cvTourIn 0.25s ease;
+        }
+        @keyframes cvTourIn {
+            from { opacity: 0; transform: translateY(12px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .cv-tour-step {
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: #12A58A;
+            margin-bottom: 8px;
+        }
+        .cv-tour-card h4 {
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: #0b1311;
+            margin: 0 0 8px;
+        }
+        .cv-tour-card p {
+            font-size: 0.92rem;
+            color: #64748b;
+            margin: 0 0 16px;
+            line-height: 1.45;
+        }
+        .cv-tour-dots {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 16px;
+        }
+        .cv-tour-dots span {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #d1e7e2;
+        }
+        .cv-tour-dots span.active { background: #12A58A; }
+        .cv-tour-actions {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+        .cv-tour-actions .btn-group-right {
+            display: flex;
+            gap: 8px;
+        }
+        .cv-tour-skip {
+            background: none;
+            border: none;
+            color: #94a3b8;
+            font-size: 0.85rem;
+            font-weight: 600;
+            padding: 8px 4px;
+            cursor: pointer;
+        }
+        .cv-tour-skip:hover { color: #64748b; }
+        .cv-tour-highlight {
+            position: relative;
+            z-index: 2001;
+            box-shadow: 0 0 0 4px rgba(18, 165, 138, 0.45), 0 12px 28px rgba(18, 165, 138, 0.2);
+            border-radius: 12px;
+            transition: box-shadow 0.2s ease;
+        }
+        .btn-tour-help {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1500;
+            background: #fff;
+            color: #0f766e;
+            border: 1px solid #99f6e4;
+            border-radius: 999px;
+            padding: 10px 16px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            box-shadow: 0 8px 20px rgba(11, 19, 17, 0.1);
+            display: none;
+            cursor: pointer;
+        }
+        .btn-tour-help.is-visible { display: inline-flex; align-items: center; gap: 6px; }
+        .btn-tour-help:hover { background: #f0fdfa; }
         
         .section-title {
-            color: #12A58A;
+            color: var(--th-green);
             font-size: 1.5rem;
             font-weight: 600;
             margin-bottom: 25px;
@@ -82,7 +222,7 @@
         }
         
         .btn-primary {
-            background: linear-gradient(135deg, #12A58A 0%, #0d8a73 100%);
+            background: linear-gradient(135deg, var(--th-green) 0%, var(--th-green-dark) 100%);
             border: none;
             border-radius: 8px;
             padding: 10px 20px;
@@ -315,8 +455,13 @@
         <div class="main-container">
             <!-- Header -->
             <div class="header-section">
+                <div class="brand-mark">TalentHub</div>
                 <h1><i class="fal fa-user"></i> {{ persona.nombres }} {{ persona.apellido_paterno }} {{ persona.apellido_materno }}</h1>
+                {% if acceso_publico %}
+                <p>CV personal — TalentHub (Prayaga)</p>
+                {% else %}
                 <p>Perfil del Postulante</p>
+                {% endif %}
             </div>
             
             <!-- Content Section -->
@@ -324,7 +469,7 @@
                 {% csrf_token %}
                 
                 <!-- Datos Personales -->
-                <div class="datos-container">
+                <div class="datos-container" id="tour-datos">
                     <h3 class="section-title">
                         <span><i class="fal fa-user"></i> Datos Personales</span>
                     </h3>
@@ -408,7 +553,7 @@
                 </div>
                 
                 <!-- Formación Académica -->
-                <div class="cv-section">
+                <div class="cv-section" id="tour-formacion">
                     <h3 class="section-title">
                         <span><i class="fal fa-graduation-cap"></i> Formación Académica</span>
                         <button type="button" class="btn btn-primary" onclick="abrirModalFormacion()">
@@ -427,6 +572,7 @@
                                         <th class="dato-label">Ubicación</th>
                                         <th class="dato-label">Período</th>
                                         <th class="dato-label">Promedio</th>
+                                        <th class="dato-label">Archivo</th>
                                         <th class="dato-label">Acciones</th>
                                     </tr>
                                 </thead>
@@ -454,6 +600,15 @@
                                                 {% endif %}
                                             </td>
                                             <td class="dato-value">
+                                                {% if formacion.archivo %}
+                                                    <a href="{{ formacion.archivo.url }}" target="_blank" class="btn btn-sm btn-outline-info" title="PDF">
+                                                        <i class="fal fa-file-pdf"></i>
+                                                    </a>
+                                                {% else %}
+                                                    <span class="text-muted">-</span>
+                                                {% endif %}
+                                            </td>
+                                            <td class="dato-value">
                                                 <button class="btn btn-sm btn-outline-primary" onclick="editarFormacion({{ formacion.id }})" title="Editar">
                                                     <i class="fal fa-edit"></i>
                                                 </button>
@@ -475,7 +630,7 @@
                 </div>
                 
                 <!-- Cursos de Especialización -->
-                <div class="cv-section">
+                <div class="cv-section" id="tour-cursos">
                     <h3 class="section-title">
                         <span><i class="fal fa-certificate"></i> Cursos de Especialización</span>
                         <button type="button" class="btn btn-primary" onclick="abrirModalCurso()">
@@ -552,7 +707,7 @@
                 </div>
                 
                 <!-- Experiencia Laboral -->
-                <div class="cv-section">
+                <div class="cv-section" id="tour-experiencia">
                     <h3 class="section-title">
                         <span><i class="fal fa-briefcase"></i> Experiencia Laboral</span>
                         <button type="button" class="btn btn-primary" onclick="abrirModalExperiencia()">
@@ -571,6 +726,7 @@
                                         <th class="dato-label">Período</th>
                                         <th class="dato-label">Salario</th>
                                         <th class="dato-label">Motivo Salida</th>
+                                        <th class="dato-label">Archivo</th>
                                         <th class="dato-label">Acciones</th>
                                     </tr>
                                 </thead>
@@ -604,6 +760,15 @@
                                                 {% endif %}
                                             </td>
                                             <td class="dato-value">
+                                                {% if experiencia.archivo %}
+                                                    <a href="{{ experiencia.archivo.url }}" target="_blank" class="btn btn-sm btn-outline-info" title="PDF">
+                                                        <i class="fal fa-file-pdf"></i>
+                                                    </a>
+                                                {% else %}
+                                                    <span class="text-muted">-</span>
+                                                {% endif %}
+                                            </td>
+                                            <td class="dato-value">
                                                 <button class="btn btn-sm btn-outline-primary" onclick="editarExperiencia({{ experiencia.id }})" title="Editar">
                                                     <i class="fal fa-edit"></i>
                                                 </button>
@@ -624,8 +789,35 @@
                     </div>
                 </div>
             </div>
+            {% if acceso_publico %}
+            <div class="portal-footer">
+                © {% now "Y" %} Prayaga. Todos los derechos reservados.
+            </div>
+            {% endif %}
         </div>
     </div>
+
+    {% if acceso_publico %}
+    <button type="button" class="btn-tour-help" id="btnTourHelp" title="Ver guía">
+        <i class="fal fa-question-circle"></i> Guía
+    </button>
+
+    <div class="cv-tour-overlay" id="cvTourOverlay" aria-hidden="true">
+        <div class="cv-tour-card" role="dialog" aria-labelledby="cvTourTitle">
+            <div class="cv-tour-step" id="cvTourStepLabel">Paso 1 de 5</div>
+            <div class="cv-tour-dots" id="cvTourDots"></div>
+            <h4 id="cvTourTitle">Bienvenido</h4>
+            <p id="cvTourText"></p>
+            <div class="cv-tour-actions">
+                <button type="button" class="cv-tour-skip" id="cvTourSkip">Omitir</button>
+                <div class="btn-group-right">
+                    <button type="button" class="btn btn-outline-secondary btn-sm" id="cvTourPrev" style="display:none;">Anterior</button>
+                    <button type="button" class="btn btn-primary btn-sm" id="cvTourNext">Siguiente</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
 
     <!-- Modal para Formación Académica -->
     <div class="modal fade" id="modalFormacion" tabindex="-1" role="dialog" aria-labelledby="modalFormacionLabel" aria-hidden="true">
@@ -692,6 +884,135 @@
     <script src="{% static 'js/app.bundle.js' %}"></script>
     
     <script>
+        // Base API: con hash público (/cv/<token>) o autenticado (/master/postulante/<id>)
+        const CV_API_BASE = "{% if acceso_publico and acceso_cv %}/cv/{{ acceso_cv.token }}{% else %}/master/postulante/{{ persona.id }}{% endif %}";
+
+        {% if acceso_publico %}
+        (function () {
+            const STORAGE_KEY = 'th_cv_tour_done_{{ persona.id }}';
+            const steps = [
+                {
+                    title: 'Bienvenido a su CV',
+                    text: 'En unos pasos verá cómo completar cada sección. Puede omitir la guía cuando quiera.',
+                    target: null
+                },
+                {
+                    title: 'Datos personales',
+                    text: 'Revise que sus datos básicos sean correctos. Ya están registrados.',
+                    target: 'tour-datos'
+                },
+                {
+                    title: 'Formación académica',
+                    text: 'Pulse «Agregar Formación» para registrar sus estudios.',
+                    target: 'tour-formacion'
+                },
+                {
+                    title: 'Cursos',
+                    text: 'Pulse «Agregar Curso» para incluir especializaciones o certificaciones.',
+                    target: 'tour-cursos'
+                },
+                {
+                    title: 'Experiencia laboral',
+                    text: 'Pulse «Agregar Experiencia» para registrar sus trabajos.',
+                    target: 'tour-experiencia'
+                }
+            ];
+
+            let index = 0;
+            const overlay = document.getElementById('cvTourOverlay');
+            const titleEl = document.getElementById('cvTourTitle');
+            const textEl = document.getElementById('cvTourText');
+            const stepLabel = document.getElementById('cvTourStepLabel');
+            const dotsEl = document.getElementById('cvTourDots');
+            const btnNext = document.getElementById('cvTourNext');
+            const btnPrev = document.getElementById('cvTourPrev');
+            const btnSkip = document.getElementById('cvTourSkip');
+            const btnHelp = document.getElementById('btnTourHelp');
+
+            function clearHighlights() {
+                document.querySelectorAll('.cv-tour-highlight').forEach(function (el) {
+                    el.classList.remove('cv-tour-highlight');
+                });
+            }
+
+            function renderDots() {
+                dotsEl.innerHTML = '';
+                steps.forEach(function (_, i) {
+                    const s = document.createElement('span');
+                    if (i === index) s.classList.add('active');
+                    dotsEl.appendChild(s);
+                });
+            }
+
+            function showStep(i) {
+                index = i;
+                const step = steps[index];
+                clearHighlights();
+                stepLabel.textContent = 'Paso ' + (index + 1) + ' de ' + steps.length;
+                titleEl.textContent = step.title;
+                textEl.textContent = step.text;
+                btnPrev.style.display = index === 0 ? 'none' : 'inline-block';
+                btnNext.textContent = index === steps.length - 1 ? 'Listo' : 'Siguiente';
+                renderDots();
+
+                if (step.target) {
+                    const el = document.getElementById(step.target);
+                    if (el) {
+                        el.classList.add('cv-tour-highlight');
+                        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                } else {
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                }
+            }
+
+            function openTour(fromStart) {
+                if (fromStart) index = 0;
+                overlay.classList.add('is-open');
+                overlay.setAttribute('aria-hidden', 'false');
+                btnHelp.classList.remove('is-visible');
+                showStep(index);
+            }
+
+            function closeTour(markDone) {
+                overlay.classList.remove('is-open');
+                overlay.setAttribute('aria-hidden', 'true');
+                clearHighlights();
+                if (markDone) {
+                    try { localStorage.setItem(STORAGE_KEY, '1'); } catch (e) {}
+                }
+                btnHelp.classList.add('is-visible');
+            }
+
+            btnNext.addEventListener('click', function () {
+                if (index >= steps.length - 1) {
+                    closeTour(true);
+                    return;
+                }
+                showStep(index + 1);
+            });
+            btnPrev.addEventListener('click', function () {
+                if (index > 0) showStep(index - 1);
+            });
+            btnSkip.addEventListener('click', function () {
+                closeTour(true);
+            });
+            btnHelp.addEventListener('click', function () {
+                openTour(true);
+            });
+
+            document.addEventListener('DOMContentLoaded', function () {
+                var seen = false;
+                try { seen = localStorage.getItem(STORAGE_KEY) === '1'; } catch (e) {}
+                if (seen) {
+                    btnHelp.classList.add('is-visible');
+                } else {
+                    openTour(true);
+                }
+            });
+        })();
+        {% endif %}
+
         // Función para abrir modal de formación académica
         function abrirModalFormacion() {
             $('#modalFormacion').modal('show');
@@ -705,7 +1026,7 @@
             `);
             
             $.ajax({
-                url: `/master/postulante/{{ persona.id }}/agregar-formacion/`,
+                url: `${CV_API_BASE}/agregar-formacion/`,
                 type: 'GET',
                 success: function(data) {
                     $('#modalFormacionBody').html(data);
@@ -739,7 +1060,7 @@
             `);
             
             $.ajax({
-                url: `/master/postulante/{{ persona.id }}/agregar-curso/`,
+                url: `${CV_API_BASE}/agregar-curso/`,
                 type: 'GET',
                 success: function(data) {
                     $('#modalCursoBody').html(data);
@@ -773,7 +1094,7 @@
             `);
             
             $.ajax({
-                url: `/master/postulante/{{ persona.id }}/agregar-experiencia/`,
+                url: `${CV_API_BASE}/agregar-experiencia/`,
                 type: 'GET',
                 success: function(data) {
                     $('#modalExperienciaBody').html(data);
@@ -805,7 +1126,7 @@
             }
             
             $.ajax({
-                url: `/master/postulante/{{ persona.id }}/agregar-formacion/`,
+                url: `${CV_API_BASE}/agregar-formacion/`,
                 type: 'POST',
                 data: formData,
                 processData: false,
@@ -845,7 +1166,7 @@
             `);
             
             $.ajax({
-                url: `/master/postulante/{{ persona.id }}/editar-formacion/${formacionId}/`,
+                url: `${CV_API_BASE}/editar-formacion/${formacionId}/`,
                 type: 'GET',
                 success: function(data) {
                     $('#modalFormacionBody').html(data);
@@ -872,7 +1193,7 @@
             const formData = new FormData(document.getElementById('formacionForm'));
             
             $.ajax({
-                url: `/master/postulante/{{ persona.id }}/editar-formacion/${formacionId}/`,
+                url: `${CV_API_BASE}/editar-formacion/${formacionId}/`,
                 type: 'POST',
                 data: formData,
                 processData: false,
@@ -912,7 +1233,7 @@
             `);
             
             $.ajax({
-                url: `/master/postulante/{{ persona.id }}/eliminar-formacion/${formacionId}/`,
+                url: `${CV_API_BASE}/eliminar-formacion/${formacionId}/`,
                 type: 'GET',
                 success: function(data) {
                     $('#modalFormacionBody').html(data);
@@ -952,7 +1273,7 @@
             }
             
             $.ajax({
-                url: `/master/postulante/{{ persona.id }}/eliminar-formacion/${formacionId}/`,
+                url: `${CV_API_BASE}/eliminar-formacion/${formacionId}/`,
                 type: 'POST',
                 headers: {
                     'X-CSRFToken': csrfToken,
@@ -998,7 +1319,7 @@
             const formData = new FormData(document.getElementById('cursoForm'));
             
             $.ajax({
-                url: `/master/postulante/{{ persona.id }}/agregar-curso/`,
+                url: `${CV_API_BASE}/agregar-curso/`,
                 type: 'POST',
                 data: formData,
                 processData: false,
@@ -1035,7 +1356,7 @@
             `);
             
             $.ajax({
-                url: `/master/postulante/{{ persona.id }}/editar-curso/${cursoId}/`,
+                url: `${CV_API_BASE}/editar-curso/${cursoId}/`,
                 type: 'GET',
                 success: function(data) {
                     $('#modalCursoBody').html(data);
@@ -1062,7 +1383,7 @@
             const formData = new FormData(document.getElementById('cursoForm'));
             
             $.ajax({
-                url: `/master/postulante/{{ persona.id }}/editar-curso/${cursoId}/`,
+                url: `${CV_API_BASE}/editar-curso/${cursoId}/`,
                 type: 'POST',
                 data: formData,
                 processData: false,
@@ -1102,7 +1423,7 @@
             `);
             
             $.ajax({
-                url: `/master/postulante/{{ persona.id }}/eliminar-curso/${cursoId}/`,
+                url: `${CV_API_BASE}/eliminar-curso/${cursoId}/`,
                 type: 'GET',
                 success: function(data) {
                     $('#modalCursoBody').html(data);
@@ -1142,7 +1463,7 @@
             }
             
             $.ajax({
-                url: `/master/postulante/{{ persona.id }}/eliminar-curso/${cursoId}/`,
+                url: `${CV_API_BASE}/eliminar-curso/${cursoId}/`,
                 type: 'POST',
                 headers: {
                     'X-CSRFToken': csrfToken,
@@ -1172,7 +1493,7 @@
             const formData = new FormData(document.getElementById('experienciaForm'));
             
             $.ajax({
-                url: `/master/postulante/{{ persona.id }}/agregar-experiencia/`,
+                url: `${CV_API_BASE}/agregar-experiencia/`,
                 type: 'POST',
                 data: formData,
                 processData: false,
@@ -1209,7 +1530,7 @@
             `);
             
             $.ajax({
-                url: `/master/postulante/{{ persona.id }}/editar-experiencia/${experienciaId}/`,
+                url: `${CV_API_BASE}/editar-experiencia/${experienciaId}/`,
                 type: 'GET',
                 success: function(data) {
                     $('#modalExperienciaBody').html(data);
@@ -1236,7 +1557,7 @@
             const formData = new FormData(document.getElementById('experienciaForm'));
             
             $.ajax({
-                url: `/master/postulante/{{ persona.id }}/editar-experiencia/${experienciaId}/`,
+                url: `${CV_API_BASE}/editar-experiencia/${experienciaId}/`,
                 type: 'POST',
                 data: formData,
                 processData: false,
@@ -1276,7 +1597,7 @@
             `);
             
             $.ajax({
-                url: `/master/postulante/{{ persona.id }}/eliminar-experiencia/${experienciaId}/`,
+                url: `${CV_API_BASE}/eliminar-experiencia/${experienciaId}/`,
                 type: 'GET',
                 success: function(data) {
                     $('#modalExperienciaBody').html(data);
@@ -1316,7 +1637,7 @@
             }
             
             $.ajax({
-                url: `/master/postulante/{{ persona.id }}/eliminar-experiencia/${experienciaId}/`,
+                url: `${CV_API_BASE}/eliminar-experiencia/${experienciaId}/`,
                 type: 'POST',
                 headers: {
                     'X-CSRFToken': csrfToken,

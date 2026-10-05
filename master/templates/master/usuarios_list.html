@@ -1,18 +1,22 @@
 {% extends 'master/includes/base.html' %}
 {% load static %}
 
-{% block title %}Usuarios del sistema{% endblock %}
+{% block title %}Usuarios{% endblock %}
 
 {% block content %}
-<div class="container-fluid persona-edit-page" style="padding: 50px;">
-    <div class="d-flex align-items-center justify-content-between mb-4 pb-3 border-bottom">
-        <div>
-            <h3 class="font-weight-800 mb-1" style="color: #0b1311; letter-spacing: -0.02em;">
-                <i class="fal fa-user-shield mr-2 text-teal"></i> Usuarios del sistema
-            </h3>
-            <p class="text-muted mb-0">Gestiona cuentas de acceso y módulos permitidos.</p>
+<div class="container-fluid persona-edit-page">
+    <div class="d-flex align-items-center justify-content-between mb-4 pb-3 border-bottom flex-wrap">
+        <div class="d-flex align-items-center mb-2 mb-md-0">
+            <div class="icon-shape-avatar bg-teal-light text-teal mr-3">
+                <i class="fal fa-user-shield"></i>
+            </div>
+            <div>
+                <h3 class="font-weight-800 mb-0 persona-edit-title">Usuarios</h3>
+                <p class="text-muted mb-0 mt-1">Gestiona cuentas de acceso, roles y módulos del menú.</p>
+            </div>
         </div>
-        <a href="{% url 'master:usuario_create' %}" class="btn btn-teal btn-pills shadow-sm px-4 py-2 font-weight-bold text-white">
+        <a href="{% url 'master:usuario_create' %}"
+           class="btn btn-teal btn-pills shadow-sm px-4 py-2 font-weight-bold text-white">
             <i class="fal fa-plus mr-2"></i> Nuevo usuario
         </a>
     </div>
@@ -30,13 +34,79 @@
     </div>
     {% endif %}
 
+    <div class="row mb-4">
+        <div class="col-md-3 col-6 mb-3 mb-md-0">
+            <div class="stat-card-talent">
+                <div class="stat-label">Total</div>
+                <div class="stat-value">{{ total }}</div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6 mb-3 mb-md-0">
+            <div class="stat-card-talent">
+                <div class="stat-label">Activos</div>
+                <div class="stat-value text-teal">{{ activos }}</div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6">
+            <div class="stat-card-talent">
+                <div class="stat-label">Administradores</div>
+                <div class="stat-value">{{ administradores }}</div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6">
+            <div class="stat-card-talent">
+                <div class="stat-label">Inactivos</div>
+                <div class="stat-value">{{ inactivos }}</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="panel-talent mb-4">
+        <h6 class="section-title-talent mb-3">
+            <i class="fal fa-filter mr-2 text-teal"></i> Filtros
+        </h6>
+        <form method="get" class="row align-items-end">
+            <div class="col-md-5 mb-3">
+                <label class="form-label" for="search">Buscar</label>
+                <input type="text" class="form-control" id="search" name="search"
+                       value="{{ search }}" placeholder="Usuario, nombre, correo o empleado...">
+            </div>
+            <div class="col-md-3 mb-3">
+                <label class="form-label" for="rol">Rol</label>
+                <select class="custom-select form-control" id="rol" name="rol">
+                    <option value="">Todos</option>
+                    <option value="admin" {% if rol_filtro == 'admin' %}selected{% endif %}>Administrador</option>
+                    <option value="usuario" {% if rol_filtro == 'usuario' %}selected{% endif %}>Usuario</option>
+                </select>
+            </div>
+            <div class="col-md-2 mb-3">
+                <label class="form-label" for="estado">Estado</label>
+                <select class="custom-select form-control" id="estado" name="estado">
+                    <option value="">Todos</option>
+                    <option value="activo" {% if estado_filtro == 'activo' %}selected{% endif %}>Activo</option>
+                    <option value="inactivo" {% if estado_filtro == 'inactivo' %}selected{% endif %}>Inactivo</option>
+                </select>
+            </div>
+            <div class="col-md-2 mb-3">
+                <button type="submit" class="btn btn-teal btn-block text-white">
+                    <i class="fal fa-search mr-1"></i> Filtrar
+                </button>
+            </div>
+        </form>
+    </div>
+
     <div class="panel-talent">
+        <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap">
+            <h6 class="section-title-talent mb-0 border-0 pb-0">
+                <i class="fal fa-list mr-2 text-teal"></i> Listado
+            </h6>
+            <small class="text-muted">{{ filas|length }} usuario{{ filas|length|pluralize:"s" }}</small>
+        </div>
         <div class="table-responsive">
-            <table class="table table-hover mb-0">
+            <table class="table table-modern mb-0">
                 <thead>
                     <tr>
                         <th>Usuario</th>
-                        <th>Nombre</th>
                         <th>Empleado vinculado</th>
                         <th>Rol</th>
                         <th>Módulos</th>
@@ -47,27 +117,76 @@
                 <tbody>
                     {% for fila in filas %}
                     <tr>
-                        <td><strong>{{ fila.user.username }}</strong></td>
-                        <td>{{ fila.user.get_full_name|default:"—" }}</td>
-                        <td><small>{{ fila.empleado_txt }}</small></td>
-                        <td>{{ fila.rol }}</td>
-                        <td><small class="text-muted">{{ fila.modulos_txt }}</small></td>
                         <td>
-                            {% if fila.activo %}
-                            <span class="badge badge-success">Activo</span>
-                            {% else %}
-                            <span class="badge badge-secondary">Inactivo</span>
+                            <a href="{% url 'master:usuario_edit' fila.user.id %}"
+                               class="font-weight-bold text-dark d-block conv-title-link">
+                                {{ fila.user.username }}
+                            </a>
+                            <small class="text-muted d-block">
+                                {{ fila.user.get_full_name|default:"Sin nombre" }}
+                            </small>
+                            {% if fila.user.email %}
+                            <small class="text-muted">
+                                <i class="fal fa-envelope mr-1"></i>{{ fila.user.email }}
+                            </small>
                             {% endif %}
                         </td>
-                        <td class="text-right">
-                            <a href="{% url 'master:usuario_edit' fila.user.id %}" class="btn btn-sm btn-outline-secondary">
-                                <i class="fal fa-edit"></i> Editar
+                        <td>
+                            {% if fila.empleado_txt != '—' %}
+                            <span class="font-weight-600">{{ fila.empleado_txt }}</span>
+                            {% else %}
+                            <span class="text-muted">Sin vincular</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if fila.es_admin %}
+                            <span class="badge-soft badge-soft-warning">Administrador</span>
+                            {% elif fila.rol == 'Usuario' %}
+                            <span class="badge-soft badge-soft-info">Usuario</span>
+                            {% else %}
+                            <span class="badge-soft badge-soft-dark">Sin perfil</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if fila.es_admin %}
+                            <span class="badge-soft-teal">Todos los módulos</span>
+                            {% elif fila.modulos_list %}
+                                {% for m in fila.modulos_list %}
+                                <span class="badge-soft-teal mr-1 mb-1 d-inline-block">{{ m }}</span>
+                                {% endfor %}
+                            {% else %}
+                            <span class="text-muted">—</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if fila.activo %}
+                            <span class="badge-soft badge-soft-success">Activo</span>
+                            {% else %}
+                            <span class="badge-soft badge-soft-danger">Inactivo</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-right text-nowrap">
+                            <a href="{% url 'master:usuario_edit' fila.user.id %}"
+                               class="btn btn-sm btn-outline-warning btn-icon" title="Editar">
+                                <i class="fal fa-edit"></i>
                             </a>
+                            {% if fila.user.id != request.user.id %}
+                            <a href="{% url 'master:usuario_delete' fila.user.id %}"
+                               class="btn btn-sm btn-outline-danger btn-icon" title="Eliminar">
+                                <i class="fal fa-trash-alt"></i>
+                            </a>
+                            {% endif %}
                         </td>
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="7" class="text-center text-muted py-4">No hay usuarios registrados.</td>
+                        <td colspan="6" class="text-center py-5 text-muted">
+                            <i class="fal fa-user-shield mb-3 d-block" style="font-size: 2.5rem; opacity: 0.35;"></i>
+                            <p class="font-weight-bold mb-1">No hay usuarios con esos filtros</p>
+                            <a href="{% url 'master:usuario_create' %}" class="btn btn-teal text-white btn-pills px-4 mt-2">
+                                <i class="fal fa-plus mr-1"></i> Crear el primero
+                            </a>
+                        </td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -75,4 +194,28 @@
         </div>
     </div>
 </div>
+
+{% include 'master/includes/persona_edit_styles.html' %}
+<style>
+    .stat-card-talent {
+        background: #fff; border: 1px solid #eef2f2; border-radius: 14px;
+        padding: 18px 20px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02); height: 100%;
+    }
+    .stat-label { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #94a3b8; margin-bottom: 6px; }
+    .stat-value { font-size: 1.75rem; font-weight: 800; color: #0b1311; line-height: 1.1; }
+    .btn-icon { width: 34px; height: 34px; padding: 0; display: inline-flex; align-items: center; justify-content: center; margin-left: 2px; }
+    .conv-title-link:hover { color: #0e967e !important; text-decoration: none; }
+    .font-weight-600 { font-weight: 600; }
+    .badge-soft {
+        display: inline-block; padding: 5px 10px; border-radius: 6px;
+        font-weight: 700; font-size: 0.7rem; line-height: 1.2;
+    }
+    .badge-soft-success { background: #dcfce7; color: #166534; }
+    .badge-soft-warning { background: #fef3c7; color: #92400e; }
+    .badge-soft-info { background: #e0f2fe; color: #0369a1; }
+    .badge-soft-danger { background: #fee2e2; color: #991b1b; }
+    .badge-soft-dark { background: #f1f5f9; color: #475569; }
+</style>
+<script src="{% static 'js/vendors.bundle.js' %}"></script>
+<script src="{% static 'js/app.bundle.js' %}"></script>
 {% endblock %}

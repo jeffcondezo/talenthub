@@ -2,6 +2,7 @@ from django.db import models
 from django.core.validators import RegexValidator
 from django.utils import timezone
 from django.contrib.auth.models import User
+from datetime import timedelta
 
 from .actividades_catalogo import GRUPO_CHOICES, ALL_TIPO_CHOICES
 
@@ -861,6 +862,13 @@ class Postulacion(models.Model):
         null=True,
         verbose_name='Observaciones'
     )
+
+    puntaje = models.PositiveIntegerField(
+        blank=True,
+        null=True,
+        verbose_name='Puntaje',
+        help_text='Puntaje asignado por el evaluador',
+    )
     
     # Metadatos
     fecha_creacion = models.DateTimeField(
@@ -1298,6 +1306,13 @@ class FormacionAcademica(models.Model):
         null=True,
         verbose_name='Observaciones'
     )
+
+    archivo = models.FileField(
+        upload_to='formacion_academica/',
+        blank=True,
+        null=True,
+        verbose_name='Archivo (PDF)',
+    )
     
     # Metadatos
     fecha_creacion = models.DateTimeField(
@@ -1432,7 +1447,7 @@ class CursoEspecializacion(models.Model):
         upload_to='certificados/',
         blank=True,
         null=True,
-        verbose_name='Certificado'
+        verbose_name='Certificado (PDF)'
     )
     
     observaciones = models.TextField(
@@ -1627,6 +1642,13 @@ class ExperienciaLaboral(models.Model):
         null=True,
         verbose_name='Observaciones'
     )
+
+    archivo = models.FileField(
+        upload_to='experiencia_laboral/',
+        blank=True,
+        null=True,
+        verbose_name='Archivo (PDF)',
+    )
     
     # Metadatos
     fecha_creacion = models.DateTimeField(
@@ -1712,6 +1734,83 @@ class PerfilAcceso(models.Model):
     def __str__(self):
         rol = 'Administrador' if self.es_administrador else 'Usuario'
         return f'{self.user.username} ({rol})'
+
+
+class AccesoCVPostulante(models.Model):
+    """Enlace con token para que un postulante complete su CV sin login."""
+
+    persona = models.OneToOneField(
+        Persona,
+        on_delete=models.CASCADE,
+        related_name='acceso_cv',
+        verbose_name='Persona',
+    )
+    token = models.CharField(max_length=64, unique=True, db_index=True)
+    convocatoria = models.ForeignKey(
+        'Convocatoria',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='accesos_cv',
+        verbose_name='Convocatoria',
+    )
+    activo = models.BooleanField(default=True)
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    fecha_expiracion = models.DateTimeField()
+    ultimo_acceso = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        verbose_name = 'Acceso CV de postulante'
+        verbose_name_plural = 'Accesos CV de postulantes'
+
+    def __str__(self):
+        return f'Acceso CV — {self.persona.nombre_completo}'
+
+    @property
+    def vigente(self):
+        return self.activo and self.fecha_expiracion >= timezone.now()
+
+    @staticmethod
+    def generar_token():
+        """Hash opaco de 64 caracteres hex (256 bits). Difícil de adivinar/replicar."""
+        import secrets
+        return secrets.token_hex(32)
+
+    @classmethod
+    def get_or_create_for_persona(cls, persona, convocatoria=None, dias_vigencia=30):
+        """Obtiene o crea un acceso vigente; renueva si estaba vencido.
+        El CV es de la persona (independiente de convocatorias).
+        """
+        ahora = timezone.now()
+        expiracion = ahora + timedelta(days=dias_vigencia)
+
+        try:
+            acceso = cls.objects.get(persona=persona)
+        except cls.DoesNotExist:
+            return cls.objects.create(
+                persona=persona,
+                token=cls.generar_token(),
+                convocatoria=None,
+                fecha_expiracion=expiracion,
+                activo=True,
+            )
+
+        changed = False
+        if not acceso.vigente:
+            acceso.token = cls.generar_token()
+            acceso.fecha_expiracion = expiracion
+            acceso.activo = True
+            changed = True
+        if changed:
+            acceso.save()
+        return acceso
+
+    def renovar(self, dias_vigencia=30):
+        self.token = self.generar_token()
+        self.fecha_expiracion = timezone.now() + timedelta(days=dias_vigencia)
+        self.activo = True
+        self.save(update_fields=['token', 'fecha_expiracion', 'activo'])
+        return self
 
 
 class RegistroActividadSemanal(models.Model):
@@ -1812,3 +1911,263 @@ class ActividadSemanal(models.Model):
     def get_tipo_display_label(self):
         from .actividades_catalogo import get_tipo_label
         return get_tipo_label(self.grupo, self.tipo)
+
+
+class Skill(models.Model):
+    """Catálogo de habilidades para personas (evaluación) y requisitos de proyecto."""
+
+    TIPO_CHOICES = [
+        ('TECNICA', 'Técnica'),
+        ('BLANDA', 'Blanda'),
+        ('HERRAMIENTA', 'Herramienta'),
+        ('IDIOMA', 'Idioma'),
+        ('OTRO', 'Otro'),
+    ]
+
+    nombre = models.CharField(max_length=120, unique=True, verbose_name='Nombre')
+    tipo = models.CharField(
+        max_length=20,
+        choices=TIPO_CHOICES,
+        default='TECNICA',
+        verbose_name='Tipo',
+    )
+    activo = models.BooleanField(default=True, verbose_name='Activo')
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = 'Skill'
+        verbose_name_plural = 'Skills'
+        ordering = ['nombre']
+
+    def __str__(self):
+        return self.nombre
+
+    def save(self, *args, **kwargs):
+        if self.nombre:
+            self.nombre = self.nombre.strip()
+        super().save(*args, **kwargs)
+
+
+class PersonaSkill(models.Model):
+    """
+    Skills registrados por RRHH/evaluador tras revisar el CV de la persona.
+    Se usan para hacer match con los skills requeridos de un proyecto.
+    """
+
+    NIVEL_CHOICES = [
+        ('BASICO', 'Básico'),
+        ('INTERMEDIO', 'Intermedio'),
+        ('AVANZADO', 'Avanzado'),
+        ('EXPERTO', 'Experto'),
+    ]
+
+    persona = models.ForeignKey(
+        Persona,
+        on_delete=models.CASCADE,
+        related_name='persona_skills',
+        verbose_name='Persona',
+    )
+    skill = models.ForeignKey(
+        Skill,
+        on_delete=models.CASCADE,
+        related_name='persona_skills',
+        verbose_name='Skill',
+    )
+    nivel = models.CharField(
+        max_length=15,
+        choices=NIVEL_CHOICES,
+        blank=True,
+        null=True,
+        verbose_name='Nivel',
+    )
+    registrado_por = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        related_name='skills_registrados',
+        verbose_name='Registrado por',
+    )
+    notas = models.CharField(max_length=255, blank=True, null=True, verbose_name='Notas')
+    fecha_registro = models.DateTimeField(auto_now_add=True)
+    fecha_actualizacion = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'Skill de persona'
+        verbose_name_plural = 'Skills de persona'
+        unique_together = ('persona', 'skill')
+        ordering = ['skill__nombre']
+
+    def __str__(self):
+        return f'{self.persona}: {self.skill.nombre}'
+
+
+class Proyecto(models.Model):
+    """Proyecto interno al que se asignan colaboradores y skills requeridos."""
+
+    ESTADO_CHOICES = [
+        ('PLANIFICADO', 'Planificado'),
+        ('EN_CURSO', 'En curso'),
+        ('PAUSADO', 'Pausado'),
+        ('FINALIZADO', 'Finalizado'),
+        ('CANCELADO', 'Cancelado'),
+    ]
+
+    codigo = models.CharField(
+        max_length=20,
+        unique=True,
+        blank=True,
+        null=True,
+        verbose_name='Código',
+    )
+    nombre = models.CharField(max_length=200, verbose_name='Nombre')
+    descripcion = models.TextField(blank=True, null=True, verbose_name='Descripción')
+    cliente = models.CharField(max_length=200, blank=True, null=True, verbose_name='Cliente')
+    estado = models.CharField(
+        max_length=20,
+        choices=ESTADO_CHOICES,
+        default='PLANIFICADO',
+        verbose_name='Estado',
+    )
+    fecha_inicio = models.DateField(blank=True, null=True, verbose_name='Fecha de inicio')
+    fecha_fin = models.DateField(blank=True, null=True, verbose_name='Fecha de fin')
+    horas_estimadas = models.PositiveIntegerField(
+        blank=True,
+        null=True,
+        verbose_name='Horas estimadas',
+        help_text='Total de horas planificadas para el proyecto',
+    )
+    skills = models.ManyToManyField(
+        Skill,
+        through='ProyectoSkill',
+        related_name='proyectos',
+        blank=True,
+        verbose_name='Skills requeridos',
+    )
+    creado_por = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        related_name='proyectos_creados',
+        verbose_name='Creado por',
+    )
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    fecha_actualizacion = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'Proyecto'
+        verbose_name_plural = 'Proyectos'
+        ordering = ['-fecha_actualizacion']
+        indexes = [
+            models.Index(fields=['estado']),
+            models.Index(fields=['codigo']),
+        ]
+
+    def __str__(self):
+        return f'{self.codigo or "PRJ"} — {self.nombre}'
+
+    def save(self, *args, **kwargs):
+        if not self.codigo:
+            ultimo = (
+                Proyecto.objects.filter(codigo__startswith='PRJ')
+                .order_by('-codigo')
+                .first()
+            )
+            n = 1
+            if ultimo and ultimo.codigo:
+                try:
+                    n = int(ultimo.codigo.replace('PRJ', '')) + 1
+                except ValueError:
+                    n = Proyecto.objects.count() + 1
+            self.codigo = f'PRJ{n:03d}'
+        super().save(*args, **kwargs)
+
+    @property
+    def horas_asignadas_total(self):
+        from django.db.models import Sum
+        return self.asignaciones.filter(activo=True).aggregate(
+            total=Sum('horas_semanales')
+        )['total'] or 0
+
+    @property
+    def colaboradores_activos_count(self):
+        return self.asignaciones.filter(activo=True).count()
+
+
+class ProyectoSkill(models.Model):
+    proyecto = models.ForeignKey(
+        Proyecto,
+        on_delete=models.CASCADE,
+        related_name='proyecto_skills',
+    )
+    skill = models.ForeignKey(
+        Skill,
+        on_delete=models.CASCADE,
+        related_name='proyecto_skills',
+    )
+    peso = models.PositiveSmallIntegerField(
+        default=1,
+        verbose_name='Peso',
+        help_text='Importancia relativa del skill (1–5)',
+    )
+
+    class Meta:
+        verbose_name = 'Skill de proyecto'
+        verbose_name_plural = 'Skills de proyecto'
+        unique_together = ('proyecto', 'skill')
+
+    def __str__(self):
+        return f'{self.proyecto.nombre}: {self.skill.nombre}'
+
+
+class AsignacionProyecto(models.Model):
+    """Empleado asignado a un proyecto con dedicación en horas."""
+
+    proyecto = models.ForeignKey(
+        Proyecto,
+        on_delete=models.CASCADE,
+        related_name='asignaciones',
+        verbose_name='Proyecto',
+    )
+    colaborador = models.ForeignKey(
+        Colaborador,
+        on_delete=models.CASCADE,
+        related_name='asignaciones_proyecto',
+        verbose_name='Colaborador',
+    )
+    rol = models.CharField(
+        max_length=120,
+        blank=True,
+        null=True,
+        verbose_name='Rol en el proyecto',
+    )
+    horas_semanales = models.PositiveIntegerField(
+        default=0,
+        verbose_name='Horas semanales',
+        help_text='Horas que dedica al proyecto por semana',
+    )
+    fecha_inicio = models.DateField(
+        blank=True,
+        null=True,
+        verbose_name='Inicio en el proyecto',
+    )
+    fecha_fin = models.DateField(
+        blank=True,
+        null=True,
+        verbose_name='Fin en el proyecto',
+    )
+    activo = models.BooleanField(default=True, verbose_name='Activo')
+    notas = models.TextField(blank=True, null=True, verbose_name='Notas')
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    fecha_actualizacion = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'Asignación de proyecto'
+        verbose_name_plural = 'Asignaciones de proyecto'
+        unique_together = ('proyecto', 'colaborador')
+        ordering = ['-activo', '-horas_semanales', 'colaborador__persona__apellido_paterno']
+
+    def __str__(self):
+        persona = self.colaborador.persona.nombre_completo if self.colaborador.persona_id else '—'
+        return f'{persona} → {self.proyecto.nombre}'

@@ -1,0 +1,256 @@
+{% extends 'master/includes/base.html' %}
+{% load static %}
+
+{% block title %}{{ proyecto.nombre }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid persona-edit-page">
+    <div class="d-flex align-items-center justify-content-between mb-4 pb-3 border-bottom flex-wrap">
+        <div class="d-flex align-items-center mb-2 mb-md-0">
+            <div class="icon-shape-avatar bg-teal-light text-teal mr-3">
+                <i class="fal fa-briefcase"></i>
+            </div>
+            <div>
+                <h3 class="font-weight-800 mb-0 persona-edit-title">{{ proyecto.nombre }}</h3>
+                <div class="d-flex align-items-center mt-1 flex-wrap">
+                    <span class="badge-soft-teal mr-2">{{ proyecto.codigo }}</span>
+                    {% if proyecto.estado == 'EN_CURSO' %}
+                    <span class="badge-soft badge-soft-success mr-2">{{ proyecto.get_estado_display }}</span>
+                    {% elif proyecto.estado == 'PLANIFICADO' %}
+                    <span class="badge-soft badge-soft-info mr-2">{{ proyecto.get_estado_display }}</span>
+                    {% elif proyecto.estado == 'PAUSADO' %}
+                    <span class="badge-soft badge-soft-warning mr-2">{{ proyecto.get_estado_display }}</span>
+                    {% else %}
+                    <span class="badge-soft badge-soft-dark mr-2">{{ proyecto.get_estado_display }}</span>
+                    {% endif %}
+                    {% if proyecto.cliente %}
+                    <span class="badge-soft-dark">{{ proyecto.cliente }}</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="d-flex align-items-center flex-wrap">
+            <a href="{% url 'master:proyecto' %}"
+               class="btn btn-outline-secondary btn-pills shadow-sm px-3 py-2 font-weight-bold mr-2 mb-2 mb-sm-0">
+                <i class="fal fa-arrow-left mr-1"></i> Volver
+            </a>
+            <a href="{% url 'master:proyecto_edit' proyecto.id %}"
+               class="btn btn-warning btn-pills shadow-sm px-3 py-2 font-weight-bold mr-2 mb-2 mb-sm-0">
+                <i class="fal fa-edit mr-1"></i> Editar
+            </a>
+            <a href="{% url 'master:proyecto_delete' proyecto.id %}"
+               class="btn btn-outline-danger btn-pills shadow-sm px-3 py-2 font-weight-bold mb-2 mb-sm-0">
+                <i class="fal fa-trash-alt mr-1"></i> Eliminar
+            </a>
+        </div>
+    </div>
+
+    {% if messages %}
+    <div class="mb-4">
+        {% for message in messages %}
+        <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags|default:'info' }}{% endif %} alert-dismissible fade show">
+            {{ message }}
+            <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="row mb-4">
+        <div class="col-md-3 col-6 mb-3 mb-md-0">
+            <div class="stat-card-talent">
+                <div class="stat-label">Equipo activo</div>
+                <div class="stat-value text-teal">{{ proyecto.colaboradores_activos_count }}</div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6 mb-3 mb-md-0">
+            <div class="stat-card-talent">
+                <div class="stat-label">Horas/sem asignadas</div>
+                <div class="stat-value">{{ horas_asignadas }}</div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6">
+            <div class="stat-card-talent">
+                <div class="stat-label">Horas estimadas</div>
+                <div class="stat-value">{{ proyecto.horas_estimadas|default:"—" }}</div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6">
+            <div class="stat-card-talent">
+                <div class="stat-label">Skills</div>
+                <div class="stat-value">{{ skills|length }}</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-xl-8">
+            <div class="panel-talent mb-4">
+                <h6 class="section-title-talent mb-3">
+                    <i class="fal fa-align-left mr-2 text-teal"></i> Descripción
+                </h6>
+                <p class="mb-0" style="white-space: pre-wrap;">{{ proyecto.descripcion|default:"Sin descripción." }}</p>
+                <div class="mt-3">
+                    {% for s in skills %}
+                    <span class="badge-soft-teal mr-1 mb-1 d-inline-block">{{ s.nombre }}</span>
+                    {% empty %}
+                    <span class="text-muted small">Sin skills definidos.
+                        <a href="{% url 'master:proyecto_edit' proyecto.id %}">Agregar</a>
+                    </span>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="panel-talent mb-4">
+                <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap">
+                    <h6 class="section-title-talent mb-0 border-0 pb-0">
+                        <i class="fal fa-users mr-2 text-teal"></i> Equipo asignado
+                    </h6>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-modern mb-0">
+                        <thead>
+                            <tr>
+                                <th>Empleado</th>
+                                <th>Rol</th>
+                                <th>Match CV</th>
+                                <th class="text-center">Horas/sem</th>
+                                <th>Estado</th>
+                                <th class="text-right">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for a in asignaciones %}
+                            <tr>
+                                <td>
+                                    <a href="{% url 'master:persona_detail' a.colaborador.persona.id %}"
+                                       class="font-weight-bold text-dark">
+                                        {{ a.colaborador.persona.nombre_completo }}
+                                    </a>
+                                    <div class="small text-muted">{{ a.colaborador.cargo.nombre }}</div>
+                                </td>
+                                <td>{{ a.rol|default:"—" }}</td>
+                                <td>
+                                    <span class="match-score {% if a.match_meta.score >= 70 %}high{% elif a.match_meta.score >= 40 %}mid{% else %}low{% endif %}">
+                                        {{ a.match_meta.score }}%
+                                    </span>
+                                </td>
+                                <td class="text-center font-weight-600">{{ a.horas_semanales }}</td>
+                                <td>
+                                    {% if a.activo %}
+                                    <span class="badge-soft badge-soft-success">Activo</span>
+                                    {% else %}
+                                    <span class="badge-soft badge-soft-dark">Inactivo</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-right text-nowrap">
+                                    <a href="{% url 'master:proyecto_asignacion_edit' proyecto.id a.id %}"
+                                       class="btn btn-sm btn-outline-warning btn-icon" title="Editar">
+                                        <i class="fal fa-edit"></i>
+                                    </a>
+                                    <form method="post" action="{% url 'master:proyecto_asignacion_quitar' proyecto.id a.id %}"
+                                          class="d-inline" onsubmit="return confirm('¿Quitar del proyecto?');">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-sm btn-outline-danger btn-icon" title="Quitar">
+                                            <i class="fal fa-times"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="6" class="text-center py-4 text-muted">
+                                    Aún no hay empleados asignados.
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="panel-talent mb-4">
+                <h6 class="section-title-talent mb-3">
+                    <i class="fal fa-user-plus mr-2 text-teal"></i> Asignar empleado
+                </h6>
+                <form method="post" action="{% url 'master:proyecto_asignar' proyecto.id %}">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Empleado *</label>
+                            {{ form_asignacion.colaborador }}
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label class="form-label">Rol</label>
+                            {{ form_asignacion.rol }}
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label class="form-label">Horas/sem *</label>
+                            {{ form_asignacion.horas_semanales }}
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Inicio</label>
+                            {{ form_asignacion.fecha_inicio }}
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Fin</label>
+                            {{ form_asignacion.fecha_fin }}
+                        </div>
+                        <div class="col-md-4 mb-3 d-flex align-items-end">
+                            <div class="form-check mb-2">
+                                {{ form_asignacion.activo }}
+                                <label class="form-check-label" for="{{ form_asignacion.activo.id_for_label }}">Activo</label>
+                            </div>
+                        </div>
+                        <div class="col-12 mb-3">
+                            <label class="form-label">Notas</label>
+                            {{ form_asignacion.notas }}
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-teal text-white btn-pills px-4">
+                        <i class="fal fa-plus mr-1"></i> Asignar
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <div class="col-xl-4">
+            <div class="panel-talent mb-4">
+                <h6 class="section-title-talent mb-3">
+                    <i class="fal fa-user-check mr-2 text-teal"></i> Más capacitados (CV)
+                </h6>
+                <p class="small text-muted mb-3">
+                    Empleados activos no asignados, ordenados por coincidencia entre skills del proyecto y skills evaluados en su perfil.
+                </p>
+                {% include 'master/includes/proyecto_sugeridos.html' with sugeridos=sugeridos %}
+                {% if sugeridos %}
+                <p class="small text-muted mt-3 mb-0">
+                    Usa el formulario de la izquierda para asignarlos con horas.
+                </p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% include 'master/includes/persona_edit_styles.html' %}
+<style>
+    .stat-card-talent {
+        background: #fff; border: 1px solid #eef2f2; border-radius: 14px;
+        padding: 18px 20px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02); height: 100%;
+    }
+    .stat-label { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #94a3b8; margin-bottom: 6px; }
+    .stat-value { font-size: 1.75rem; font-weight: 800; color: #0b1311; line-height: 1.1; }
+    .btn-icon { width: 34px; height: 34px; padding: 0; display: inline-flex; align-items: center; justify-content: center; margin-left: 2px; }
+    .match-score {
+        min-width: 48px; height: 28px; border-radius: 8px; background: #f0fdfa; color: #0f766e;
+        font-weight: 800; display: inline-flex; align-items: center; justify-content: center; font-size: 0.85rem;
+    }
+    .match-score.low { background: #f1f5f9; color: #64748b; }
+    .match-score.mid { background: #ecfccb; color: #3f6212; }
+    .match-score.high { background: #ccfbf1; color: #0f766e; }
+    .font-weight-600 { font-weight: 600; }
+</style>
+<script src="{% static 'js/vendors.bundle.js' %}"></script>
+<script src="{% static 'js/app.bundle.js' %}"></script>
+{% endblock %}

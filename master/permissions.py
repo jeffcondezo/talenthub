@@ -17,7 +17,8 @@ MODULOS_MENU = [
     {'clave': 'inicio', 'label': 'Dashboard', 'url_name': 'master:inicio', 'icon': 'fal fa-home-alt'},
     {'clave': 'convocatorias', 'label': 'Convocatorias', 'url_name': 'master:convocatorias', 'icon': 'fal fa-search'},
     {'clave': 'colaboradores', 'label': 'Empleados', 'url_name': 'master:colaboradores', 'icon': 'fal fa-users'},
-    {'clave': 'capacitacion', 'label': 'Aprender', 'url_name': 'master:capacitacion', 'icon': 'fal fa-book-open'},
+    # Oculto de momento: Aprender
+    # {'clave': 'capacitacion', 'label': 'Aprender', 'url_name': 'master:capacitacion', 'icon': 'fal fa-book-open'},
     {'clave': 'proyecto', 'label': 'Proyectos', 'url_name': 'master:proyecto', 'icon': 'fal fa-briefcase'},
     {'clave': 'analitica', 'label': 'Analíticas', 'url_name': 'master:analitica', 'icon': 'fal fa-chart-bar'},
 ]
@@ -69,6 +70,7 @@ PATH_ALWAYS_ALLOWED_PREFIXES = (
 PATH_PUBLIC_PREFIXES = (
     '/master/login',
     '/master/registro',
+    '/master/cv-acceso',
 )
 
 

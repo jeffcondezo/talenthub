@@ -4,127 +4,219 @@
 {% block title %}{{ titulo }}{% endblock %}
 
 {% block content %}
-<div class="container-fluid persona-edit-page" style="padding: 50px;">
-    <div class="d-flex align-items-center justify-content-between mb-4 pb-3 border-bottom">
-        <div>
-            <h3 class="font-weight-800 mb-1" style="color: #0b1311; letter-spacing: -0.02em;">
-                <i class="fal fa-user-edit mr-2 text-teal"></i> {{ titulo }}
-            </h3>
+<div class="container-fluid persona-edit-page">
+    <div class="d-flex align-items-center justify-content-between mb-4 pb-3 border-bottom flex-wrap">
+        <div class="d-flex align-items-center mb-2 mb-md-0">
+            <div class="icon-shape-avatar bg-teal-light text-teal mr-3">
+                <i class="fal fa-user-{% if es_edicion %}edit{% else %}plus{% endif %}"></i>
+            </div>
+            <div>
+                <h3 class="font-weight-800 mb-0 persona-edit-title">{{ titulo }}</h3>
+                <p class="text-muted mb-0 mt-1">
+                    {% if es_edicion %}
+                    Actualiza datos, contraseña, vínculo con empleado y permisos.
+                    {% else %}
+                    Crea una cuenta y define los módulos a los que podrá acceder.
+                    {% endif %}
+                </p>
+            </div>
         </div>
-        <a href="{% url 'master:usuarios_list' %}" class="btn btn-outline-secondary btn-pills shadow-sm px-4 py-2 font-weight-bold">
-            <i class="fal fa-arrow-left mr-2"></i> Volver al listado
+        <a href="{% url 'master:usuarios_list' %}"
+           class="btn btn-outline-secondary btn-pills shadow-sm px-3 py-2 font-weight-bold">
+            <i class="fal fa-arrow-left mr-1"></i> Volver
         </a>
     </div>
 
-    <div class="row justify-content-center">
-        <div class="col-lg-8">
-            <div class="panel-talent">
-                <form method="post" novalidate>
-                    {% csrf_token %}
+    {% if messages %}
+    <div class="mb-4">
+        {% for message in messages %}
+        <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags|default:'info' }}{% endif %} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="close" data-dismiss="alert" aria-label="Cerrar">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
 
-                    {% if form.non_field_errors %}
-                    <div class="alert alert-danger">
-                        {% for error in form.non_field_errors %}
-                        <div>{{ error }}</div>
-                        {% endfor %}
-                    </div>
-                    {% endif %}
+    <form method="post" novalidate>
+        {% csrf_token %}
 
-                    <h6 class="section-title-talent mb-3">Datos de la cuenta</h6>
+        {% if form.non_field_errors %}
+        <div class="alert alert-danger mb-4">
+            {% for error in form.non_field_errors %}
+            <div>{{ error }}</div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <div class="row">
+            <div class="col-xl-7">
+                <div class="panel-talent mb-4">
+                    <h6 class="section-title-talent mb-3">
+                        <i class="fal fa-id-card mr-2 text-teal"></i> Datos de la cuenta
+                    </h6>
 
                     <div class="form-group">
-                        <label for="{{ form.username.id_for_label }}" class="font-weight-bold">{{ form.username.label }}</label>
+                        <label class="form-label" for="{{ form.username.id_for_label }}">{{ form.username.label }}</label>
                         {{ form.username }}
-                        {% for error in form.username.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+                        {% for error in form.username.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
                     </div>
 
                     <div class="row">
-                        <div class="col-md-6 form-group">
-                            <label for="{{ form.first_name.id_for_label }}" class="font-weight-bold">{{ form.first_name.label }}</label>
-                            {{ form.first_name }}
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label" for="{{ form.first_name.id_for_label }}">{{ form.first_name.label }}</label>
+                                {{ form.first_name }}
+                            </div>
                         </div>
-                        <div class="col-md-6 form-group">
-                            <label for="{{ form.last_name.id_for_label }}" class="font-weight-bold">{{ form.last_name.label }}</label>
-                            {{ form.last_name }}
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label" for="{{ form.last_name.id_for_label }}">{{ form.last_name.label }}</label>
+                                {{ form.last_name }}
+                            </div>
                         </div>
                     </div>
 
                     <div class="form-group">
-                        <label for="{{ form.email.id_for_label }}" class="font-weight-bold">{{ form.email.label }}</label>
+                        <label class="form-label" for="{{ form.email.id_for_label }}">{{ form.email.label }}</label>
                         {{ form.email }}
+                        {% for error in form.email.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
                     </div>
 
-                    <div class="form-group">
-                        <label for="{{ form.password1.id_for_label }}" class="font-weight-bold">{{ form.password1.label }}</label>
-                        {{ form.password1 }}
-                        {% for error in form.password1.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
-                    </div>
-
-                    <div class="form-group">
-                        <label for="{{ form.password2.id_for_label }}" class="font-weight-bold">{{ form.password2.label }}</label>
-                        {{ form.password2 }}
-                        {% for error in form.password2.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label" for="{{ form.password1.id_for_label }}">{{ form.password1.label }}</label>
+                                {{ form.password1 }}
+                                {% for error in form.password1.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label" for="{{ form.password2.id_for_label }}">{{ form.password2.label }}</label>
+                                {{ form.password2 }}
+                                {% for error in form.password2.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+                            </div>
+                        </div>
                     </div>
 
                     {% if form.is_active %}
-                    <div class="form-group form-check">
-                        {{ form.is_active }}
-                        <label class="form-check-label" for="{{ form.is_active.id_for_label }}">{{ form.is_active.label }}</label>
-                        {% for error in form.is_active.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+                    <div class="switch-card mt-2">
+                        <div class="custom-control custom-switch">
+                            {{ form.is_active }}
+                            <label class="custom-control-label font-weight-bold" for="{{ form.is_active.id_for_label }}">
+                                {{ form.is_active.label }}
+                            </label>
+                        </div>
+                        {% for error in form.is_active.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
                     </div>
                     {% endif %}
+                </div>
 
-                    <hr class="my-4">
-
-                    <h6 class="section-title-talent mb-3">Vinculación con empleado</h6>
-
-                    <div class="form-group">
-                        <label for="{{ form.persona_vinculada.id_for_label }}" class="font-weight-bold">{{ form.persona_vinculada.label }}</label>
+                <div class="panel-talent mb-4">
+                    <h6 class="section-title-talent mb-3">
+                        <i class="fal fa-link mr-2 text-teal"></i> Vinculación con empleado
+                    </h6>
+                    <div class="form-group mb-0">
+                        <label class="form-label" for="{{ form.persona_vinculada.id_for_label }}">{{ form.persona_vinculada.label }}</label>
                         {{ form.persona_vinculada }}
                         {% if form.persona_vinculada.help_text %}
                         <small class="form-text text-muted">{{ form.persona_vinculada.help_text }}</small>
                         {% endif %}
-                        {% for error in form.persona_vinculada.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+                        {% for error in form.persona_vinculada.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
                     </div>
+                </div>
+            </div>
 
-                    <hr class="my-4">
+            <div class="col-xl-5">
+                <div class="panel-talent mb-4">
+                    <h6 class="section-title-talent mb-3">
+                        <i class="fal fa-shield-check mr-2 text-teal"></i> Permisos
+                    </h6>
 
-                    <h6 class="section-title-talent mb-3">Permisos</h6>
-
-                    <div class="form-group form-check mb-3">
-                        {{ form.es_administrador }}
-                        <label class="form-check-label font-weight-bold" for="{{ form.es_administrador.id_for_label }}">
-                            {{ form.es_administrador.label }}
-                        </label>
-                        <small class="form-text text-muted d-block ml-4">Los administradores ven todos los módulos y pueden gestionar usuarios.</small>
+                    <div class="switch-card mb-3">
+                        <div class="custom-control custom-switch">
+                            {{ form.es_administrador }}
+                            <label class="custom-control-label font-weight-bold" for="{{ form.es_administrador.id_for_label }}">
+                                {{ form.es_administrador.label }}
+                            </label>
+                        </div>
+                        <small class="text-muted d-block mt-2">
+                            Los administradores ven todos los módulos y pueden gestionar usuarios.
+                        </small>
+                        {% for error in form.es_administrador.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
                     </div>
 
                     <div id="modulos-checkboxes">
-                        <label class="font-weight-bold d-block mb-2">{{ form.modulos.label }}</label>
-                        <div class="row">
+                        <label class="form-label d-block mb-2">{{ form.modulos.label }}</label>
+                        <div class="modulos-grid">
                             {% for checkbox in form.modulos %}
-                            <div class="col-md-6 mb-2">
-                                <div class="form-check">
-                                    {{ checkbox.tag }}
-                                    <label class="form-check-label" for="{{ checkbox.id_for_label }}">{{ checkbox.choice_label }}</label>
-                                </div>
-                            </div>
+                            <label class="modulo-chip" for="{{ checkbox.id_for_label }}">
+                                {{ checkbox.tag }}
+                                <span>{{ checkbox.choice_label }}</span>
+                            </label>
                             {% endfor %}
                         </div>
-                        {% for error in form.modulos.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+                        {% for error in form.modulos.errors %}<div class="text-danger small mt-2">{{ error }}</div>{% endfor %}
                     </div>
+                </div>
 
-                    <div class="mt-4 pt-3 border-top text-right">
-                        <button type="submit" class="btn btn-teal text-white font-weight-bold px-4">
-                            <i class="fal fa-save mr-2"></i> Guardar
-                        </button>
-                    </div>
-                </form>
+                <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap">
+                    {% if es_edicion and usuario_obj and usuario_obj.id != request.user.id %}
+                    <a href="{% url 'master:usuario_delete' usuario_obj.id %}"
+                       class="btn btn-outline-danger btn-pills px-3 py-2 font-weight-bold mb-2 mb-md-0">
+                        <i class="fal fa-trash-alt mr-1"></i> Eliminar
+                    </a>
+                    {% else %}
+                    <span></span>
+                    {% endif %}
+                    <button type="submit" class="btn btn-teal text-white btn-pills px-4 font-weight-bold">
+                        <i class="fal fa-save mr-1"></i> Guardar
+                    </button>
+                </div>
             </div>
         </div>
-    </div>
+    </form>
 </div>
 
+{% include 'master/includes/persona_edit_styles.html' %}
+<style>
+    .switch-card {
+        background: #f8fafc;
+        border: 1px solid #eef2f2;
+        border-radius: 12px;
+        padding: 14px 16px;
+    }
+    .modulos-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+    }
+    .modulo-chip {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin: 0;
+        padding: 12px 14px;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        background: #fff;
+        cursor: pointer;
+        font-weight: 600;
+        color: #334155;
+        transition: border-color .15s ease, background .15s ease;
+    }
+    .modulo-chip:hover { border-color: #99f6e4; background: #f0fdfa; }
+    .modulo-chip input { margin: 0; }
+    .modulo-chip input:checked + span { color: #0f766e; }
+    @media (max-width: 576px) {
+        .modulos-grid { grid-template-columns: 1fr; }
+    }
+</style>
+<script src="{% static 'js/vendors.bundle.js' %}"></script>
+<script src="{% static 'js/app.bundle.js' %}"></script>
 <script>
 (function () {
     var adminCheck = document.getElementById('{{ form.es_administrador.id_for_label }}');

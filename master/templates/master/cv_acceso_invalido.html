@@ -1,0 +1,40 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Enlace no disponible — TalentHub</title>
+    <link rel="stylesheet" href="{% static 'css/vendors.bundle.css' %}">
+    <link rel="stylesheet" href="{% static 'css/app.bundle.css' %}">
+    <style>
+        body {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f5faf8;
+            background-image:
+                radial-gradient(ellipse at top left, rgba(18, 165, 138, 0.14) 0%, transparent 50%),
+                radial-gradient(ellipse at bottom right, rgba(13, 138, 115, 0.1) 0%, transparent 45%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .card-msg {
+            background: #fff;
+            border-radius: 16px;
+            padding: 40px 36px;
+            max-width: 480px;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0,0,0,.15);
+        }
+        .card-msg h1 { font-size: 1.4rem; font-weight: 700; color: #0b1311; margin-bottom: 12px; }
+        .card-msg p { color: #64748b; margin: 0; }
+    </style>
+</head>
+<body>
+    <div class="card-msg">
+        <h1>Enlace no disponible</h1>
+        <p>{{ motivo|default:"Este enlace no es válido o ha expirado." }}</p>
+    </div>
+</body>
+</html>

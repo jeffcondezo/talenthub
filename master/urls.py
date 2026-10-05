@@ -36,6 +36,7 @@ urlpatterns = [
     path('usuarios/', views.usuarios_list, name='usuarios_list'),
     path('usuarios/nuevo/', views.usuario_create, name='usuario_create'),
     path('usuarios/<int:user_id>/editar/', views.usuario_edit, name='usuario_edit'),
+    path('usuarios/<int:user_id>/eliminar/', views.usuario_delete, name='usuario_delete'),
     
     # Página de logout
     path('logout/', views.CustomLogoutView.as_view(), name='logout'),
@@ -43,8 +44,24 @@ urlpatterns = [
     # Página principal - inducción
     path('induccion/', views.induccion_view, name='induccion'),
     
-    # Páginas del sistema
+    # Proyectos
     path('proyecto/', views.proyecto_view, name='proyecto'),
+    path('proyecto/nuevo/', views.proyecto_create, name='proyecto_create'),
+    path('proyecto/sugerir-recursos/', views.proyecto_sugerir_recursos, name='proyecto_sugerir'),
+    path('proyecto/<int:pk>/', views.proyecto_detail, name='proyecto_detail'),
+    path('proyecto/<int:pk>/editar/', views.proyecto_edit, name='proyecto_edit'),
+    path('proyecto/<int:pk>/eliminar/', views.proyecto_delete, name='proyecto_delete'),
+    path('proyecto/<int:pk>/asignar/', views.proyecto_asignar, name='proyecto_asignar'),
+    path(
+        'proyecto/<int:pk>/asignacion/<int:asignacion_id>/editar/',
+        views.proyecto_asignacion_edit,
+        name='proyecto_asignacion_edit',
+    ),
+    path(
+        'proyecto/<int:pk>/asignacion/<int:asignacion_id>/quitar/',
+        views.proyecto_asignacion_quitar,
+        name='proyecto_asignacion_quitar',
+    ),
     path('perfiles/', views.perfiles_view, name='perfiles'),
     path('analitica/', views.analitica_view, name='analitica'),
     path('capacitacion/', views.capacitacion_view, name='capacitacion'),
@@ -68,9 +85,15 @@ urlpatterns = [
     path('personas/<int:id>/', views.PersonaDetailView.as_view(), name='persona_detail'),
     path('personas/<int:id>/edit/', views.PersonaUpdateView.as_view(), name='persona_edit'),
     path('personas/<int:id>/cv/edit/', views.cv_perfil_edit, name='persona_cv_edit'),
+    path('personas/<int:id>/skills/', views.persona_skills_update, name='persona_skills_update'),
     path('personas/<int:id>/empleo/edit/', views.colaborador_empleo_edit, name='persona_empleo_edit'),
     path('personas/<int:id>/delete/', views.PersonaDeleteView.as_view(), name='persona_delete'),
     path('convocatorias/<int:convocatoria_id>/postulantes/', views.PostulantesListView.as_view(), name='postulantes'),
+    path(
+        'convocatorias/<int:convocatoria_id>/comparar/',
+        views.comparar_postulantes,
+        name='comparar_postulantes',
+    ),
     path('convocatorias/', views.ConvocatoriasListView.as_view(), name='convocatorias'),
     path('convocatorias/create/', views.ConvocatoriaCreateView.as_view(), name='convocatoria_create'),
     path('convocatorias/<int:id>/', views.ConvocatoriaDetailView.as_view(), name='convocatoria_detail'),
@@ -88,15 +111,32 @@ urlpatterns = [
     
     # URL para obtener convocatorias
     path('ajax/get-convocatorias/', views.get_convocatorias, name='get_convocatorias'),
+    path('ajax/personas-disponibles/', views.buscar_personas_disponibles, name='personas_disponibles'),
     
     # URL para editar postulación
     path('postulaciones/<int:pk>/edit/', views.PostulacionUpdateView.as_view(), name='postulacion_edit'),
+    path(
+        'postulaciones/<int:pk>/estado/',
+        views.actualizar_estado_postulacion_ajax,
+        name='postulacion_estado',
+    ),
+    path(
+        'postulaciones/<int:pk>/puntaje/',
+        views.actualizar_puntaje_postulacion_ajax,
+        name='postulacion_puntaje',
+    ),
     
     # URL para registrar colaborador desde postulación
     path('postulaciones/<int:postulacion_id>/registrar-colaborador/', views.registrar_colaborador, name='registrar_colaborador'),
     
     # URL para registro público de postulantes
     path('registro/', views.registro_postulante, name='registro_postulante'),
+    path('cv-acceso/<str:token>/', views.cv_acceso_legacy_redirect, name='cv_acceso'),
+    path(
+        'personas/<int:persona_id>/enlace-cv/',
+        views.generar_enlace_cv_postulante,
+        name='generar_enlace_cv',
+    ),
     
     # URLs para postulante detail y modales
     path('postulante/<int:persona_id>/', views.postulante_detail, name='postulante_detail'),

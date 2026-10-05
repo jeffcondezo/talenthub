@@ -7,10 +7,28 @@ from django.db.models import Q
 from .models import (
     Postulacion, Convocatoria, FormacionAcademica, CursoEspecializacion,
     ExperienciaLaboral, Persona, CV, Colaborador, ContratoColaborador, PerfilAcceso,
-    ActividadSemanal,
+    ActividadSemanal, Proyecto, AsignacionProyecto, Skill,
 )
+from .proyecto_matching import parse_skills_texto
 from .actividades_catalogo import TIPOS_POR_GRUPO, tipo_pertenece_a_grupo
 from .permissions import MODULOS_MENU
+
+
+def validar_archivo_pdf(archivo):
+    """Acepta solo PDF. Devuelve el archivo o None; lanza ValueError si no es PDF."""
+    if not archivo:
+        return None
+    nombre = (getattr(archivo, 'name', '') or '').lower()
+    if not nombre.endswith('.pdf'):
+        raise ValueError('Solo se permiten archivos PDF.')
+    content_type = (getattr(archivo, 'content_type', '') or '').lower()
+    if content_type and content_type not in (
+        'application/pdf',
+        'application/x-pdf',
+        'application/octet-stream',
+    ):
+        raise ValueError('Solo se permiten archivos PDF.')
+    return archivo
 
 
 class PasswordChangeSpanishForm(PasswordChangeForm):
@@ -139,13 +157,25 @@ class CVPerfilForm(forms.ModelForm):
             'telefono_profesional': forms.TextInput(attrs={'class': 'form-control'}),
             'linkedin': forms.URLInput(attrs={'class': 'form-control', 'placeholder': 'https://linkedin.com/in/...'}),
             'portfolio': forms.URLInput(attrs={'class': 'form-control', 'placeholder': 'https://...'}),
-            'cv_archivo': forms.FileInput(attrs={'class': 'form-control-file', 'accept': '.pdf,.doc,.docx'}),
-            'cv_archivo_anexos': forms.FileInput(attrs={'class': 'form-control-file', 'accept': '.pdf,.doc,.docx,.zip,.rar'}),
+            'cv_archivo': forms.FileInput(attrs={'class': 'form-control-file', 'accept': 'application/pdf,.pdf'}),
+            'cv_archivo_anexos': forms.FileInput(attrs={'class': 'form-control-file', 'accept': 'application/pdf,.pdf'}),
         }
         labels = {
-            'cv_archivo': 'CV descriptivo',
-            'cv_archivo_anexos': 'CV con anexos',
+            'cv_archivo': 'CV descriptivo (PDF)',
+            'cv_archivo_anexos': 'CV con anexos (PDF)',
         }
+
+    def clean_cv_archivo(self):
+        try:
+            return validar_archivo_pdf(self.cleaned_data.get('cv_archivo'))
+        except ValueError as exc:
+            raise forms.ValidationError(str(exc))
+
+    def clean_cv_archivo_anexos(self):
+        try:
+            return validar_archivo_pdf(self.cleaned_data.get('cv_archivo_anexos'))
+        except ValueError as exc:
+            raise forms.ValidationError(str(exc))
 
 
 class PersonaEditForm(forms.ModelForm):
@@ -316,7 +346,7 @@ class FormacionAcademicaForm(forms.ModelForm):
         fields = [
             'grado', 'especialidad', 'centro_estudio', 'ciudad', 'pais',
             'fecha_expedicion', 'fecha_inicio', 'fecha_fin', 'promedio', 'observaciones',
-            'cv'
+            'archivo', 'cv'
         ]
         widgets = {
             'grado': forms.Select(attrs={'class': 'form-control'}),
@@ -329,6 +359,7 @@ class FormacionAcademicaForm(forms.ModelForm):
             'fecha_fin': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
             'promedio': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': '0', 'max': '20'}),
             'observaciones': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'archivo': forms.FileInput(attrs={'class': 'form-control', 'accept': 'application/pdf,.pdf'}),
             'cv': forms.HiddenInput(),
         }
         labels = {
@@ -342,7 +373,14 @@ class FormacionAcademicaForm(forms.ModelForm):
             'fecha_fin': 'Fecha de Fin',
             'promedio': 'Promedio',
             'observaciones': 'Observaciones',
+            'archivo': 'Archivo (PDF)',
         }
+
+    def clean_archivo(self):
+        try:
+            return validar_archivo_pdf(self.cleaned_data.get('archivo'))
+        except ValueError as exc:
+            raise forms.ValidationError(str(exc))
 
 
 class CursoEspecializacionForm(forms.ModelForm):
@@ -365,7 +403,7 @@ class CursoEspecializacionForm(forms.ModelForm):
             'fecha_fin': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
             'horas_lectivas': forms.NumberInput(attrs={'class': 'form-control', 'min': '0'}),
             'nivel': forms.Select(attrs={'class': 'form-control'}),
-            'certificado': forms.FileInput(attrs={'class': 'form-control'}),
+            'certificado': forms.FileInput(attrs={'class': 'form-control', 'accept': 'application/pdf,.pdf'}),
             'observaciones': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
             'cv': forms.HiddenInput(),
         }
@@ -379,9 +417,15 @@ class CursoEspecializacionForm(forms.ModelForm):
             'fecha_fin': 'Fecha de Fin',
             'horas_lectivas': 'Horas Lectivas',
             'nivel': 'Nivel',
-            'certificado': 'Certificado',
+            'certificado': 'Certificado (PDF)',
             'observaciones': 'Observaciones',
         }
+
+    def clean_certificado(self):
+        try:
+            return validar_archivo_pdf(self.cleaned_data.get('certificado'))
+        except ValueError as exc:
+            raise forms.ValidationError(str(exc))
 
 
 class ExperienciaLaboralForm(forms.ModelForm):
@@ -393,7 +437,7 @@ class ExperienciaLaboralForm(forms.ModelForm):
             'tipo_experiencia', 'tipo_entidad', 'nombre_entidad', 'cargo',
             'fecha_inicio', 'fecha_fin', 'salario', 'motivo_salida', 'logros',
             'responsabilidades', 'supervisor', 'telefono_referencia', 'observaciones',
-            'cv'
+            'archivo', 'cv'
         ]
         widgets = {
             'tipo_experiencia': forms.Select(attrs={'class': 'form-control'}),
@@ -409,6 +453,7 @@ class ExperienciaLaboralForm(forms.ModelForm):
             'supervisor': forms.TextInput(attrs={'class': 'form-control'}),
             'telefono_referencia': forms.TextInput(attrs={'class': 'form-control'}),
             'observaciones': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'archivo': forms.FileInput(attrs={'class': 'form-control', 'accept': 'application/pdf,.pdf'}),
             'cv': forms.HiddenInput(),
         }
         labels = {
@@ -425,7 +470,14 @@ class ExperienciaLaboralForm(forms.ModelForm):
             'supervisor': 'Supervisor',
             'telefono_referencia': 'Teléfono de Referencia',
             'observaciones': 'Observaciones',
+            'archivo': 'Archivo (PDF)',
         }
+
+    def clean_archivo(self):
+        try:
+            return validar_archivo_pdf(self.cleaned_data.get('archivo'))
+        except ValueError as exc:
+            raise forms.ValidationError(str(exc))
 
 
 class ColaboradorForm(forms.ModelForm):
@@ -588,6 +640,7 @@ class UsuarioAccesoForm(forms.Form):
     es_administrador = forms.BooleanField(
         required=False,
         label='Administrador (acceso total)',
+        widget=forms.CheckboxInput(attrs={'class': 'custom-control-input'}),
     )
     modulos = forms.MultipleChoiceField(
         choices=MODULO_FORM_CHOICES,
@@ -599,13 +652,14 @@ class UsuarioAccesoForm(forms.Form):
         required=False,
         initial=True,
         label='Usuario activo',
+        widget=forms.CheckboxInput(attrs={'class': 'custom-control-input'}),
     )
     persona_vinculada = forms.ModelChoiceField(
         queryset=Persona.objects.none(),
         required=False,
         label='Empleado vinculado',
         empty_label='— Sin vincular —',
-        widget=forms.Select(attrs={'class': 'form-control'}),
+        widget=forms.Select(attrs={'class': 'form-control custom-select'}),
         help_text='Vincula esta cuenta al registro del empleado para que vea su perfil personal.',
     )
 
@@ -814,3 +868,91 @@ class ActividadSemanalForm(forms.ModelForm):
                 )
 
         return cleaned_data
+
+
+class ProyectoForm(forms.ModelForm):
+    skills_texto = forms.CharField(
+        required=False,
+        label='Skills / características requeridas',
+        help_text='Separe por comas. Ej: Python, Django, React, liderazgo',
+        widget=forms.Textarea(attrs={
+            'class': 'form-control',
+            'rows': 3,
+            'placeholder': 'Python, Django, SQL, comunicación...',
+        }),
+    )
+
+    class Meta:
+        model = Proyecto
+        fields = [
+            'nombre', 'cliente', 'descripcion', 'estado',
+            'fecha_inicio', 'fecha_fin', 'horas_estimadas',
+        ]
+        widgets = {
+            'nombre': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nombre del proyecto'}),
+            'cliente': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Cliente u organización'}),
+            'descripcion': forms.Textarea(attrs={'class': 'form-control', 'rows': 4}),
+            'estado': forms.Select(attrs={'class': 'custom-select form-control'}),
+            'fecha_inicio': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'fecha_fin': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'horas_estimadas': forms.NumberInput(attrs={'class': 'form-control', 'min': '0'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['nombre'].required = True
+        if self.instance and self.instance.pk:
+            nombres = list(
+                self.instance.skills.order_by('nombre').values_list('nombre', flat=True)
+            )
+            self.fields['skills_texto'].initial = ', '.join(nombres)
+
+    def sync_skills(self, proyecto):
+        from .models import ProyectoSkill
+
+        nombres = parse_skills_texto(self.cleaned_data.get('skills_texto'))
+        proyecto.proyecto_skills.all().delete()
+        for nombre in nombres:
+            skill = Skill.objects.filter(nombre__iexact=nombre).first()
+            if not skill:
+                skill = Skill.objects.create(nombre=nombre, tipo='TECNICA')
+            ProyectoSkill.objects.create(proyecto=proyecto, skill=skill, peso=1)
+
+
+class AsignacionProyectoForm(forms.ModelForm):
+    class Meta:
+        model = AsignacionProyecto
+        fields = [
+            'colaborador', 'rol', 'horas_semanales',
+            'fecha_inicio', 'fecha_fin', 'activo', 'notas',
+        ]
+        widgets = {
+            'colaborador': forms.Select(attrs={'class': 'custom-select form-control'}),
+            'rol': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ej: Backend, Lead, QA'}),
+            'horas_semanales': forms.NumberInput(attrs={'class': 'form-control', 'min': '0', 'max': '60'}),
+            'fecha_inicio': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'fecha_fin': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'activo': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'notas': forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        proyecto = kwargs.pop('proyecto', None)
+        super().__init__(*args, **kwargs)
+        qs = Colaborador.objects.filter(
+            estado_laboral='ACTIVO', persona__isnull=False
+        ).select_related('persona', 'cargo').order_by(
+            'persona__apellido_paterno', 'persona__nombres'
+        )
+        if proyecto:
+            ya_ids = list(proyecto.asignaciones.values_list('colaborador_id', flat=True))
+            if self.instance and self.instance.colaborador_id:
+                ya_ids = [i for i in ya_ids if i != self.instance.colaborador_id]
+            qs = qs.exclude(id__in=ya_ids)
+        self.fields['colaborador'].queryset = qs
+        self.fields['colaborador'].label_from_instance = (
+            lambda obj: f'{obj.persona.nombre_completo} — {obj.cargo.nombre}'
+            if obj.persona_id and obj.cargo_id else str(obj)
+        )
+        self.fields['horas_semanales'].required = True
+        self.fields['colaborador'].required = True

@@ -1,0 +1,465 @@
+{% extends 'master/includes/base.html' %}
+{% load static %}
+
+{% block title %}Comparar postulantes — {{ convocatoria.titulo }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid persona-edit-page">
+    <div class="d-flex align-items-center justify-content-between mb-4 pb-3 border-bottom flex-wrap">
+        <div class="d-flex align-items-center mb-2 mb-md-0">
+            <div class="icon-shape-avatar bg-teal-light text-teal mr-3">
+                <i class="fal fa-chart-bar"></i>
+            </div>
+            <div>
+                <h3 class="font-weight-800 mb-0 persona-edit-title">Comparar postulantes</h3>
+                <div class="d-flex align-items-center mt-1 flex-wrap">
+                    <span class="badge-soft-teal mr-2">{{ convocatoria.titulo }}</span>
+                    <span class="badge-soft-dark">{{ convocatoria.cargo.nombre }}</span>
+                </div>
+            </div>
+        </div>
+        <div class="d-flex align-items-center flex-wrap">
+            <a href="{% url 'master:convocatoria_detail' convocatoria.id %}"
+               class="btn btn-outline-secondary btn-pills shadow-sm px-3 py-2 font-weight-bold mr-2 mb-2 mb-sm-0">
+                <i class="fal fa-arrow-left mr-1"></i> Volver
+            </a>
+            <a href="{% url 'master:postulantes' convocatoria.id %}"
+               class="btn btn-outline-teal btn-pills shadow-sm px-3 py-2 font-weight-bold mb-2 mb-sm-0">
+                <i class="fal fa-users mr-1"></i> Lista de postulantes
+            </a>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-3 col-6 mb-3 mb-md-0">
+            <div class="stat-card-talent">
+                <div class="stat-label">Candidatos</div>
+                <div class="stat-value text-teal">{{ total }}</div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6 mb-3 mb-md-0">
+            <div class="stat-card-talent">
+                <div class="stat-label">Más experiencia</div>
+                <div class="stat-value">{{ top_experiencia }} <small class="text-muted" style="font-size:.85rem;">años</small></div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6">
+            <div class="stat-card-talent">
+                <div class="stat-label">Promedio exp.</div>
+                <div class="stat-value">{{ promedio_experiencia }}</div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6">
+            <div class="stat-card-talent">
+                <div class="stat-label">Máx. formaciones</div>
+                <div class="stat-value">{{ top_formaciones }}</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="panel-talent mb-4">
+        <h6 class="section-title-talent mb-3">
+            <i class="fal fa-filter mr-2 text-teal"></i> Filtros
+        </h6>
+        <form method="get" class="row align-items-end">
+            <div class="col-md-6 mb-3">
+                <label class="form-label" for="search">Buscar</label>
+                <input type="text" class="form-control" id="search" name="search"
+                       value="{{ search }}" placeholder="Nombre, documento o email...">
+            </div>
+            <div class="col-md-4 mb-3">
+                <label class="form-label" for="estado">Fase / estado</label>
+                <select class="custom-select form-control" id="estado" name="estado">
+                    <option value="">Todos</option>
+                    {% for value, label in estado_choices %}
+                    <option value="{{ value }}" {% if estado == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2 mb-3">
+                <input type="hidden" name="orden" value="{{ orden }}">
+                <input type="hidden" name="dir" value="{{ dir }}">
+                <button type="submit" class="btn btn-teal btn-block text-white">
+                    <i class="fal fa-search mr-1"></i> Filtrar
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <div class="panel-talent">
+        <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap">
+            <h6 class="section-title-talent mb-0 border-0 pb-0">
+                <i class="fal fa-list mr-2 text-teal"></i> Comparación
+            </h6>
+            <small class="text-muted">
+                {{ total }} candidato{{ total|pluralize:"s" }}
+            </small>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-modern mb-0">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>
+                            <a href="{{ sort_urls.nombre }}" class="th-sort {% if orden == 'nombre' %}is-active{% endif %}">
+                                Candidato
+                                {% if orden == 'nombre' %}<i class="fal fa-sort-{% if dir == 'desc' %}down{% else %}up{% endif %} ml-1"></i>{% else %}<i class="fal fa-sort ml-1 th-sort-muted"></i>{% endif %}
+                            </a>
+                        </th>
+                        <th>
+                            <a href="{{ sort_urls.cv }}" class="th-sort {% if orden == 'cv' %}is-active{% endif %}">
+                                CV
+                                {% if orden == 'cv' %}<i class="fal fa-sort-{% if dir == 'desc' %}down{% else %}up{% endif %} ml-1"></i>{% else %}<i class="fal fa-sort ml-1 th-sort-muted"></i>{% endif %}
+                            </a>
+                        </th>
+                        <th>
+                            <a href="{{ sort_urls.experiencia }}" class="th-sort {% if orden == 'experiencia' %}is-active{% endif %}">
+                                Exp. (años)
+                                {% if orden == 'experiencia' %}<i class="fal fa-sort-{% if dir == 'desc' %}down{% else %}up{% endif %} ml-1"></i>{% else %}<i class="fal fa-sort ml-1 th-sort-muted"></i>{% endif %}
+                            </a>
+                        </th>
+                        <th>
+                            <a href="{{ sort_urls.formacion }}" class="th-sort {% if orden == 'formacion' %}is-active{% endif %}">
+                                Formación
+                                {% if orden == 'formacion' %}<i class="fal fa-sort-{% if dir == 'desc' %}down{% else %}up{% endif %} ml-1"></i>{% else %}<i class="fal fa-sort ml-1 th-sort-muted"></i>{% endif %}
+                            </a>
+                        </th>
+                        <th>
+                            <a href="{{ sort_urls.ultimo_formacion }}" class="th-sort {% if orden == 'ultimo_formacion' %}is-active{% endif %}">
+                                Últ. formación
+                                {% if orden == 'ultimo_formacion' %}<i class="fal fa-sort-{% if dir == 'desc' %}down{% else %}up{% endif %} ml-1"></i>{% else %}<i class="fal fa-sort ml-1 th-sort-muted"></i>{% endif %}
+                            </a>
+                        </th>
+                        <th>
+                            <a href="{{ sort_urls.cursos }}" class="th-sort {% if orden == 'cursos' %}is-active{% endif %}">
+                                Cursos
+                                {% if orden == 'cursos' %}<i class="fal fa-sort-{% if dir == 'desc' %}down{% else %}up{% endif %} ml-1"></i>{% else %}<i class="fal fa-sort ml-1 th-sort-muted"></i>{% endif %}
+                            </a>
+                        </th>
+                        <th>
+                            <a href="{{ sort_urls.ultimo_curso }}" class="th-sort {% if orden == 'ultimo_curso' %}is-active{% endif %}">
+                                Últ. curso
+                                {% if orden == 'ultimo_curso' %}<i class="fal fa-sort-{% if dir == 'desc' %}down{% else %}up{% endif %} ml-1"></i>{% else %}<i class="fal fa-sort ml-1 th-sort-muted"></i>{% endif %}
+                            </a>
+                        </th>
+                        <th>
+                            <a href="{{ sort_urls.score }}" class="th-sort {% if orden == 'score' %}is-active{% endif %}">
+                                Puntaje
+                                {% if orden == 'score' %}<i class="fal fa-sort-{% if dir == 'desc' %}down{% else %}up{% endif %} ml-1"></i>{% else %}<i class="fal fa-sort ml-1 th-sort-muted"></i>{% endif %}
+                            </a>
+                        </th>
+                        <th>
+                            <a href="{{ sort_urls.estado }}" class="th-sort {% if orden == 'estado' %}is-active{% endif %}">
+                                Fase
+                                {% if orden == 'estado' %}<i class="fal fa-sort-{% if dir == 'desc' %}down{% else %}up{% endif %} ml-1"></i>{% else %}<i class="fal fa-sort ml-1 th-sort-muted"></i>{% endif %}
+                            </a>
+                        </th>
+                        <th class="text-right">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for c in candidatos %}
+                    <tr data-id="{{ c.postulacion.id }}">
+                        <td>
+                            {% if c.rank <= 3 %}
+                            <span class="vacantes-pill">{{ c.rank }}</span>
+                            {% else %}
+                            <span class="text-muted font-weight-bold">{{ c.rank }}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <div class="avatar-initials mr-2">
+                                    {{ c.persona.nombres|slice:":1" }}{{ c.persona.apellido_paterno|slice:":1" }}
+                                </div>
+                                <div>
+                                    <strong class="d-block">{{ c.persona.nombre_completo }}</strong>
+                                    <small class="text-muted">{{ c.persona.numero_documento }}</small>
+                                    {% if c.nivel_educacion %}
+                                    <div class="small text-teal">{{ c.nivel_educacion }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            {% if c.tiene_cv_archivo %}
+                            <span class="badge-soft badge-soft-success">CV</span>
+                            {% else %}
+                            <span class="badge-soft badge-soft-dark">Sin CV</span>
+                            {% endif %}
+                            {% if c.docs_adjuntos %}
+                            <span class="badge-soft badge-soft-info ml-1" title="Documentos adjuntos">{{ c.docs_adjuntos }}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="font-weight-600 {% if c.anios_experiencia == top_experiencia and top_experiencia > 0 %}text-teal{% endif %}">
+                                {{ c.anios_experiencia }}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="font-weight-600 {% if c.n_formaciones == top_formaciones and top_formaciones > 0 %}text-teal{% endif %}">
+                                {{ c.n_formaciones }}
+                            </span>
+                        </td>
+                        <td>
+                            {% if c.ultimo_formacion %}
+                            <span class="font-weight-600">{{ c.ultimo_formacion }}</span>
+                            {% else %}
+                            <span class="text-muted">—</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="font-weight-600 {% if c.n_cursos == top_cursos and top_cursos > 0 %}text-teal{% endif %}">
+                                {{ c.n_cursos }}
+                            </span>
+                        </td>
+                        <td>
+                            {% if c.ultimo_curso %}
+                            <span class="font-weight-600">{{ c.ultimo_curso }}</span>
+                            {% else %}
+                            <span class="text-muted">—</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="puntaje-cell" data-id="{{ c.postulacion.id }}">
+                                <span class="vacantes-pill score-display">{% if c.score is not None %}{{ c.score }}{% else %}—{% endif %}</span>
+                                <button type="button" class="btn btn-sm btn-outline-teal btn-icon btn-edit-puntaje" title="Editar puntaje">
+                                    <i class="fal fa-pen"></i>
+                                </button>
+                                <div class="puntaje-edit" hidden>
+                                    <input type="number" min="0" max="1000" class="form-control form-control-sm puntaje-input"
+                                           value="{% if c.score is not None %}{{ c.score }}{% endif %}" style="width:72px;display:inline-block;">
+                                    <button type="button" class="btn btn-sm btn-teal text-white btn-save-puntaje" title="Guardar">
+                                        Guardar
+                                    </button>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <select class="custom-select custom-select-sm estado-select"
+                                    data-id="{{ c.postulacion.id }}">
+                                {% for value, label in estado_choices %}
+                                <option value="{{ value }}" {% if c.estado == value %}selected{% endif %}>{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                        </td>
+                        <td class="text-right text-nowrap">
+                            <a href="{% url 'master:persona_detail' c.persona.id %}?postulacion_id={{ c.postulacion.id }}"
+                               class="btn btn-sm btn-outline-info btn-icon" title="Perfil">
+                                <i class="fal fa-eye"></i>
+                            </a>
+                            <a href="{% url 'master:cv_detail' c.persona.id %}"
+                               class="btn btn-sm btn-outline-secondary btn-icon" title="Ver CV">
+                                <i class="fal fa-file-alt"></i>
+                            </a>
+                            {% if c.cv and c.cv.cv_archivo and c.cv.archivo_existe %}
+                            <a href="{{ c.cv.archivo_url }}" target="_blank"
+                               class="btn btn-sm btn-outline-teal btn-icon" title="Descargar CV">
+                                <i class="fal fa-download"></i>
+                            </a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="11" class="text-center py-5 text-muted">
+                            <i class="fal fa-users mb-3 d-block" style="font-size: 2.5rem; opacity: 0.35;"></i>
+                            <p class="font-weight-bold mb-0">No hay postulantes para comparar</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+{% csrf_token %}
+
+{% include 'master/includes/persona_edit_styles.html' %}
+<style>
+    .stat-card-talent {
+        background: #fff; border: 1px solid #eef2f2; border-radius: 14px;
+        padding: 18px 20px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02); height: 100%;
+    }
+    .stat-label { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #94a3b8; margin-bottom: 6px; }
+    .stat-value { font-size: 1.75rem; font-weight: 800; color: #0b1311; line-height: 1.1; }
+    .avatar-initials {
+        width: 40px; height: 40px; border-radius: 10px; background: #ccfbf1; color: #0f766e;
+        display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.85rem; flex-shrink: 0;
+    }
+    .btn-icon { width: 34px; height: 34px; padding: 0; display: inline-flex; align-items: center; justify-content: center; margin-left: 2px; }
+    .btn-outline-teal { color: #0f766e; border: 1px solid #99f6e4; background: #fff; }
+    .btn-outline-teal:hover { background: #f0fdfa; color: #0f766e; border-color: #5eead4; }
+    .vacantes-pill {
+        display: inline-flex; align-items: center; justify-content: center;
+        min-width: 32px; height: 28px; padding: 0 10px; border-radius: 8px;
+        background: #f0fdfa; color: #0f766e; font-weight: 800; font-size: 0.9rem;
+    }
+    .th-sort {
+        color: inherit;
+        text-decoration: none;
+        font-weight: 700;
+        display: inline-flex;
+        align-items: center;
+        cursor: pointer;
+    }
+    .th-sort:hover, .th-sort.is-active { color: #0e967e; text-decoration: none; }
+    .th-sort-muted { opacity: 0.35; }
+    .puntaje-cell { display: inline-flex; align-items: center; gap: 4px; }
+    .puntaje-edit { display: inline-flex; align-items: center; gap: 4px; }
+    .estado-select { min-width: 130px; font-size: 0.8rem; }
+    .font-weight-600 { font-weight: 600; }
+    .badge-soft-dark { background: #f1f5f9; color: #475569; padding: 6px 12px; border-radius: 6px; font-weight: 600; font-size: 0.75rem; }
+    .toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; }
+    .toast {
+        min-width: 280px; background: #fff; border: 1px solid #e2e8f0; border-radius: 10px;
+        box-shadow: 0 8px 24px rgba(0,0,0,.12); margin-bottom: 10px; opacity: 0;
+        transform: translateX(20px); transition: all .25s ease;
+    }
+    .toast.show { opacity: 1; transform: translateX(0); }
+    .toast-header { padding: 10px 14px; display: flex; align-items: center; border-bottom: 1px solid #e2e8f0; }
+    .toast-success .toast-header { background: #dcfce7; color: #166534; }
+    .toast-error .toast-header { background: #fee2e2; color: #991b1b; }
+    .toast-body { padding: 12px 14px; font-size: 0.9rem; color: #334155; }
+    .toast-close { background: none; border: none; margin-left: auto; font-size: 1.2rem; cursor: pointer; opacity: .7; }
+</style>
+
+<script src="{% static 'js/vendors.bundle.js' %}"></script>
+<script src="{% static 'js/app.bundle.js' %}"></script>
+<script>
+(function () {
+    function getCsrf() {
+        const input = document.querySelector('[name=csrfmiddlewaretoken]');
+        if (input && input.value) return input.value;
+        const m = document.cookie.match(/(?:^|;\s*)csrftoken=([^;]+)/);
+        return m ? decodeURIComponent(m[1]) : '';
+    }
+
+    function showToast(message, type) {
+        const id = 'toast-' + Date.now();
+        const cls = type === 'error' ? 'toast-error' : 'toast-success';
+        const icon = type === 'error' ? 'fa-exclamation-circle' : 'fa-check-circle';
+        const title = type === 'error' ? 'Error' : 'Éxito';
+        const box = document.getElementById('toastContainer');
+        box.insertAdjacentHTML('beforeend', `
+            <div class="toast ${cls}" id="${id}">
+                <div class="toast-header">
+                    <i class="fal ${icon} mr-2"></i><strong>${title}</strong>
+                    <button type="button" class="toast-close" onclick="document.getElementById('${id}').remove()">&times;</button>
+                </div>
+                <div class="toast-body">${message}</div>
+            </div>`);
+        setTimeout(() => document.getElementById(id).classList.add('show'), 10);
+        setTimeout(() => {
+            const el = document.getElementById(id);
+            if (!el) return;
+            el.classList.remove('show');
+            setTimeout(() => el.remove(), 250);
+        }, 2800);
+    }
+
+    function guardarPuntaje(cell) {
+        const id = cell.getAttribute('data-id');
+        const input = cell.querySelector('.puntaje-input');
+        const valor = (input.value || '').trim();
+        const btn = cell.querySelector('.btn-save-puntaje');
+        if (btn) {
+            btn.disabled = true;
+            btn.textContent = '...';
+        }
+
+        fetch(`/master/postulaciones/${id}/puntaje/`, {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRFToken': getCsrf(),
+                'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+                'Accept': 'application/json'
+            },
+            body: 'puntaje=' + encodeURIComponent(valor)
+        }).then(function (r) {
+            return r.json().then(function (data) {
+                return { ok: r.ok, data: data };
+            });
+        }).then(function (res) {
+            if (!res.ok || !res.data.success) {
+                const msg = (res.data.errors && res.data.errors.general)
+                    ? res.data.errors.general.join(' ')
+                    : 'No se pudo guardar el puntaje';
+                throw new Error(msg);
+            }
+            const texto = (res.data.puntaje === null || res.data.puntaje === undefined) ? '—' : String(res.data.puntaje);
+            cell.querySelector('.score-display').textContent = texto;
+            input.value = (res.data.puntaje === null || res.data.puntaje === undefined) ? '' : res.data.puntaje;
+            cell.querySelector('.puntaje-edit').hidden = true;
+            cell.querySelector('.score-display').classList.remove('d-none');
+            cell.querySelector('.btn-edit-puntaje').classList.remove('d-none');
+            showToast('Puntaje guardado: ' + texto);
+        }).catch(function (err) {
+            showToast(err.message || 'No se pudo guardar el puntaje', 'error');
+        }).finally(function () {
+            if (btn) {
+                btn.disabled = false;
+                btn.textContent = 'Guardar';
+            }
+        });
+    }
+
+    document.addEventListener('click', function (e) {
+        const editBtn = e.target.closest('.btn-edit-puntaje');
+        if (editBtn) {
+            const cell = editBtn.closest('.puntaje-cell');
+            cell.querySelector('.score-display').classList.add('d-none');
+            editBtn.classList.add('d-none');
+            cell.querySelector('.puntaje-edit').hidden = false;
+            const input = cell.querySelector('.puntaje-input');
+            input.focus();
+            input.select();
+            return;
+        }
+
+        const saveBtn = e.target.closest('.btn-save-puntaje');
+        if (saveBtn) {
+            e.preventDefault();
+            guardarPuntaje(saveBtn.closest('.puntaje-cell'));
+        }
+    });
+
+    document.addEventListener('keydown', function (e) {
+        if (e.key !== 'Enter') return;
+        const input = e.target.closest('.puntaje-input');
+        if (!input) return;
+        e.preventDefault();
+        guardarPuntaje(input.closest('.puntaje-cell'));
+    });
+
+    document.querySelectorAll('.estado-select').forEach(function (sel) {
+        sel.addEventListener('change', function () {
+            const id = sel.getAttribute('data-id');
+            const estado = sel.value;
+            fetch(`/master/postulaciones/${id}/estado/`, {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRFToken': getCsrf(),
+                    'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+                    'Accept': 'application/json'
+                },
+                body: 'estado=' + encodeURIComponent(estado)
+            }).then(function (r) { return r.json(); })
+              .then(function (resp) {
+                  if (resp.success) showToast('Fase: ' + resp.estado_display);
+                  else showToast('No se pudo actualizar el estado', 'error');
+              }).catch(function () {
+                  showToast('No se pudo actualizar el estado', 'error');
+              });
+        });
+    });
+})();
+</script>
+{% endblock %}

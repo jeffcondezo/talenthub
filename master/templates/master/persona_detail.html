@@ -30,15 +30,20 @@
             </div>
         </div>
 
-        <div class="d-flex align-items-center">
-            <a href="{% url 'master:colaboradores' %}" class="btn btn-outline-secondary btn-pills shadow-sm px-4 py-2 font-weight-bold mr-2">
+        <div class="d-flex align-items-center flex-wrap">
+            <a href="{% url 'master:colaboradores' %}" class="btn btn-outline-secondary btn-pills shadow-sm px-4 py-2 font-weight-bold mr-2 mb-2 mb-sm-0">
                 <i class="fal fa-arrow-left mr-2"></i> Volver
             </a>
-            <a href="{% url 'master:persona_edit' persona.id %}" class="btn btn-warning btn-pills shadow-sm px-4 py-2 font-weight-bold">
+            <button type="button"
+                    class="btn btn-outline-teal btn-pills shadow-sm px-4 py-2 font-weight-bold mr-2 mb-2 mb-sm-0"
+                    onclick="abrirEnlaceCV()">
+                <i class="fal fa-link mr-2"></i> Enlace CV
+            </button>
+            <a href="{% url 'master:persona_edit' persona.id %}" class="btn btn-warning btn-pills shadow-sm px-4 py-2 font-weight-bold mb-2 mb-sm-0">
                 <i class="fal fa-edit mr-2"></i> Editar
             </a>
             {% if postulacion_actual and postulacion_actual.estado_postulacion == 'APROBADO' and not colaborador %}
-            <button type="button" class="btn btn-teal btn-pills shadow-sm px-4 py-2 font-weight-bold ml-2"
+            <button type="button" class="btn btn-teal btn-pills shadow-sm px-4 py-2 font-weight-bold ml-2 mb-2 mb-sm-0"
                     id="btnRegistrar" data-id="{{ postulacion_actual.id }}"
                     onclick="registrarColaborador(this.getAttribute('data-id'))">
                 <i class="fal fa-user-plus mr-2"></i> Registrar como Colaborador
@@ -110,13 +115,18 @@
             </div>
 
             <div id="cv" class="panel-talent mb-4 border-left-teal">
-                <div class="d-flex align-items-center justify-content-between mb-3">
+                <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap">
                     <h6 class="section-title-talent mb-0 border-0 pb-0">
                         <i class="fal fa-file-alt mr-2 text-primary"></i> Perfil y Trayectoria Profesional
                     </h6>
-                    <a href="{% url 'master:persona_cv_edit' persona.id %}" class="btn btn-sm btn-outline-primary btn-pills px-3">
-                        <i class="fal fa-edit mr-1"></i> Editar
-                    </a>
+                    <div class="d-flex align-items-center mt-2 mt-sm-0">
+                        <button type="button" class="btn btn-sm btn-outline-teal btn-pills px-3 mr-2" onclick="abrirEnlaceCV()">
+                            <i class="fal fa-link mr-1"></i> Enlace para el postulante
+                        </button>
+                        <a href="{% url 'master:persona_cv_edit' persona.id %}" class="btn btn-sm btn-outline-primary btn-pills px-3">
+                            <i class="fal fa-edit mr-1"></i> Editar
+                        </a>
+                    </div>
                 </div>
             {% if cv %}
                 <div class="row mb-3">
@@ -169,6 +179,36 @@
                 <p class="text-muted small mb-0">Sin perfil profesional registrado. Use <strong>Editar</strong> para agregar la información.</p>
             {% endif %}
             </div>
+
+            <div class="panel-talent mb-4">
+                <h6 class="section-title-talent mb-3">
+                    <i class="fal fa-tags mr-2 text-teal"></i> Skills evaluados
+                </h6>
+                <p class="small text-muted mb-3">
+                    Tras revisar el CV, registre aquí las habilidades de la persona.
+                    Esos skills se usan para el match con los proyectos.
+                </p>
+                <form id="formPersonaSkills" method="post"
+                      action="{% url 'master:persona_skills_update' persona.id %}">
+                    {% csrf_token %}
+                    <div class="form-group mb-2">
+                        <label class="form-label" for="skills_texto">Skills (separados por comas)</label>
+                        <textarea class="form-control" id="skills_texto" name="skills_texto" rows="3"
+                                  placeholder="Python, Django, SQL, liderazgo...">{{ persona_skills_texto }}</textarea>
+                    </div>
+                    <div id="skillsChips" class="mb-3">
+                        {% for ps in persona_skills %}
+                        <span class="badge-soft-teal mr-1 mb-1 d-inline-block">{{ ps.skill.nombre }}</span>
+                        {% empty %}
+                        <span class="text-muted small" id="skillsEmpty">Sin skills registrados aún.</span>
+                        {% endfor %}
+                    </div>
+                    <button type="submit" class="btn btn-teal text-white btn-pills px-4" id="btnGuardarSkills">
+                        <i class="fal fa-save mr-1"></i> Guardar skills
+                    </button>
+                    <span class="small text-muted ml-2" id="skillsSaveMsg"></span>
+                </form>
+            </div>
         </div>
 
         <div class="col-xl-4">
@@ -210,7 +250,7 @@
             {% endif %}
 
             {% if postulaciones %}
-            <div class="panel-talent">
+            <div class="panel-talent mb-4">
                 <h6 class="section-title-talent mb-3"><i class="fal fa-briefcase mr-2"></i> Historial de Postulaciones</h6>
                 <div class="table-responsive">
                     <table class="table table-sm table-borderless">
@@ -237,6 +277,56 @@
                 </div>
             </div>
             {% endif %}
+
+            <div class="panel-talent">
+                <h6 class="section-title-talent mb-3">
+                    <i class="fal fa-link mr-2 text-teal"></i> Enlace de registro de CV
+                </h6>
+                <p class="small text-muted mb-3">
+                    Enlace para que complete su CV.
+                </p>
+                <button type="button" class="btn btn-teal btn-block text-white btn-pills font-weight-bold" onclick="abrirEnlaceCV()">
+                    <i class="fal fa-copy mr-2"></i> Ver / copiar enlace
+                </button>
+                {% if acceso_cv and acceso_cv.vigente %}
+                <small class="d-block text-muted mt-2 text-center">
+                    Vigente hasta {{ acceso_cv.fecha_expiracion|date:"d/m/Y H:i" }}
+                </small>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{# Modal enlace CV #}
+<div class="modal fade" id="enlaceCVModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title font-weight-bold">
+                    <i class="fal fa-link mr-2 text-teal"></i> Enlace para registrar CV
+                </h5>
+                <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted small mb-2">
+                    Enlace para completar el CV. Vigente hasta <strong id="enlaceCVExpira">—</strong>.
+                </p>
+                <div class="input-group">
+                    <input type="text" class="form-control" id="enlaceCVInput" readonly>
+                    <div class="input-group-append">
+                        <button type="button" class="btn btn-teal text-white" id="btnCopiarEnlaceCVInput">
+                            <i class="fal fa-copy"></i> Copiar
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" id="btnRenovarEnlaceCV">
+                    <i class="fal fa-sync mr-1"></i> Renovar enlace
+                </button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+            </div>
         </div>
     </div>
 </div>
@@ -254,6 +344,8 @@
     .bg-teal-light { background-color: #f0fdfa; }
     .btn-teal { background: #15b79a; color: #fff; border: none; transition: all 0.2s ease; }
     .btn-teal:hover { background: #0e967e; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(21, 183, 154, 0.2); }
+    .btn-outline-teal { color: #0f766e; border: 1px solid #99f6e4; background: #fff; }
+    .btn-outline-teal:hover { background: #f0fdfa; color: #0f766e; border-color: #5eead4; }
     
     .border-left-teal { border-left: 4px solid #15b79a !important; }
     .badge-soft-teal { background: #e8f8f5; color: #15b79a; padding: 4px 10px; border-radius: 6px; font-weight: 700; font-size: 0.65rem; }
@@ -262,6 +354,233 @@
     .btn-icon { width: 34px; height: 34px; display: inline-flex; align-items: center; justify-content: center; transition: all 0.2s; }
     .font-weight-800 { font-weight: 800; }
 </style>
+
+<div id="modalHost"></div>
+
+<script src="{% static 'js/vendors.bundle.js' %}"></script>
+<script src="{% static 'js/app.bundle.js' %}"></script>
+<script>
+const PERSONA_ID = {{ persona.id }};
+const CONVOCATORIA_ID = {% if postulacion_actual %}{{ postulacion_actual.convocatoria_id }}{% else %}null{% endif %};
+
+function registrarColaborador(postulacionId) {
+    if (!postulacionId) {
+        alert('No se encontró la postulación aprobada.');
+        return;
+    }
+    const host = document.getElementById('modalHost');
+    host.innerHTML = `
+        <div class="text-center py-4" id="registrarColaboradorLoading">
+            <div class="spinner-border text-primary"></div>
+            <p class="mt-2 mb-0 text-muted">Cargando formulario...</p>
+        </div>`;
+
+    fetch('/master/postulaciones/' + postulacionId + '/registrar-colaborador/', {
+        method: 'GET',
+        credentials: 'same-origin',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'Accept': 'text/html'
+        }
+    }).then(function (r) {
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        return r.text();
+    }).then(function (html) {
+        host.innerHTML = html;
+        const $modal = $('#registrarColaboradorModal');
+        $modal.modal('show');
+        $modal.on('hidden.bs.modal', function () {
+            host.innerHTML = '';
+        });
+
+        const form = document.getElementById('registrarColaboradorForm');
+        if (!form) return;
+
+        form.addEventListener('submit', function (e) {
+            e.preventDefault();
+            const btn = form.querySelector('button[type="submit"]');
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fal fa-spinner fa-spin"></i> Guardando...';
+            }
+            const body = new FormData(form);
+            fetch(form.action, {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                },
+                body: body
+            }).then(function (r) {
+                return r.json().then(function (data) {
+                    return { ok: r.ok, data: data };
+                });
+            }).then(function (res) {
+                if (!res.ok || !res.data.success) {
+                    const errs = res.data.errors || {};
+                    const msg = errs.general
+                        ? errs.general.join(' ')
+                        : Object.keys(errs).map(function (k) {
+                            return k + ': ' + [].concat(errs[k]).join(', ');
+                        }).join('\n') || 'No se pudo registrar el colaborador';
+                    throw new Error(msg);
+                }
+                $modal.modal('hide');
+                alert(res.data.message || 'Colaborador registrado.');
+                window.location.href = '{% url "master:colaboradores" %}';
+            }).catch(function (err) {
+                alert(err.message || 'Error al registrar colaborador');
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fal fa-user-plus"></i> Registrar Colaborador';
+                }
+            });
+        });
+    }).catch(function () {
+        host.innerHTML = '';
+        alert('No se pudo cargar el formulario de colaborador.');
+    });
+}
+
+function construirEnlaceHash(token) {
+    if (!token) return '';
+    return window.location.origin + '/cv/' + token + '/';
+}
+
+function normalizarEnlaceCV(resp) {
+    if (resp && resp.token) {
+        return construirEnlaceHash(resp.token);
+    }
+    if (resp && resp.enlace_path) {
+        return window.location.origin + resp.enlace_path;
+    }
+    if (resp && resp.enlace_cv && resp.enlace_cv.indexOf('/cv/') !== -1) {
+        return resp.enlace_cv;
+    }
+    return '';
+}
+
+function copiarTexto(texto) {
+    const input = document.getElementById('enlaceCVInput');
+    if (input) {
+        input.value = texto;
+        input.focus();
+        input.select();
+        input.setSelectionRange(0, texto.length);
+    }
+    if (navigator.clipboard && window.isSecureContext) {
+        return navigator.clipboard.writeText(texto).catch(function () {
+            document.execCommand('copy');
+        });
+    }
+    try {
+        document.execCommand('copy');
+    } catch (e) {}
+    return Promise.resolve();
+}
+
+function mostrarEnlaceEnModal(enlace, expira) {
+    $('#enlaceCVInput').val(enlace);
+    $('#enlaceCVExpira').text(expira || '30 días');
+    $('#enlaceCVModal').modal('show');
+    setTimeout(function () {
+        const input = document.getElementById('enlaceCVInput');
+        if (input) {
+            input.focus();
+            input.select();
+        }
+    }, 350);
+}
+
+function cargarEnlaceCV(renovar) {
+    var params = [];
+    if (CONVOCATORIA_ID) params.push('convocatoria_id=' + CONVOCATORIA_ID);
+    if (renovar) params.push('renovar=1');
+    var url = '/master/personas/' + PERSONA_ID + '/enlace-cv/' + (params.length ? ('?' + params.join('&')) : '');
+
+    fetch(url, {
+        method: 'GET',
+        credentials: 'same-origin',
+        headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' }
+    }).then(function (r) {
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        return r.json();
+    }).then(function (resp) {
+        if (!resp || !resp.success) throw new Error('Respuesta inválida');
+        var enlace = normalizarEnlaceCV(resp);
+        if (!enlace || enlace.indexOf('/cv/') === -1) {
+            alert('No se obtuvo un enlace con hash. Intente renovar.');
+            return;
+        }
+        mostrarEnlaceEnModal(enlace, resp.expira);
+        copiarTexto(enlace);
+    }).catch(function () {
+        alert('No se pudo generar el enlace CV. Recargue la página e intente de nuevo.');
+    });
+}
+
+function abrirEnlaceCV() {
+    cargarEnlaceCV(false);
+}
+
+document.getElementById('btnCopiarEnlaceCVInput').addEventListener('click', function () {
+    var enlace = document.getElementById('enlaceCVInput').value.trim();
+    if (!enlace) return;
+    if (enlace.indexOf('/cv/') === -1) {
+        alert('Este no es el enlace con hash. Genérelo de nuevo.');
+        return;
+    }
+    copiarTexto(enlace).then(function () {
+        var btn = document.getElementById('btnCopiarEnlaceCVInput');
+        var html = btn.innerHTML;
+        btn.innerHTML = '<i class="fal fa-check"></i> Copiado';
+        setTimeout(function () { btn.innerHTML = html; }, 1500);
+    });
+});
+
+document.getElementById('btnRenovarEnlaceCV').addEventListener('click', function () {
+    cargarEnlaceCV(true);
+});
+
+(function () {
+    const form = document.getElementById('formPersonaSkills');
+    if (!form) return;
+    form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        const btn = document.getElementById('btnGuardarSkills');
+        const msg = document.getElementById('skillsSaveMsg');
+        btn.disabled = true;
+        msg.textContent = 'Guardando...';
+        fetch(form.action, {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json'
+            },
+            body: new FormData(form)
+        }).then(function (r) { return r.json(); })
+          .then(function (data) {
+              if (!data.success) throw new Error('Error');
+              const box = document.getElementById('skillsChips');
+              if (!data.skills || !data.skills.length) {
+                  box.innerHTML = '<span class="text-muted small">Sin skills registrados aún.</span>';
+              } else {
+                  box.innerHTML = data.skills.map(function (s) {
+                      return '<span class="badge-soft-teal mr-1 mb-1 d-inline-block">' + s.nombre + '</span>';
+                  }).join('');
+              }
+              msg.textContent = data.message || 'Guardado';
+              setTimeout(function () { msg.textContent = ''; }, 2500);
+          }).catch(function () {
+              msg.textContent = 'No se pudo guardar';
+          }).finally(function () {
+              btn.disabled = false;
+          });
+    });
+})();
+</script>
 
 
 {% endblock %}

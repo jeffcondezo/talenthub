@@ -72,6 +72,9 @@ instance/
 # Sphinx documentation
 docs/_build/
 
+# Documentación local del proyecto (manuales, PDFs, capturas)
+docs/
+
 # PyBuilder
 target/
 

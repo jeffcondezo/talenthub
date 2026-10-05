@@ -22,6 +22,8 @@ from django.views.generic import RedirectView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    # Portal público de CV por hash (sin login; fuera de /master/)
+    path('cv/', include(('master.urls_cv_publico', 'cv_publico'))),
     path('master/', include('master.urls')),
     path('', RedirectView.as_view(url='/master/login/', permanent=True)),
 ]

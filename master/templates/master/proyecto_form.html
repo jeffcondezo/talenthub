@@ -1,0 +1,168 @@
+{% extends 'master/includes/base.html' %}
+{% load static %}
+
+{% block title %}{{ titulo }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid persona-edit-page">
+    <div class="d-flex align-items-center justify-content-between mb-4 pb-3 border-bottom flex-wrap">
+        <div class="d-flex align-items-center mb-2 mb-md-0">
+            <div class="icon-shape-avatar bg-teal-light text-teal mr-3">
+                <i class="fal fa-briefcase"></i>
+            </div>
+            <div>
+                <h3 class="font-weight-800 mb-0 persona-edit-title">{{ titulo }}</h3>
+                <p class="text-muted mb-0 mt-1">Define el proyecto y los skills que necesitas para encontrar recursos.</p>
+            </div>
+        </div>
+        <a href="{% if proyecto %}{% url 'master:proyecto_detail' proyecto.id %}{% else %}{% url 'master:proyecto' %}{% endif %}"
+           class="btn btn-outline-secondary btn-pills shadow-sm px-3 py-2 font-weight-bold">
+            <i class="fal fa-arrow-left mr-1"></i> Volver
+        </a>
+    </div>
+
+    <div class="row">
+        <div class="col-xl-7">
+            <div class="panel-talent mb-4">
+                <h6 class="section-title-talent mb-3">
+                    <i class="fal fa-edit mr-2 text-teal"></i> Datos del proyecto
+                </h6>
+                <form method="post" id="proyectoForm">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label class="form-label" for="{{ form.nombre.id_for_label }}">Nombre *</label>
+                        {{ form.nombre }}
+                        {{ form.nombre.errors }}
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="{{ form.cliente.id_for_label }}">Cliente</label>
+                        {{ form.cliente }}
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="{{ form.descripcion.id_for_label }}">Descripción</label>
+                        {{ form.descripcion }}
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label" for="{{ form.estado.id_for_label }}">Estado</label>
+                                {{ form.estado }}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label" for="{{ form.horas_estimadas.id_for_label }}">Horas estimadas</label>
+                                {{ form.horas_estimadas }}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label" for="{{ form.fecha_inicio.id_for_label }}">Fecha inicio</label>
+                                {{ form.fecha_inicio }}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label" for="{{ form.fecha_fin.id_for_label }}">Fecha fin</label>
+                                {{ form.fecha_fin }}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="{{ form.skills_texto.id_for_label }}">{{ form.skills_texto.label }}</label>
+                        {{ form.skills_texto }}
+                        <small class="form-text text-muted">{{ form.skills_texto.help_text }}</small>
+                    </div>
+                    <div class="d-flex justify-content-end mt-4">
+                        <button type="submit" class="btn btn-teal text-white btn-pills px-4 font-weight-bold">
+                            <i class="fal fa-save mr-1"></i> Guardar proyecto
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="col-xl-5">
+            <div class="panel-talent mb-4">
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <h6 class="section-title-talent mb-0 border-0 pb-0">
+                        <i class="fal fa-user-check mr-2 text-teal"></i> Recursos sugeridos
+                    </h6>
+                    <button type="button" class="btn btn-sm btn-outline-teal" id="btnBuscarMatch">
+                        <i class="fal fa-search mr-1"></i> Buscar por skills
+                    </button>
+                </div>
+                <p class="small text-muted mb-3">
+                    Compara los skills del proyecto con los <strong>skills evaluados</strong> registrados en cada empleado (perfil de persona).
+                </p>
+                <div id="sugeridosBox">
+                    {% include 'master/includes/proyecto_sugeridos.html' with sugeridos=sugeridos %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% include 'master/includes/persona_edit_styles.html' %}
+<style>
+    .btn-outline-teal { color: #0f766e; border: 1px solid #99f6e4; background: #fff; }
+    .btn-outline-teal:hover { background: #f0fdfa; color: #0f766e; }
+    .match-score {
+        min-width: 48px; height: 28px; border-radius: 8px; background: #f0fdfa; color: #0f766e;
+        font-weight: 800; display: inline-flex; align-items: center; justify-content: center; font-size: 0.85rem;
+    }
+    .match-score.low { background: #f1f5f9; color: #64748b; }
+    .match-score.mid { background: #ecfccb; color: #3f6212; }
+    .match-score.high { background: #ccfbf1; color: #0f766e; }
+</style>
+<script src="{% static 'js/vendors.bundle.js' %}"></script>
+<script src="{% static 'js/app.bundle.js' %}"></script>
+<script>
+function renderSugeridos(resultados) {
+    const box = document.getElementById('sugeridosBox');
+    if (!resultados || !resultados.length) {
+        box.innerHTML = '<p class="text-muted small mb-0">Sin coincidencias. Agrega skills y vuelve a buscar.</p>';
+        return;
+    }
+    let html = '<div class="list-group list-group-flush">';
+    resultados.forEach(function (r) {
+        const cls = r.score >= 70 ? 'high' : (r.score >= 40 ? 'mid' : 'low');
+        html += `
+        <div class="d-flex align-items-start justify-content-between py-3 border-bottom">
+            <div class="pr-2">
+                <a href="${r.perfil_url}" class="font-weight-bold text-dark">${r.nombre}</a>
+                <div class="small text-muted">${r.cargo || ''}</div>
+                <div class="small mt-1">
+                    <span class="text-teal">${(r.matched || []).join(', ') || '—'}</span>
+                    ${(r.missing || []).length ? '<span class="text-muted"> · falta: ' + r.missing.join(', ') + '</span>' : ''}
+                </div>
+                <div class="small text-muted">Otras horas/sem: ${r.horas_otras}</div>
+            </div>
+            <span class="match-score ${cls}">${r.score}%</span>
+        </div>`;
+    });
+    html += '</div>';
+    box.innerHTML = html;
+}
+
+document.getElementById('btnBuscarMatch').addEventListener('click', function () {
+    const skills = document.getElementById('id_skills_texto').value.trim();
+    if (!skills) {
+        alert('Escribe al menos un skill (separados por comas).');
+        return;
+    }
+    const box = document.getElementById('sugeridosBox');
+    box.innerHTML = '<p class="text-muted small">Buscando...</p>';
+    fetch('{% url "master:proyecto_sugerir" %}?skills=' + encodeURIComponent(skills), {
+        headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' }
+    }).then(r => r.json()).then(function (data) {
+        if (!data.success) throw new Error();
+        renderSugeridos(data.resultados);
+    }).catch(function () {
+        box.innerHTML = '<p class="text-danger small">No se pudo buscar.</p>';
+    });
+});
+</script>
+{% endblock %}

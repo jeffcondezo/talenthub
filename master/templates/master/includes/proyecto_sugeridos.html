@@ -1,0 +1,26 @@
+{% if sugeridos %}
+<div class="list-group list-group-flush">
+    {% for r in sugeridos %}
+    <div class="d-flex align-items-start justify-content-between py-3 border-bottom">
+        <div class="pr-2">
+            <a href="{% url 'master:persona_detail' r.persona.id %}" class="font-weight-bold text-dark">
+                {{ r.persona.nombre_completo }}
+            </a>
+            <div class="small text-muted">{{ r.colaborador.cargo.nombre }}</div>
+            <div class="small mt-1">
+                <span class="text-teal">{{ r.matched|join:", "|default:"—" }}</span>
+                {% if r.missing %}
+                <span class="text-muted"> · falta: {{ r.missing|join:", " }}</span>
+                {% endif %}
+            </div>
+            <div class="small text-muted">Otras horas/sem: {{ r.horas_otras }}</div>
+        </div>
+        <span class="match-score {% if r.score >= 70 %}high{% elif r.score >= 40 %}mid{% else %}low{% endif %}">
+            {{ r.score }}%
+        </span>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<p class="text-muted small mb-0">Escribe skills y pulsa «Buscar por skills» para ver candidatos con skills evaluados en su perfil.</p>
+{% endif %}
