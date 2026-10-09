@@ -17,8 +17,8 @@ MODULOS_MENU = [
     {'clave': 'inicio', 'label': 'Dashboard', 'url_name': 'master:inicio', 'icon': 'fal fa-home-alt'},
     {'clave': 'convocatorias', 'label': 'Convocatorias', 'url_name': 'master:convocatorias', 'icon': 'fal fa-search'},
     {'clave': 'colaboradores', 'label': 'Empleados', 'url_name': 'master:colaboradores', 'icon': 'fal fa-users'},
-    # Oculto de momento: Aprender
-    # {'clave': 'capacitacion', 'label': 'Aprender', 'url_name': 'master:capacitacion', 'icon': 'fal fa-book-open'},
+    # Se renderiza en sidebar como dos ítems (Inducción / Capacitaciones)
+    {'clave': 'capacitacion', 'label': 'Aprender', 'url_name': 'master:aprender_induccion', 'icon': 'fal fa-book-open'},
     {'clave': 'proyecto', 'label': 'Proyectos', 'url_name': 'master:proyecto', 'icon': 'fal fa-briefcase'},
     {'clave': 'analitica', 'label': 'Analíticas', 'url_name': 'master:analitica', 'icon': 'fal fa-chart-bar'},
 ]
@@ -41,6 +41,8 @@ PATH_PREFIX_TO_MODULO = [
     ('/master/personas', 'colaboradores'),
     ('/master/cv/', 'colaboradores'),
     ('/master/cv', 'colaboradores'),
+    ('/master/aprender/', 'capacitacion'),
+    ('/master/aprender', 'capacitacion'),
     ('/master/capacitacion/', 'capacitacion'),
     ('/master/capacitacion', 'capacitacion'),
     ('/master/proyecto/', 'proyecto'),
@@ -62,6 +64,10 @@ PATH_ALWAYS_ALLOWED_PREFIXES = (
     '/master/ajustes',
     '/master/mi-perfil',
     '/master/mis-actividades',
+    '/master/aprender/mi-',
+    '/master/aprender/capacitaciones',
+    '/master/aprender/inscribir/',
+    '/master/aprender/mi-curso/',
     '/master/ajax/',
     '/master/ajax',
     '/master/registro',

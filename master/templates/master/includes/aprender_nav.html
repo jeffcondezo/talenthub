@@ -1,0 +1,31 @@
+{% if seccion == 'induccion' %}
+<div class="panel-talent mb-4 py-3">
+    <div class="d-flex flex-wrap align-items-center" style="gap: 8px;">
+        <a href="{% url 'master:aprender_induccion_cursos' %}"
+           class="btn btn-sm {% if '/induccion/cursos' in request.path %}btn-teal text-white{% else %}btn-outline-secondary{% endif %} btn-pills">
+            <i class="fal fa-books mr-1"></i> Cursos
+        </a>
+        <a href="{% url 'master:aprender_rutas' %}"
+           class="btn btn-sm {% if '/induccion/rutas' in request.path %}btn-teal text-white{% else %}btn-outline-secondary{% endif %} btn-pills">
+            <i class="fal fa-route mr-1"></i> Rutas
+        </a>
+        <a href="{% url 'master:aprender_induccion_seguimiento' %}"
+           class="btn btn-sm {% if '/induccion/seguimiento' in request.path %}btn-teal text-white{% else %}btn-outline-secondary{% endif %} btn-pills">
+            <i class="fal fa-tasks mr-1"></i> Seguimiento
+        </a>
+    </div>
+</div>
+{% elif seccion == 'capacitacion' %}
+<div class="panel-talent mb-4 py-3">
+    <div class="d-flex flex-wrap align-items-center" style="gap: 8px;">
+        <a href="{% url 'master:aprender_cap_cursos' %}"
+           class="btn btn-sm {% if '/capacitacion/cursos' in request.path %}btn-teal text-white{% else %}btn-outline-secondary{% endif %} btn-pills">
+            <i class="fal fa-books mr-1"></i> Cursos
+        </a>
+        <a href="{% url 'master:aprender_cap_seguimiento' %}"
+           class="btn btn-sm {% if '/capacitacion/seguimiento' in request.path %}btn-teal text-white{% else %}btn-outline-secondary{% endif %} btn-pills">
+            <i class="fal fa-tasks mr-1"></i> Seguimiento
+        </a>
+    </div>
+</div>
+{% endif %}

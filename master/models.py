@@ -2171,3 +2171,264 @@ class AsignacionProyecto(models.Model):
     def __str__(self):
         persona = self.colaborador.persona.nombre_completo if self.colaborador.persona_id else '—'
         return f'{persona} → {self.proyecto.nombre}'
+
+
+# ===== Módulo Aprender =====
+
+
+class CursoAprendizaje(models.Model):
+    """Catálogo de cursos: inducción o capacitación (mutuamente excluyentes; recursos solo por URL)."""
+
+    TIPO_CHOICES = [
+        ('INDUCCION', 'Inducción'),
+        ('CAPACITACION', 'Capacitación'),
+    ]
+    ALCANCE_CHOICES = [
+        ('TODOS', 'Todos los empleados'),
+        ('POR_CARGO', 'Solo cargos seleccionados'),
+    ]
+
+    nombre = models.CharField(max_length=200, verbose_name='Nombre del curso')
+    descripcion = models.TextField(
+        blank=True,
+        null=True,
+        verbose_name='Descripción / flujo',
+        help_text='Instrucciones para el empleado (orden de videos, pasos, etc.).',
+    )
+    recursos = models.JSONField(
+        default=list,
+        blank=True,
+        verbose_name='Recursos',
+        help_text='Lista de {titulo, url}.',
+    )
+    enlace_evaluacion = models.URLField(
+        max_length=500,
+        blank=True,
+        null=True,
+        verbose_name='Enlace de evaluación',
+        help_text='Ej. Google Forms u otra plataforma externa.',
+    )
+    nota_minima = models.DecimalField(
+        max_digits=4,
+        decimal_places=2,
+        default=11,
+        verbose_name='Nota mínima aprobatoria',
+        help_text='Escala 0–20. Default 11.',
+    )
+    tipo = models.CharField(
+        max_length=20,
+        choices=TIPO_CHOICES,
+        default='INDUCCION',
+        verbose_name='Tipo',
+        help_text='Inducción o capacitación (mutuamente excluyentes).',
+    )
+    alcance = models.CharField(
+        max_length=20,
+        choices=ALCANCE_CHOICES,
+        default='TODOS',
+        verbose_name='Visibilidad (capacitación)',
+    )
+    cargos_visibles = models.ManyToManyField(
+        Cargo,
+        through='CursoCargoVisible',
+        related_name='cursos_aprendizaje',
+        blank=True,
+        verbose_name='Cargos visibles',
+    )
+    activo = models.BooleanField(default=True, verbose_name='Activo')
+    creado_por = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        related_name='cursos_aprendizaje_creados',
+    )
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    fecha_actualizacion = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'Curso de aprendizaje'
+        verbose_name_plural = 'Cursos de aprendizaje'
+        ordering = ['nombre']
+
+    def __str__(self):
+        return self.nombre
+
+    def visible_para_cargo(self, cargo):
+        if self.alcance == 'TODOS':
+            return True
+        if not cargo:
+            return False
+        return self.cargos_visibles.filter(pk=cargo.pk).exists()
+
+
+class CursoCargoVisible(models.Model):
+    curso = models.ForeignKey(
+        CursoAprendizaje,
+        on_delete=models.CASCADE,
+        related_name='visibilidades_cargo',
+    )
+    cargo = models.ForeignKey(
+        Cargo,
+        on_delete=models.CASCADE,
+        related_name='visibilidades_curso',
+    )
+
+    class Meta:
+        verbose_name = 'Visibilidad de curso por cargo'
+        verbose_name_plural = 'Visibilidades de curso por cargo'
+        unique_together = ('curso', 'cargo')
+
+    def __str__(self):
+        return f'{self.curso.nombre} → {self.cargo.nombre}'
+
+
+class RutaInduccion(models.Model):
+    """Ruta de inducción asociada a un cargo (una por cargo)."""
+
+    cargo = models.OneToOneField(
+        Cargo,
+        on_delete=models.CASCADE,
+        related_name='ruta_induccion',
+        verbose_name='Cargo',
+    )
+    activo = models.BooleanField(default=True, verbose_name='Activo')
+    cursos = models.ManyToManyField(
+        CursoAprendizaje,
+        through='RutaInduccionCurso',
+        through_fields=('ruta', 'curso'),
+        related_name='rutas_induccion',
+        blank=True,
+    )
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    fecha_actualizacion = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'Ruta de inducción'
+        verbose_name_plural = 'Rutas de inducción'
+        ordering = ['cargo__area__nombre', 'cargo__nombre']
+
+    def __str__(self):
+        return f'Ruta: {self.cargo.nombre}'
+
+
+class RutaInduccionCurso(models.Model):
+    """Curso dentro de una ruta, con orden y prerequisito opcional."""
+
+    ruta = models.ForeignKey(
+        RutaInduccion,
+        on_delete=models.CASCADE,
+        related_name='items',
+    )
+    curso = models.ForeignKey(
+        CursoAprendizaje,
+        on_delete=models.CASCADE,
+        related_name='items_ruta',
+    )
+    orden = models.PositiveIntegerField(default=0, verbose_name='Orden')
+    prerequisito = models.ForeignKey(
+        CursoAprendizaje,
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        related_name='desbloquea_en_rutas',
+        verbose_name='Curso requisito',
+        help_text='Si está vacío, el curso está disponible desde el inicio.',
+    )
+
+    class Meta:
+        verbose_name = 'Curso en ruta de inducción'
+        verbose_name_plural = 'Cursos en rutas de inducción'
+        unique_together = ('ruta', 'curso')
+        ordering = ['orden', 'id']
+
+    def __str__(self):
+        return f'{self.orden}. {self.curso.nombre} ({self.ruta.cargo.nombre})'
+
+
+class AsignacionCurso(models.Model):
+    """Asignación / progreso de un curso para un colaborador."""
+
+    ORIGEN_CHOICES = [
+        ('INDUCCION', 'Inducción'),
+        ('CAPACITACION', 'Capacitación'),
+    ]
+    ESTADO_CHOICES = [
+        ('PENDIENTE', 'Pendiente'),
+        ('EN_CURSO', 'En curso'),
+        ('APROBADO', 'Aprobado'),
+        ('DESAPROBADO', 'Desaprobado'),
+    ]
+
+    colaborador = models.ForeignKey(
+        Colaborador,
+        on_delete=models.CASCADE,
+        related_name='asignaciones_curso',
+        verbose_name='Colaborador',
+    )
+    curso = models.ForeignKey(
+        CursoAprendizaje,
+        on_delete=models.CASCADE,
+        related_name='asignaciones',
+        verbose_name='Curso',
+    )
+    origen = models.CharField(
+        max_length=20,
+        choices=ORIGEN_CHOICES,
+        default='INDUCCION',
+        verbose_name='Origen',
+    )
+    estado = models.CharField(
+        max_length=20,
+        choices=ESTADO_CHOICES,
+        default='PENDIENTE',
+        verbose_name='Estado',
+    )
+    fecha_asignacion = models.DateTimeField(auto_now_add=True)
+    fecha_nota = models.DateTimeField(blank=True, null=True)
+    nota = models.DecimalField(
+        max_digits=4,
+        decimal_places=2,
+        blank=True,
+        null=True,
+        verbose_name='Nota',
+    )
+    comentario_evaluador = models.TextField(
+        blank=True,
+        null=True,
+        verbose_name='Comentario del evaluador',
+    )
+    evaluado_por = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        related_name='cursos_evaluados',
+    )
+    fecha_actualizacion = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'Asignación de curso'
+        verbose_name_plural = 'Asignaciones de curso'
+        unique_together = ('colaborador', 'curso', 'origen')
+        ordering = ['-fecha_asignacion']
+
+    def __str__(self):
+        persona = self.colaborador.persona.nombre_completo if self.colaborador.persona_id else '—'
+        return f'{persona}: {self.curso.nombre} ({self.estado})'
+
+    @property
+    def aprobado(self):
+        return self.estado == 'APROBADO'
+
+    def aplicar_nota(self, nota, user=None, comentario=None):
+        from django.utils import timezone as tz
+        self.nota = nota
+        self.fecha_nota = tz.now()
+        if comentario is not None:
+            self.comentario_evaluador = comentario
+        if user is not None:
+            self.evaluado_por = user
+        minima = self.curso.nota_minima if self.curso_id else 11
+        self.estado = 'APROBADO' if nota is not None and nota >= minima else 'DESAPROBADO'
+        self.save()

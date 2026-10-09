@@ -11,9 +11,21 @@
 
         {% for item in modulos_menu %}
         {% if item.clave in user_modulos %}
-        <a class="nav-link{% if item.clave == 'inicio' and '/master/inicio' in request.path %} active{% elif item.clave == 'convocatorias' and '/master/convocatorias' in request.path or item.clave == 'convocatorias' and '/master/postulante' in request.path or item.clave == 'convocatorias' and '/master/postulaciones' in request.path %} active{% elif item.clave == 'colaboradores' and '/master/colaboradores' in request.path or item.clave == 'colaboradores' and '/master/personas' in request.path or item.clave == 'colaboradores' and '/master/cv/' in request.path %} active{% elif item.clave == 'capacitacion' and '/master/capacitacion' in request.path or item.clave == 'capacitacion' and '/master/induccion' in request.path %} active{% elif item.clave == 'proyecto' and '/master/proyecto' in request.path or item.clave == 'proyecto' and '/master/perfiles' in request.path %} active{% elif item.clave == 'analitica' and '/master/analitica' in request.path %} active{% endif %}" href="{% url item.url_name %}">
-            <i class="{{ item.icon }}"></i> <span>{{ item.label }}</span>
-        </a>
+            {% if item.clave == 'capacitacion' %}
+            {# Aprender se muestra como dos entradas separadas para quien tiene permiso #}
+            <a class="nav-link{% if '/master/aprender/induccion' in request.path %} active{% endif %}"
+               href="{% url 'master:aprender_induccion' %}">
+                <i class="fal fa-user-graduate"></i> <span>Inducción</span>
+            </a>
+            <a class="nav-link{% if '/master/aprender/capacitacion' in request.path and '/capacitaciones' not in request.path %} active{% endif %}"
+               href="{% url 'master:aprender_capacitacion' %}">
+                <i class="fal fa-chalkboard-teacher"></i> <span>Capacitaciones</span>
+            </a>
+            {% else %}
+            <a class="nav-link{% if item.clave == 'inicio' and '/master/inicio' in request.path %} active{% elif item.clave == 'convocatorias' and '/master/convocatorias' in request.path or item.clave == 'convocatorias' and '/master/postulante' in request.path or item.clave == 'convocatorias' and '/master/postulaciones' in request.path %} active{% elif item.clave == 'colaboradores' and '/master/colaboradores' in request.path or item.clave == 'colaboradores' and '/master/personas' in request.path or item.clave == 'colaboradores' and '/master/cv/' in request.path %} active{% elif item.clave == 'proyecto' and '/master/proyecto' in request.path or item.clave == 'proyecto' and '/master/perfiles' in request.path %} active{% elif item.clave == 'analitica' and '/master/analitica' in request.path %} active{% endif %}" href="{% url item.url_name %}">
+                <i class="{{ item.icon }}"></i> <span>{{ item.label }}</span>
+            </a>
+            {% endif %}
         {% endif %}
         {% endfor %}
 
@@ -31,6 +43,14 @@
         </a>
         <a class="nav-link{% if '/master/mis-actividades' in request.path %} active{% endif %}" href="{% url 'master:mis_actividades' %}">
             <i class="fal fa-calendar-check"></i> <span>Mis actividades</span>
+        </a>
+        <a class="nav-link{% if '/master/aprender/mi-induccion' in request.path or '/master/aprender/mi-curso' in request.path %} active{% endif %}"
+           href="{% url 'master:aprender_mi_induccion' %}">
+            <i class="fal fa-user-graduate"></i> <span>Mi inducción</span>
+        </a>
+        <a class="nav-link{% if '/master/aprender/capacitaciones' in request.path %} active{% endif %}"
+           href="{% url 'master:aprender_capacitaciones' %}">
+            <i class="fal fa-chalkboard-teacher"></i> <span>Capacitaciones</span>
         </a>
         {% endif %}
 

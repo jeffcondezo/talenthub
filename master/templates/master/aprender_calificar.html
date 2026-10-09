@@ -1,0 +1,51 @@
+{% extends 'master/includes/base.html' %}
+{% load static %}
+{% block title %}Calificar curso{% endblock %}
+{% block content %}
+<div class="container-fluid persona-edit-page">
+    <div class="d-flex align-items-center justify-content-between mb-4 pb-3 border-bottom">
+        <div>
+            <h3 class="font-weight-800 mb-0 persona-edit-title">Calificar</h3>
+            <p class="text-muted mb-0 mt-1">{{ asignacion.colaborador.persona.nombre_completo }} · {{ asignacion.curso.nombre }}</p>
+        </div>
+        <a href="{{ volver_url }}" class="btn btn-outline-secondary btn-pills">Volver</a>
+    </div>
+    {% include 'master/includes/aprender_nav.html' %}
+    <div class="row">
+        <div class="col-lg-5">
+            <div class="panel-talent mb-4">
+                <h6 class="section-title-talent mb-3">Curso</h6>
+                <p class="mb-1"><strong>Nota mínima:</strong> {{ asignacion.curso.nota_minima }}</p>
+                <p class="mb-1"><strong>Origen:</strong> {{ asignacion.get_origen_display }}</p>
+                <p class="mb-1"><strong>Estado actual:</strong> {{ asignacion.get_estado_display }}</p>
+                {% if asignacion.curso.enlace_evaluacion %}
+                <p class="mb-0"><a href="{{ asignacion.curso.enlace_evaluacion }}" target="_blank" rel="noopener">Abrir evaluación externa</a></p>
+                {% endif %}
+            </div>
+        </div>
+        <div class="col-lg-7">
+            <div class="panel-talent mb-4">
+                <h6 class="section-title-talent mb-3">Registrar nota</h6>
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label class="form-label">{{ form.nota.label }}</label>
+                        {{ form.nota }}
+                        {% for e in form.nota.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">{{ form.comentario_evaluador.label }}</label>
+                        {{ form.comentario_evaluador }}
+                    </div>
+                    <button type="submit" class="btn btn-teal text-white btn-pills font-weight-bold">
+                        <i class="fal fa-check mr-1"></i> Guardar calificación
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% include 'master/includes/persona_edit_styles.html' %}
+<script src="{% static 'js/vendors.bundle.js' %}"></script>
+<script src="{% static 'js/app.bundle.js' %}"></script>
+{% endblock %}

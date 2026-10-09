@@ -1,0 +1,65 @@
+{% extends 'master/includes/base.html' %}
+{% load static %}
+{% block title %}{{ curso.nombre }}{% endblock %}
+{% block content %}
+<div class="container-fluid persona-edit-page">
+    <div class="d-flex align-items-center justify-content-between mb-4 pb-3 border-bottom flex-wrap">
+        <div class="d-flex align-items-center mb-2 mb-md-0">
+            <div class="icon-shape-avatar bg-teal-light text-teal mr-3"><i class="fal fa-book-open"></i></div>
+            <div>
+                <h3 class="font-weight-800 mb-0 persona-edit-title">{{ curso.nombre }}</h3>
+                <p class="text-muted mb-0 mt-1">
+                    {{ asignacion.get_origen_display }} · {{ asignacion.get_estado_display }}
+                    {% if asignacion.nota is not None %} · Nota: {{ asignacion.nota }}{% endif %}
+                </p>
+            </div>
+        </div>
+        <a href="{% if asignacion.origen == 'CAPACITACION' %}{% url 'master:aprender_capacitaciones' %}{% else %}{% url 'master:aprender_mi_induccion' %}{% endif %}"
+           class="btn btn-outline-secondary btn-pills">Volver</a>
+    </div>
+    {% include 'master/includes/aprender_nav.html' %}
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="panel-talent mb-4">
+                <h6 class="section-title-talent mb-3">Descripción / flujo</h6>
+                <p style="white-space:pre-wrap">{{ curso.descripcion|default:"Sin descripción." }}</p>
+            </div>
+            <div class="panel-talent mb-4">
+                <h6 class="section-title-talent mb-3">Recursos</h6>
+                {% for r in curso.recursos %}
+                <a href="{{ r.url }}" target="_blank" rel="noopener" class="d-flex align-items-center py-2 border-bottom text-dark">
+                    <i class="fal fa-external-link mr-2 text-teal"></i>
+                    <span>{{ r.titulo|default:"Recurso" }}</span>
+                </a>
+                {% empty %}
+                <p class="text-muted mb-0">No hay recursos cargados.</p>
+                {% endfor %}
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="panel-talent mb-4">
+                <h6 class="section-title-talent mb-3">Evaluación</h6>
+                {% if curso.enlace_evaluacion %}
+                <a href="{{ curso.enlace_evaluacion }}" target="_blank" rel="noopener" class="btn btn-teal text-white btn-block btn-pills mb-3">
+                    <i class="fal fa-clipboard-list mr-1"></i> Abrir evaluación
+                </a>
+                <p class="small text-muted">Complete el formulario externo. RRHH registrará su nota en el sistema.</p>
+                {% else %}
+                <p class="text-muted small">Sin enlace de evaluación. Espere la calificación de RRHH.</p>
+                {% endif %}
+                <p class="small mb-1"><strong>Nota mínima:</strong> {{ curso.nota_minima }}</p>
+                {% if asignacion.comentario_evaluador %}
+                <div class="mt-3 p-3" style="background:#f8fafc;border-radius:10px">
+                    <div class="small font-weight-bold mb-1">Comentario del evaluador</div>
+                    <div class="small">{{ asignacion.comentario_evaluador }}</div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% include 'master/includes/persona_edit_styles.html' %}
+<script src="{% static 'js/vendors.bundle.js' %}"></script>
+<script src="{% static 'js/app.bundle.js' %}"></script>
+{% endblock %}

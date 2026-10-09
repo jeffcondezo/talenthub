@@ -1,0 +1,73 @@
+{% extends 'master/includes/base.html' %}
+{% load static %}
+{% block title %}Mi inducción{% endblock %}
+{% block content %}
+<div class="container-fluid persona-edit-page">
+    <div class="d-flex align-items-center mb-4 pb-3 border-bottom">
+        <div class="icon-shape-avatar bg-teal-light text-teal mr-3"><i class="fal fa-user-graduate"></i></div>
+        <div>
+            <h3 class="font-weight-800 mb-0 persona-edit-title">Mi inducción</h3>
+            <p class="text-muted mb-0 mt-1">
+                {% if colaborador %}Ruta de {{ colaborador.cargo.nombre }} · {{ aprobados }}/{{ total }} aprobados{% else %}Sin ficha de empleado{% endif %}
+            </p>
+        </div>
+    </div>
+    {% include 'master/includes/aprender_nav.html' %}
+    {% if messages %}{% for message in messages %}
+    <div class="alert alert-{{ message.tags|default:'info' }}">{{ message }}</div>
+    {% endfor %}{% endif %}
+
+    {% if es_hr_sin_ficha %}
+    <div class="panel-talent"><p class="text-muted mb-0">Como administrador puede gestionar el módulo desde Seguimiento / Catálogo / Rutas. Esta vista es para empleados con cargo asignado.</p></div>
+    {% else %}
+    <div class="panel-talent">
+        {% for row in items %}
+        <div class="d-flex align-items-start justify-content-between py-3 border-bottom flex-wrap">
+            <div class="pr-3 mb-2">
+                <div class="d-flex align-items-center mb-1">
+                    <span class="badge-soft badge-soft-info mr-2">{{ row.item.orden }}</span>
+                    <strong>{{ row.curso.nombre }}</strong>
+                </div>
+                <div class="small text-muted">
+                    {% if not row.desbloqueado %}
+                    <i class="fal fa-lock mr-1"></i> Bloqueado — apruebe primero: {{ row.item.prerequisito.nombre }}
+                    {% elif row.estado == 'APROBADO' %}
+                    <span class="text-success">Aprobado{% if row.asignacion.nota is not None %} ({{ row.asignacion.nota }}){% endif %}</span>
+                    {% elif row.estado == 'DESAPROBADO' %}
+                    <span class="text-danger">Desaprobado{% if row.asignacion.nota is not None %} ({{ row.asignacion.nota }}){% endif %}</span>
+                    {% elif row.estado == 'EN_CURSO' %}
+                    En curso
+                    {% else %}
+                    Pendiente
+                    {% endif %}
+                </div>
+                {% if row.asignacion and row.asignacion.comentario_evaluador %}
+                <div class="small mt-1"><em>{{ row.asignacion.comentario_evaluador }}</em></div>
+                {% endif %}
+            </div>
+            <div>
+                {% if row.asignacion and row.desbloqueado %}
+                <a href="{% url 'master:aprender_mi_curso' row.asignacion.id %}" class="btn btn-sm btn-teal text-white btn-pills px-3">
+                    {% if row.estado == 'APROBADO' %}Ver{% else %}Abrir{% endif %}
+                </a>
+                {% elif not row.desbloqueado %}
+                <button class="btn btn-sm btn-secondary btn-pills px-3" disabled>Bloqueado</button>
+                {% else %}
+                <span class="text-muted small">Sin asignación</span>
+                {% endif %}
+            </div>
+        </div>
+        {% empty %}
+        <p class="text-muted mb-0 py-4 text-center">No hay ruta de inducción configurada para su cargo.</p>
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>
+{% include 'master/includes/persona_edit_styles.html' %}
+<style>
+.badge-soft{display:inline-block;padding:5px 10px;border-radius:6px;font-weight:700;font-size:.7rem}
+.badge-soft-info{background:#e0f2fe;color:#0369a1}
+</style>
+<script src="{% static 'js/vendors.bundle.js' %}"></script>
+<script src="{% static 'js/app.bundle.js' %}"></script>
+{% endblock %}

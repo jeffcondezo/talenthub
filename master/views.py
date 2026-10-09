@@ -1012,6 +1012,10 @@ def actualizar_estado_postulacion_ajax(request, pk):
     postulacion = get_object_or_404(Postulacion, pk=pk)
     estado = request.POST.get('estado') or request.POST.get('estado_postulacion')
     validos = {k for k, _ in Postulacion.ESTADO_POSTULACION_CHOICES}
+    # Compatibilidad con datos legacy guardados con etiqueta en español
+    label_to_code = {label: code for code, label in Postulacion.ESTADO_POSTULACION_CHOICES}
+    if estado in label_to_code:
+        estado = label_to_code[estado]
     if estado not in validos:
         return JsonResponse({'success': False, 'errors': {'general': ['Estado inválido']}}, status=400)
 
@@ -1267,12 +1271,16 @@ def colaborador_empleo_edit(request, id):
                 colaborador_actualizado = form.save(commit=False)
                 colaborador_actualizado.persona = persona
                 colaborador_actualizado.save()
-                messages.success(
-                    request,
-                    'Colaborador registrado correctamente.' if es_nuevo else 'Datos de empleo actualizados correctamente.',
-                )
                 if es_nuevo:
+                    from .aprender_services import asignar_ruta_induccion
+                    n_cursos = len(asignar_ruta_induccion(colaborador_actualizado))
+                    extra = f' Se asignaron {n_cursos} curso(s) de inducción.' if n_cursos else ''
+                    messages.success(
+                        request,
+                        f'Colaborador registrado correctamente.{extra}',
+                    )
                     return redirect('master:colaboradores')
+                messages.success(request, 'Datos de empleo actualizados correctamente.')
                 return redirect('master:persona_detail', id=persona.id)
             contratos = colaborador.contratos.all() if colaborador else []
     else:
@@ -3306,14 +3314,23 @@ def registrar_colaborador(request, postulacion_id):
                     colaborador.numero_empleado = f"EMP{nuevo_numero:03d}"
                 
                 colaborador.save()
+                from .aprender_services import asignar_ruta_induccion
+                n_cursos = len(asignar_ruta_induccion(colaborador))
+                extra = f' Se asignaron {n_cursos} curso(s) de inducción.' if n_cursos else ''
                 
                 if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
                     return JsonResponse({
                         'success': True, 
-                        'message': f'Colaborador registrado exitosamente. Número de empleado: {colaborador.numero_empleado}'
+                        'message': (
+                            f'Colaborador registrado exitosamente. '
+                            f'Número de empleado: {colaborador.numero_empleado}.{extra}'
+                        )
                     })
                 
-                messages.success(request, f'Colaborador registrado exitosamente. Número de empleado: {colaborador.numero_empleado}')
+                messages.success(
+                    request,
+                    f'Colaborador registrado exitosamente. Número de empleado: {colaborador.numero_empleado}.{extra}',
+                )
                 return redirect('master:postulantes', convocatoria_id=postulacion.convocatoria.id)
             else:
                 if request.headers.get('X-Requested-With') == 'XMLHttpRequest':

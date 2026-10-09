@@ -1,5 +1,6 @@
 from django.urls import path
 from . import views
+from . import aprender_views
 from django.contrib import admin
 from django.urls import path, include
 from django.views.generic import RedirectView # <--- Importante
@@ -41,9 +42,85 @@ urlpatterns = [
     # Página de logout
     path('logout/', views.CustomLogoutView.as_view(), name='logout'),
     
-    # Página principal - inducción
-    path('induccion/', views.induccion_view, name='induccion'),
-    
+    # Compatibilidad antiguas
+    path('induccion/', RedirectView.as_view(pattern_name='master:aprender_mi_induccion', permanent=False), name='induccion'),
+    path('capacitacion/', RedirectView.as_view(pattern_name='master:aprender_capacitaciones', permanent=False), name='capacitacion'),
+
+    # Aprender — hubs
+    path('aprender/', aprender_views.aprender_hub, name='aprender'),
+    path('aprender/induccion/', aprender_views.induccion_hub, name='aprender_induccion'),
+    path('aprender/capacitacion/', aprender_views.capacitacion_hub, name='aprender_capacitacion'),
+
+    # Admin inducción
+    path(
+        'aprender/induccion/cursos/',
+        aprender_views.curso_list,
+        {'tipo': 'INDUCCION'},
+        name='aprender_induccion_cursos',
+    ),
+    path(
+        'aprender/induccion/cursos/nuevo/',
+        aprender_views.curso_create,
+        {'tipo': 'INDUCCION'},
+        name='aprender_induccion_curso_create',
+    ),
+    path('aprender/induccion/rutas/', aprender_views.ruta_list, name='aprender_rutas'),
+    path('aprender/induccion/rutas/nueva/', aprender_views.ruta_create, name='aprender_ruta_create'),
+    path('aprender/induccion/rutas/<int:pk>/', aprender_views.ruta_detail, name='aprender_ruta_detail'),
+    path('aprender/induccion/rutas/<int:pk>/eliminar/', aprender_views.ruta_delete, name='aprender_ruta_delete'),
+    path(
+        'aprender/induccion/rutas/<int:pk>/item/<int:item_id>/eliminar/',
+        aprender_views.ruta_item_delete,
+        name='aprender_ruta_item_delete',
+    ),
+    path(
+        'aprender/induccion/seguimiento/',
+        aprender_views.seguimiento_list,
+        {'origen': 'INDUCCION'},
+        name='aprender_induccion_seguimiento',
+    ),
+
+    # Admin capacitaciones
+    path(
+        'aprender/capacitacion/cursos/',
+        aprender_views.curso_list,
+        {'tipo': 'CAPACITACION'},
+        name='aprender_cap_cursos',
+    ),
+    path(
+        'aprender/capacitacion/cursos/nuevo/',
+        aprender_views.curso_create,
+        {'tipo': 'CAPACITACION'},
+        name='aprender_cap_curso_create',
+    ),
+    path(
+        'aprender/capacitacion/seguimiento/',
+        aprender_views.seguimiento_list,
+        {'origen': 'CAPACITACION'},
+        name='aprender_cap_seguimiento',
+    ),
+
+    # CRUD compartido de curso / calificación
+    path('aprender/cursos/<int:pk>/editar/', aprender_views.curso_edit, name='aprender_curso_edit'),
+    path('aprender/cursos/<int:pk>/eliminar/', aprender_views.curso_delete, name='aprender_curso_delete'),
+    path('aprender/seguimiento/<int:pk>/calificar/', aprender_views.calificar_asignacion, name='aprender_calificar'),
+
+    # Redirects de URLs antiguas unificadas
+    path('aprender/cursos/', RedirectView.as_view(pattern_name='master:aprender_induccion_cursos', permanent=False), name='aprender_cursos'),
+    path('aprender/cursos/nuevo/', RedirectView.as_view(pattern_name='master:aprender_induccion_curso_create', permanent=False), name='aprender_curso_create'),
+    path('aprender/rutas/', RedirectView.as_view(pattern_name='master:aprender_rutas', permanent=False)),
+    path('aprender/seguimiento/', RedirectView.as_view(pattern_name='master:aprender_induccion_seguimiento', permanent=False), name='aprender_seguimiento'),
+
+    # Empleado (Cuenta)
+    path('aprender/mi-induccion/', aprender_views.mi_induccion, name='aprender_mi_induccion'),
+    path('aprender/mi-curso/<int:asignacion_id>/', aprender_views.mi_curso_detail, name='aprender_mi_curso'),
+    path('aprender/capacitaciones/', aprender_views.mis_capacitaciones, name='aprender_capacitaciones'),
+    path(
+        'aprender/inscribir/<int:curso_id>/',
+        aprender_views.inscribir_capacitacion,
+        name='aprender_inscribir',
+    ),
+
     # Proyectos
     path('proyecto/', views.proyecto_view, name='proyecto'),
     path('proyecto/nuevo/', views.proyecto_create, name='proyecto_create'),
@@ -64,7 +141,6 @@ urlpatterns = [
     ),
     path('perfiles/', views.perfiles_view, name='perfiles'),
     path('analitica/', views.analitica_view, name='analitica'),
-    path('capacitacion/', views.capacitacion_view, name='capacitacion'),
     path('cv/', views.cv_view, name='cv'),
     path('cv/<int:id>/', views.CVDetailView.as_view(), name='cv_detail'),
     

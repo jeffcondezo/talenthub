@@ -1,0 +1,224 @@
+{% extends 'master/includes/base.html' %}
+{% load static %}
+{% block title %}{{ titulo }}{% endblock %}
+{% block content %}
+<div class="container-fluid persona-edit-page">
+    <div class="d-flex align-items-center justify-content-between mb-4 pb-3 border-bottom flex-wrap">
+        <div class="d-flex align-items-center">
+            <div class="icon-shape-avatar bg-teal-light text-teal mr-3"><i class="fal fa-book"></i></div>
+            <div>
+                <h3 class="font-weight-800 mb-0 persona-edit-title">{{ titulo }}</h3>
+                <p class="text-muted mb-0 mt-1">Materiales y evaluación solo con enlaces externos.</p>
+            </div>
+        </div>
+        <a href="{{ list_url }}" class="btn btn-outline-secondary btn-pills px-3 py-2 font-weight-bold">
+            <i class="fal fa-arrow-left mr-1"></i> Volver
+        </a>
+    </div>
+    {% include 'master/includes/aprender_nav.html' %}
+    <div class="row">
+        <div class="col-xl-8">
+            <div class="panel-talent mb-4">
+                <form method="post" novalidate>
+                    {% csrf_token %}
+                    {% if form.non_field_errors %}<div class="alert alert-danger">{{ form.non_field_errors }}</div>{% endif %}
+                    <div class="mb-3">
+                        <span class="badge-soft badge-soft-info">
+                            {% if tipo_fijo == 'CAPACITACION' %}Capacitación{% else %}Inducción{% endif %}
+                        </span>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">{{ form.nombre.label }}</label>
+                        {{ form.nombre }}{% for e in form.nombre.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">{{ form.descripcion.label }}</label>
+                        {{ form.descripcion }}
+                        <small class="form-text text-muted">{{ form.descripcion.help_text }}</small>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="d-flex align-items-center justify-content-between mb-2 flex-wrap">
+                            <div>
+                                <label class="form-label mb-0">Recursos</label>
+                                <small class="form-text text-muted mt-0">Cada recurso es un enlace (video, documento, etc.).</small>
+                            </div>
+                            <button type="button" id="btnAddRecurso" class="btn btn-sm btn-outline-teal btn-pills mt-2 mt-md-0">
+                                <i class="fal fa-plus mr-1"></i> Agregar recurso
+                            </button>
+                        </div>
+                        <div id="recursosList">
+                            {% for r in form.recursos_iniciales %}
+                            <div class="recurso-card">
+                                <div class="recurso-card-head">
+                                    <span class="recurso-num">Recurso <span class="recurso-idx"></span></span>
+                                    <button type="button" class="btn btn-sm btn-link text-danger p-0 btn-remove-recurso" title="Quitar">
+                                        <i class="fal fa-trash-alt"></i> Quitar
+                                    </button>
+                                </div>
+                                <div class="form-group mb-2">
+                                    <label class="form-label small mb-1">Título</label>
+                                    <input type="text" name="recurso_titulo" class="form-control"
+                                           value="{{ r.titulo }}"
+                                           placeholder="Ej. Video introductorio, Manual PDF…">
+                                </div>
+                                <div class="form-group mb-0">
+                                    <label class="form-label small mb-1">Enlace (URL)</label>
+                                    <input type="url" name="recurso_url" class="form-control"
+                                           value="{{ r.url }}"
+                                           placeholder="https://…">
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">{{ form.enlace_evaluacion.label }}</label>
+                        {{ form.enlace_evaluacion }}
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4 form-group">
+                            <label class="form-label">{{ form.nota_minima.label }}</label>
+                            {{ form.nota_minima }}
+                            {% for e in form.nota_minima.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+                        </div>
+                        {% if mostrar_alcance %}
+                        <div class="col-md-8 form-group">
+                            <label class="form-label">{{ form.alcance.label }}</label>
+                            {{ form.alcance }}
+                        </div>
+                        {% else %}
+                        {{ form.alcance }}
+                        {% endif %}
+                    </div>
+                    {% if mostrar_alcance %}
+                    <div class="form-group" id="cargosBlock">
+                        <label class="form-label">{{ form.cargos.label }}</label>
+                        {{ form.cargos }}
+                        <small class="form-text text-muted">{{ form.cargos.help_text }}</small>
+                    </div>
+                    {% else %}
+                    {{ form.cargos }}
+                    {% endif %}
+                    <div class="switch-card mb-3">
+                        <div class="custom-control custom-switch">
+                            {{ form.activo }}
+                            <label class="custom-control-label font-weight-bold" for="{{ form.activo.id_for_label }}">Curso activo</label>
+                        </div>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center flex-wrap">
+                        {% if es_edicion and curso %}
+                        <a href="{% url 'master:aprender_curso_delete' curso.id %}" class="btn btn-outline-danger btn-pills px-3 mb-2">
+                            <i class="fal fa-trash mr-1"></i> Eliminar curso
+                        </a>
+                        {% else %}
+                        <span></span>
+                        {% endif %}
+                        <button type="submit" class="btn btn-teal text-white btn-pills px-4 font-weight-bold mb-2">
+                            <i class="fal fa-save mr-1"></i> Guardar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<template id="recursoCardTpl">
+    <div class="recurso-card">
+        <div class="recurso-card-head">
+            <span class="recurso-num">Recurso <span class="recurso-idx"></span></span>
+            <button type="button" class="btn btn-sm btn-link text-danger p-0 btn-remove-recurso" title="Quitar">
+                <i class="fal fa-trash-alt"></i> Quitar
+            </button>
+        </div>
+        <div class="form-group mb-2">
+            <label class="form-label small mb-1">Título</label>
+            <input type="text" name="recurso_titulo" class="form-control"
+                   placeholder="Ej. Video introductorio, Manual PDF…">
+        </div>
+        <div class="form-group mb-0">
+            <label class="form-label small mb-1">Enlace (URL)</label>
+            <input type="url" name="recurso_url" class="form-control" placeholder="https://…">
+        </div>
+    </div>
+</template>
+
+{% include 'master/includes/persona_edit_styles.html' %}
+<style>
+.switch-card{background:#f8fafc;border:1px solid #eef2f2;border-radius:12px;padding:14px 16px}
+.badge-soft{display:inline-block;padding:5px 10px;border-radius:6px;font-weight:700;font-size:.7rem}
+.badge-soft-info{background:#e0f2fe;color:#0369a1}
+.btn-outline-teal{color:#0d9488;border-color:#0d9488}
+.btn-outline-teal:hover{background:#0d9488;color:#fff}
+.recurso-card{
+    background:#f8fafc;
+    border:1px solid #e2e8f0;
+    border-radius:12px;
+    padding:14px 16px;
+    margin-bottom:12px;
+}
+.recurso-card-head{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom:10px;
+}
+.recurso-num{font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:#64748b}
+</style>
+<script src="{% static 'js/vendors.bundle.js' %}"></script>
+<script src="{% static 'js/app.bundle.js' %}"></script>
+<script>
+(function(){
+  var list = document.getElementById('recursosList');
+  var tpl = document.getElementById('recursoCardTpl');
+  var btnAdd = document.getElementById('btnAddRecurso');
+  if (!list || !tpl || !btnAdd) return;
+
+  function renumerar(){
+    var cards = list.querySelectorAll('.recurso-card');
+    cards.forEach(function(card, i){
+      var idx = card.querySelector('.recurso-idx');
+      if (idx) idx.textContent = String(i + 1);
+      var rm = card.querySelector('.btn-remove-recurso');
+      if (rm) rm.style.visibility = cards.length > 1 ? 'visible' : 'hidden';
+    });
+  }
+
+  function bindRemove(card){
+    var rm = card.querySelector('.btn-remove-recurso');
+    if (!rm) return;
+    rm.addEventListener('click', function(){
+      if (list.querySelectorAll('.recurso-card').length <= 1) return;
+      card.remove();
+      renumerar();
+    });
+  }
+
+  list.querySelectorAll('.recurso-card').forEach(bindRemove);
+
+  btnAdd.addEventListener('click', function(){
+    var node = tpl.content.cloneNode(true);
+    var card = node.querySelector('.recurso-card');
+    list.appendChild(node);
+    bindRemove(card);
+    renumerar();
+    var urlInput = card.querySelector('input[name="recurso_url"]');
+    if (urlInput) urlInput.focus();
+  });
+
+  renumerar();
+})();
+</script>
+{% if mostrar_alcance %}
+<script>
+(function(){
+  var alcance=document.getElementById('{{ form.alcance.id_for_label }}');
+  var block=document.getElementById('cargosBlock');
+  function t(){ if(!alcance||!block)return; block.style.display=alcance.value==='POR_CARGO'?'block':'none'; }
+  if(alcance){ alcance.addEventListener('change',t); t(); }
+})();
+</script>
+{% endif %}
+{% endblock %}

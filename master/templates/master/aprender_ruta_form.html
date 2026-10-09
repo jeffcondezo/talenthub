@@ -1,0 +1,30 @@
+{% extends 'master/includes/base.html' %}
+{% load static %}
+{% block title %}{{ titulo }}{% endblock %}
+{% block content %}
+<div class="container-fluid persona-edit-page">
+    <div class="d-flex align-items-center justify-content-between mb-4 pb-3 border-bottom">
+        <h3 class="font-weight-800 mb-0 persona-edit-title">{{ titulo }}</h3>
+        <a href="{% url 'master:aprender_rutas' %}" class="btn btn-outline-secondary btn-pills">Volver</a>
+    </div>
+    {% include 'master/includes/aprender_nav.html' %}
+    <div class="panel-talent" style="max-width:560px">
+        <form method="post">
+            {% csrf_token %}
+            <div class="form-group">
+                <label class="form-label">Cargo</label>
+                {{ form.cargo }}
+                {% for e in form.cargo.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+            </div>
+            <div class="custom-control custom-switch mb-3">
+                {{ form.activo }}
+                <label class="custom-control-label" for="{{ form.activo.id_for_label }}">Ruta activa</label>
+            </div>
+            <button type="submit" class="btn btn-teal text-white btn-pills">Crear y configurar cursos</button>
+        </form>
+    </div>
+</div>
+{% include 'master/includes/persona_edit_styles.html' %}
+<script src="{% static 'js/vendors.bundle.js' %}"></script>
+<script src="{% static 'js/app.bundle.js' %}"></script>
+{% endblock %}

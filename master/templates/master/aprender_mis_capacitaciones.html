@@ -1,0 +1,52 @@
+{% extends 'master/includes/base.html' %}
+{% load static %}
+{% block title %}Capacitaciones{% endblock %}
+{% block content %}
+<div class="container-fluid persona-edit-page">
+    <div class="d-flex align-items-center mb-4 pb-3 border-bottom">
+        <div class="icon-shape-avatar bg-teal-light text-teal mr-3"><i class="fal fa-chalkboard-teacher"></i></div>
+        <div>
+            <h3 class="font-weight-800 mb-0 persona-edit-title">Capacitaciones</h3>
+            <p class="text-muted mb-0 mt-1">Cursos libres disponibles para usted.</p>
+        </div>
+    </div>
+    {% include 'master/includes/aprender_nav.html' %}
+    {% if messages %}{% for message in messages %}
+    <div class="alert alert-{{ message.tags|default:'info' }}">{{ message }}</div>
+    {% endfor %}{% endif %}
+
+    {% if es_hr_sin_ficha %}
+    <div class="panel-talent"><p class="text-muted mb-0">Gestione el catálogo desde RRHH. La inscripción es para empleados.</p></div>
+    {% else %}
+    <div class="row">
+        {% for card in cards %}
+        <div class="col-md-6 col-xl-4 mb-4">
+            <div class="panel-talent h-100 d-flex flex-column">
+                <h5 class="font-weight-bold mb-2">{{ card.curso.nombre }}</h5>
+                <p class="small text-muted flex-grow-1">{{ card.curso.descripcion|truncatechars:120|default:"Sin descripción" }}</p>
+                {% if card.asignacion %}
+                <div class="mt-auto d-flex justify-content-between align-items-center">
+                    <span class="small">{{ card.asignacion.get_estado_display }}{% if card.asignacion.nota is not None %} · {{ card.asignacion.nota }}{% endif %}</span>
+                    <a href="{% url 'master:aprender_mi_curso' card.asignacion.id %}" class="btn btn-sm btn-teal text-white btn-pills">Abrir</a>
+                </div>
+                {% else %}
+                <form method="post" action="{% url 'master:aprender_inscribir' card.curso.id %}" class="mt-auto">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-sm btn-outline-teal btn-pills">Inscribirme</button>
+                </form>
+                {% endif %}
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12"><div class="panel-talent text-center text-muted py-5">No hay capacitaciones disponibles.</div></div>
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>
+{% include 'master/includes/persona_edit_styles.html' %}
+<style>
+.btn-outline-teal{color:#0f766e;border:1px solid #99f6e4;background:#fff}
+</style>
+<script src="{% static 'js/vendors.bundle.js' %}"></script>
+<script src="{% static 'js/app.bundle.js' %}"></script>
+{% endblock %}

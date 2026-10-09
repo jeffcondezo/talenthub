@@ -7,7 +7,8 @@ from django.db.models import Q
 from .models import (
     Postulacion, Convocatoria, FormacionAcademica, CursoEspecializacion,
     ExperienciaLaboral, Persona, CV, Colaborador, ContratoColaborador, PerfilAcceso,
-    ActividadSemanal, Proyecto, AsignacionProyecto, Skill,
+    ActividadSemanal, Proyecto, AsignacionProyecto, Skill, CursoAprendizaje,
+    RutaInduccion, RutaInduccionCurso, AsignacionCurso, Cargo,
 )
 from .proyecto_matching import parse_skills_texto
 from .actividades_catalogo import TIPOS_POR_GRUPO, tipo_pertenece_a_grupo
@@ -956,3 +957,180 @@ class AsignacionProyectoForm(forms.ModelForm):
         )
         self.fields['horas_semanales'].required = True
         self.fields['colaborador'].required = True
+
+
+class CursoAprendizajeForm(forms.ModelForm):
+    cargos = forms.ModelMultipleChoiceField(
+        queryset=Cargo.objects.filter(activo=True).select_related('area').order_by('area__nombre', 'nombre'),
+        required=False,
+        label='Cargos visibles',
+        widget=forms.SelectMultiple(attrs={'class': 'form-control', 'size': '8'}),
+        help_text='Solo aplica si el alcance es “Solo cargos seleccionados”.',
+    )
+
+    class Meta:
+        model = CursoAprendizaje
+        fields = [
+            'nombre', 'descripcion', 'enlace_evaluacion', 'nota_minima',
+            'alcance', 'activo',
+        ]
+        widgets = {
+            'nombre': forms.TextInput(attrs={'class': 'form-control'}),
+            'descripcion': forms.Textarea(attrs={'class': 'form-control', 'rows': 4}),
+            'enlace_evaluacion': forms.URLInput(attrs={'class': 'form-control', 'placeholder': 'https://forms.google.com/...'}),
+            'nota_minima': forms.NumberInput(attrs={'class': 'form-control', 'min': '0', 'max': '20', 'step': '0.01'}),
+            'alcance': forms.Select(attrs={'class': 'custom-select form-control'}),
+            'activo': forms.CheckboxInput(attrs={'class': 'custom-control-input'}),
+        }
+
+    def __init__(self, *args, tipo_fijo='INDUCCION', **kwargs):
+        self.tipo_fijo = tipo_fijo if tipo_fijo in ('INDUCCION', 'CAPACITACION') else 'INDUCCION'
+        super().__init__(*args, **kwargs)
+        self.fields['cargos'].label_from_instance = (
+            lambda c: f'{c.area.nombre} — {c.nombre}' if c.area_id else c.nombre
+        )
+        # Alcance solo aplica a capacitaciones libres
+        if self.tipo_fijo == 'INDUCCION':
+            self.fields['alcance'].initial = 'TODOS'
+            self.fields['alcance'].widget = forms.HiddenInput()
+            self.fields['cargos'].widget = forms.MultipleHiddenInput()
+        if self.instance and self.instance.pk:
+            self.fields['cargos'].initial = self.instance.cargos_visibles.all()
+
+    def recursos_iniciales(self):
+        """Lista de {titulo, url} para la UI de cajitas (POST o instancia)."""
+        if self.is_bound and hasattr(self.data, 'getlist'):
+            titulos = self.data.getlist('recurso_titulo')
+            urls = self.data.getlist('recurso_url')
+            items = []
+            for i, url in enumerate(urls):
+                titulo = titulos[i] if i < len(titulos) else ''
+                if (url or '').strip() or (titulo or '').strip():
+                    items.append({'titulo': (titulo or '').strip(), 'url': (url or '').strip()})
+            return items or [{'titulo': '', 'url': ''}]
+        recursos = []
+        if self.instance and self.instance.pk:
+            for r in self.instance.recursos or []:
+                url = (r.get('url') or '').strip()
+                if url:
+                    recursos.append({
+                        'titulo': (r.get('titulo') or '').strip(),
+                        'url': url,
+                    })
+        return recursos or [{'titulo': '', 'url': ''}]
+
+    def clean(self):
+        cleaned = super().clean()
+        titulos = self.data.getlist('recurso_titulo') if hasattr(self.data, 'getlist') else []
+        urls = self.data.getlist('recurso_url') if hasattr(self.data, 'getlist') else []
+        recursos = []
+        errores = []
+        for i, raw_url in enumerate(urls):
+            url = (raw_url or '').strip()
+            titulo = (titulos[i] if i < len(titulos) else '').strip()
+            if not url and not titulo:
+                continue
+            if not url.startswith(('http://', 'https://')):
+                errores.append(f'Recurso {len(recursos) + 1}: la URL debe empezar con http:// o https://.')
+                continue
+            recursos.append({'titulo': titulo or f'Recurso {len(recursos) + 1}', 'url': url})
+        if errores:
+            raise forms.ValidationError(errores)
+        cleaned['recursos_lista'] = recursos
+        return cleaned
+
+    def clean_nota_minima(self):
+        nota = self.cleaned_data.get('nota_minima')
+        if nota is None:
+            return 11
+        if nota < 0 or nota > 20:
+            raise forms.ValidationError('La nota mínima debe estar entre 0 y 20.')
+        return nota
+
+    def save(self, commit=True, user=None):
+        curso = super().save(commit=False)
+        curso.tipo = self.tipo_fijo
+        curso.recursos = self.cleaned_data.get('recursos_lista') or []
+        if self.tipo_fijo == 'INDUCCION':
+            curso.alcance = 'TODOS'
+        if user and not curso.pk:
+            curso.creado_por = user
+        if commit:
+            curso.save()
+            if curso.tipo == 'CAPACITACION' and curso.alcance == 'POR_CARGO':
+                curso.cargos_visibles.set(self.cleaned_data.get('cargos') or [])
+            else:
+                curso.cargos_visibles.clear()
+        return curso
+
+
+class RutaInduccionForm(forms.ModelForm):
+    class Meta:
+        model = RutaInduccion
+        fields = ['cargo', 'activo']
+        widgets = {
+            'cargo': forms.Select(attrs={'class': 'custom-select form-control'}),
+            'activo': forms.CheckboxInput(attrs={'class': 'custom-control-input'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        qs = Cargo.objects.filter(activo=True).select_related('area').order_by('area__nombre', 'nombre')
+        if self.instance and self.instance.pk:
+            qs = qs.filter(Q(ruta_induccion__isnull=True) | Q(pk=self.instance.cargo_id))
+        else:
+            qs = qs.filter(ruta_induccion__isnull=True)
+        self.fields['cargo'].queryset = qs
+        self.fields['cargo'].label_from_instance = (
+            lambda c: f'{c.area.nombre} — {c.nombre}' if c.area_id else c.nombre
+        )
+
+
+class RutaInduccionCursoForm(forms.ModelForm):
+    class Meta:
+        model = RutaInduccionCurso
+        fields = ['curso', 'orden', 'prerequisito']
+        widgets = {
+            'curso': forms.Select(attrs={'class': 'custom-select form-control'}),
+            'orden': forms.NumberInput(attrs={'class': 'form-control', 'min': '0'}),
+            'prerequisito': forms.Select(attrs={'class': 'custom-select form-control'}),
+        }
+
+    def __init__(self, *args, ruta=None, **kwargs):
+        self.ruta = ruta
+        super().__init__(*args, **kwargs)
+        cursos_ok = CursoAprendizaje.objects.filter(
+            activo=True,
+            tipo='INDUCCION',
+        ).order_by('nombre')
+        if ruta:
+            ya = list(ruta.items.values_list('curso_id', flat=True))
+            if self.instance and self.instance.curso_id:
+                ya = [i for i in ya if i != self.instance.curso_id]
+            cursos_ok = cursos_ok.exclude(id__in=ya)
+            en_ruta = CursoAprendizaje.objects.filter(
+                id__in=ruta.items.values_list('curso_id', flat=True)
+            ).order_by('nombre')
+            if self.instance and self.instance.curso_id:
+                en_ruta = en_ruta.exclude(pk=self.instance.curso_id)
+            self.fields['prerequisito'].queryset = en_ruta
+        else:
+            self.fields['prerequisito'].queryset = CursoAprendizaje.objects.none()
+        self.fields['curso'].queryset = cursos_ok
+        self.fields['prerequisito'].required = False
+        self.fields['prerequisito'].empty_label = '— Sin requisito —'
+
+
+class CalificarAsignacionForm(forms.Form):
+    nota = forms.DecimalField(
+        min_value=0,
+        max_value=20,
+        decimal_places=2,
+        label='Nota (0–20)',
+        widget=forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': '0', 'max': '20'}),
+    )
+    comentario_evaluador = forms.CharField(
+        required=False,
+        label='Comentario',
+        widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+    )
