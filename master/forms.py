@@ -11,7 +11,7 @@ from .models import (
     RutaInduccion, RutaInduccionCurso, AsignacionCurso, Cargo,
 )
 from .proyecto_matching import parse_skills_texto
-from .actividades_catalogo import TIPOS_POR_GRUPO, tipo_pertenece_a_grupo
+from .actividades_catalogo import GRUPO_CHOICES, TIPOS_POR_GRUPO, tipo_pertenece_a_grupo
 from .permissions import MODULOS_MENU
 
 
@@ -837,6 +837,8 @@ class ActividadSemanalForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         self.registro = kwargs.pop('registro', None)
         super().__init__(*args, **kwargs)
+        # Choices desde el catálogo (no desde BD): requiere el .py desplegado + reinicio
+        self.fields['grupo'].choices = [('', '---------')] + list(GRUPO_CHOICES)
         self.fields['tipo'].choices = [('', '---------')]
         grupo = self.data.get('grupo') if self.data else None
         if not grupo and self.instance.pk:
