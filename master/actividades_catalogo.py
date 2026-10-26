@@ -4,10 +4,12 @@ Catálogo de grupos y tipos de actividad semanal.
 
 GRUPO_CONSULTORIA = 'CONSULTORIA'
 GRUPO_COMERCIAL = 'COMERCIAL'
+GRUPO_CONSULTORIA_BI = 'CONSULTORIA_BI'
 
 GRUPO_CHOICES = [
     (GRUPO_CONSULTORIA, 'Consultoría técnica'),
     (GRUPO_COMERCIAL, 'Comercial y gestión de proyecto'),
+    (GRUPO_CONSULTORIA_BI, 'Consultoría en BI'),
 ]
 
 TIPOS_POR_GRUPO = {
@@ -22,6 +24,34 @@ TIPOS_POR_GRUPO = {
         ('PROGRAMACION_MESA_AYUDA', 'Actividades de programación para una solicitud por mesa de ayuda'),
         ('DOCUMENTACION_PROYECTO', 'Elaboración de documentación de proyecto'),
         ('CAPACITACION_CLIENTES', 'Capacitación a los clientes'),
+    ],
+    GRUPO_CONSULTORIA_BI: [
+        # Catálogo desde libro1.xlsx (únicos, sin repetidos)
+        ('BI_REV_REQ_FUNCIONALES', 'Revisión con usuarios requerimientos funcionales'),
+        ('BI_CREACION_MODELO_CONCEPTUAL', 'Creación modelo conceptual'),
+        ('BI_ELABORAR_REF', 'Elaborar Reporte Especificaciones Funcionales (REF)'),
+        ('BI_REVISAR_REF', 'Revisar Reporte Especificaciones Funcionales'),
+        ('BI_AJUSTES_DOCUMENTOS', 'Realizar Ajustes a Documentos'),
+        ('BI_MAPEAR_FUENTES_DATOS', 'Mapear las Fuentes de Datos'),
+        ('BI_DISENO_FISICO_MODELO_DATOS', 'Realizar Diseño Físico del Modelo de Datos'),
+        ('BI_REVISAR_MODELO_FISICO', 'Revisar Modelo Físico'),
+        ('BI_AJUSTES_MODELO_FISICO', 'Realizar Ajustes al Modelo Físico'),
+        ('BI_FASE_DEF_MODELO_SOLUCION', 'Fase de Definición del Modelo de la Solución Terminado'),
+        ('BI_ELABORAR_RET', 'Elaborar Documento Especificaciones Técnicas (RET)'),
+        ('BI_REVISAR_RET', 'Revisar Documento de Especificaciones Técnicas'),
+        ('BI_ELABORAR_DISENO_TABLEROS', 'Elaborar Documento de Diseño de Tableros'),
+        ('BI_REVISAR_DISENO_TABLEROS', 'Revisar Documento de Diseño de Tableros'),
+        ('BI_AJUSTES_DISENO_TABLEROS', 'Ajustes Documento de Diseño de Tableros'),
+        ('BI_DESARROLLO_TABLERO_POWER_BI', 'Desarrollo Tablero en Power BI'),
+        ('BI_REUNIONES_RELEVAMIENTO_FUNC', 'Reuniones de Relevamiento Funcional'),
+        ('BI_ELABORAR_REF_SIN_SIGLA', 'Elaborar Reporte Especificaciones Funcionales'),
+        ('BI_DOCUMENTOS_APROBADOS', 'Documentos Aprobados'),
+        ('BI_FASE_PLANIFICACION_TERMINADA', 'Fase de Planificación Terminada'),
+        ('BI_ANALISIS_FUENTES_DATOS', 'Análisis fuentes de datos'),
+        ('BI_DISENO_FISICO_MODELO_DWH', 'Realizar Diseño Físico del Modelo de Datos DWH'),
+        ('BI_ELABORAR_RET_SIN_SIGLA', 'Elaborar Documento Especificaciones Técnicas'),
+        ('BI_FASE_DESARROLLO_CARGA', 'Fase de Desarrollo de Procesos de Carga Terminado'),
+        ('BI_DESARROLLO_TABLERO_STRATEGY', 'Desarrollo Tablero en Strategy'),
     ],
     GRUPO_COMERCIAL: [
         ('PROSPECCION_CLIENTES', 'Prospección de nuevos clientes'),
